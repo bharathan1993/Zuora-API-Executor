@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react';
+import { useState, type ChangeEvent } from 'react';
 import type { FieldDefinition } from '../types/api';
 
 interface FormFieldProps {
@@ -9,6 +9,7 @@ interface FormFieldProps {
 }
 
 export const FormField = ({ field, value, onChange, path = '' }: FormFieldProps) => {
+  const [isExpanded, setIsExpanded] = useState(field.required || false);
   const fieldPath = path ? `${path}.${field.name}` : field.name;
   const displayName = field.name;
 
@@ -25,7 +26,7 @@ export const FormField = ({ field, value, onChange, path = '' }: FormFieldProps)
   };
 
   const renderInput = () => {
-    const baseClasses = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500";
+    const baseClasses = "w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 transition-colors duration-200";
 
     switch (field.type) {
       case 'boolean':
@@ -37,7 +38,7 @@ export const FormField = ({ field, value, onChange, path = '' }: FormFieldProps)
               checked={value || false}
               onChange={handleChange}
               aria-label={displayName}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              className="w-4 h-4 text-indigo-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-indigo-500 focus:ring-offset-white dark:focus:ring-offset-slate-900 transition-colors duration-200"
             />
           </div>
         );
@@ -82,7 +83,7 @@ export const FormField = ({ field, value, onChange, path = '' }: FormFieldProps)
 
       case 'object':
         return (
-          <div className="ml-4 space-y-4 border-l-2 border-gray-200 pl-4">
+          <div className="ml-4 space-y-4 border-l-2 border-slate-200 dark:border-slate-700 pl-4 transition-colors duration-200">
             {field.fields?.map((subField) => (
               <FormField
                 key={subField.name}
@@ -122,9 +123,9 @@ export const FormField = ({ field, value, onChange, path = '' }: FormFieldProps)
               required={field.required}
               className={baseClasses}
             >
-              <option value="">Select {displayName}</option>
+              <option value="" className="bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400">Select {displayName}</option>
               {field.enum.map((option) => (
-                <option key={option} value={option}>
+                <option key={option} value={option} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
                   {option}
                 </option>
               ))}
@@ -166,14 +167,35 @@ export const FormField = ({ field, value, onChange, path = '' }: FormFieldProps)
   if (field.type === 'object') {
     return (
       <div className="space-y-2">
-        <label className="block text-sm font-semibold text-gray-700">
-          {displayName}
-          {field.required && <span className="text-red-500 ml-1">*</span>}
-        </label>
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full flex items-center justify-between text-left group"
+        >
+          <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors cursor-pointer">
+            {displayName}
+            {field.required && <span className="text-rose-500 ml-1">*</span>}
+          </label>
+          <svg
+            className={`w-4 h-4 text-slate-400 transition-transform ${
+              isExpanded ? 'transform rotate-180' : ''
+            }`}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+        
         {field.description && (
-          <p className="text-sm text-gray-500 mb-2">{field.description}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">{field.description}</p>
         )}
-        {renderInput()}
+        
+        {isExpanded && renderInput()}
       </div>
     );
   }
@@ -181,12 +203,12 @@ export const FormField = ({ field, value, onChange, path = '' }: FormFieldProps)
   if (field.type === 'boolean') {
     return (
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
           {displayName}
-          {field.required && <span className="text-red-500 ml-1">*</span>}
+          {field.required && <span className="text-rose-500 ml-1">*</span>}
         </label>
         {field.description && (
-          <p className="text-sm text-gray-500">{field.description}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{field.description}</p>
         )}
         {renderInput()}
       </div>
@@ -195,12 +217,12 @@ export const FormField = ({ field, value, onChange, path = '' }: FormFieldProps)
 
   return (
     <div className="space-y-2">
-      <label htmlFor={fieldPath} className="block text-sm font-medium text-gray-700">
+      <label htmlFor={fieldPath} className="block text-sm font-medium text-slate-700 dark:text-slate-300">
         {displayName}
-        {field.required && <span className="text-red-500 ml-1">*</span>}
+        {field.required && <span className="text-rose-500 ml-1">*</span>}
       </label>
-      {field.description && field.type !== 'boolean' && (
-        <p className="text-sm text-gray-500">{field.description}</p>
+      {field.description && (
+        <p className="text-sm text-slate-500 dark:text-slate-400">{field.description}</p>
       )}
       {renderInput()}
     </div>

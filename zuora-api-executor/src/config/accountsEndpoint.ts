@@ -13,6 +13,11 @@ export const postAccountEndpoint: ApiEndpoint = {
   authType: 'bearer',
   headers: {
     'Content-Type': 'application/json',
+    'Idempotency-Key': '',
+    'Zuora-Track-Id': '',
+    'Zuora-Entity-Ids': '',
+    'Zuora-Org-Ids': '',
+    'Zuora-Version': '',
   },
   bodyFields: [
     // ===== REQUIRED FIELDS =====
@@ -49,6 +54,7 @@ export const postAccountEndpoint: ApiEndpoint = {
       type: 'object',
       required: true,
       description: 'Billing contact information',
+      section: 'Bill-To Contact',
       fields: [
         {
           name: 'firstName',
@@ -240,6 +246,57 @@ export const postAccountEndpoint: ApiEndpoint = {
       placeholder: 'Default Gateway',
       section: 'Payment Settings',
     },
+    {
+      name: 'hpmCreditCardPaymentMethodId',
+      label: 'HPM Credit Card Payment Method ID',
+      type: 'string',
+      required: false,
+      description: 'The ID of the payment method associated with this account',
+      section: 'Payment Settings',
+    },
+    {
+      name: 'paymentMethod',
+      label: 'Payment Method',
+      type: 'object',
+      required: false,
+      description: 'Payment method information',
+      section: 'Payment Settings',
+      fields: [
+        {
+          name: 'type',
+          label: 'Type',
+          type: 'string',
+          required: false,
+          enum: ['CreditCard', 'ACH', 'BankTransfer'],
+        },
+        {
+          name: 'creditCardType',
+          label: 'Card Type',
+          type: 'string',
+          required: false,
+          enum: ['Visa', 'MasterCard', 'AmericanExpress', 'Discover'],
+        },
+        {
+          name: 'creditCardNumber',
+          label: 'Card Number',
+          type: 'string',
+          required: false,
+          placeholder: 'xxxxxxxxxxxxxxxx',
+        },
+        {
+          name: 'creditCardExpirationMonth',
+          label: 'Exp Month',
+          type: 'number',
+          required: false,
+        },
+        {
+          name: 'creditCardExpirationYear',
+          label: 'Exp Year',
+          type: 'number',
+          required: false,
+        },
+      ],
+    },
 
     // ===== INVOICE SETTINGS =====
     {
@@ -312,6 +369,29 @@ export const postAccountEndpoint: ApiEndpoint = {
       description: 'Code identifying the reason for credit memo transactions',
       placeholder: 'Standard Adjustment',
       section: 'Invoice & Document Settings',
+    },
+    {
+      name: 'einvoiceProfile',
+      label: 'E-Invoice Profile',
+      type: 'object',
+      required: false,
+      description: 'Container for e-invoicing profile information',
+      section: 'Invoice & Document Settings',
+      fields: [
+         {
+             name: 'enabled',
+             label: 'Enabled',
+             type: 'boolean',
+             required: false,
+         },
+         {
+             name: 'businessCategory',
+             label: 'Business Category',
+             type: 'string',
+             required: false,
+             enum: ['B2B', 'B2C', 'B2G'],
+         }
+      ]
     },
 
     // ===== SOLD TO CONTACT =====
@@ -478,6 +558,15 @@ export const postAccountEndpoint: ApiEndpoint = {
 
     // ===== CREDIT & INVOICE SETTLEMENT =====
     {
+      name: 'applicationOrder',
+      label: 'Application Order',
+      type: 'string',
+      required: false,
+      description: 'The priority order to apply credit memos and/or unapplied payments to an invoice',
+      enum: ['CreditMemo', 'UnappliedPayment'],
+      section: 'Credit & Settlement Settings',
+    },
+    {
       name: 'applyCredit',
       label: 'Auto Apply Credit',
       type: 'boolean',
@@ -522,6 +611,128 @@ export const postAccountEndpoint: ApiEndpoint = {
       section: 'Credit & Settlement Settings',
     },
 
+    // ===== TAX SETTINGS =====
+    {
+        name: 'taxInfo',
+        label: 'Tax Information',
+        type: 'object',
+        required: false,
+        section: 'Tax Settings',
+        fields: [
+            {
+                name: 'VATId',
+                label: 'VAT ID',
+                type: 'string',
+                required: false,
+                description: 'EU Value Added Tax ID',
+            },
+            {
+                name: 'companyCode',
+                label: 'Company Code',
+                type: 'string',
+                required: false,
+                description: 'Unique code that identifies a company account in Avalara',
+            },
+            {
+                name: 'exemptCertificateId',
+                label: 'Exempt Certificate ID',
+                type: 'string',
+                required: false,
+                description: 'ID of the customer tax exemption certificate',
+            },
+            {
+                name: 'exemptCertificateType',
+                label: 'Exempt Certificate Type',
+                type: 'string',
+                required: false,
+                description: 'Type of tax exemption certificate that the customer holds',
+            },
+            {
+                name: 'exemptDescription',
+                label: 'Exempt Description',
+                type: 'string',
+                required: false,
+                description: 'Description of the tax exemption certificate',
+            },
+            {
+                name: 'exemptEffectiveDate',
+                label: 'Exempt Effective Date',
+                type: 'date',
+                required: false,
+                description: 'Date when the customer tax exemption starts (yyyy-mm-dd)',
+            },
+            {
+                name: 'exemptExpirationDate',
+                label: 'Exempt Expiration Date',
+                type: 'date',
+                required: false,
+                description: 'Date when the customer tax exemption expires (yyyy-mm-dd)',
+            },
+            {
+                name: 'exemptIssuingJurisdiction',
+                label: 'Exempt Issuing Jurisdiction',
+                type: 'string',
+                required: false,
+                description: 'Jurisdiction in which the customer tax exemption certificate was issued',
+            },
+            {
+                name: 'exemptStatus',
+                label: 'Exempt Status',
+                type: 'string',
+                required: false,
+                description: 'Status of the account tax exemption',
+                enum: ['Yes', 'No', 'pendingVerification'],
+            },
+             {
+                name: 'exemptEntityUseCode',
+                label: 'Exempt Entity Use Code',
+                type: 'string',
+                required: false,
+                description: 'A unique entity use code to apply exemptions in Avalara AvaTax',
+            }
+        ]
+    },
+
+    // ===== SUBSCRIPTION SETTINGS =====
+    {
+        name: 'subscription',
+        label: 'Initial Subscription',
+        type: 'object',
+        required: false,
+        description: 'Information to create a subscription for the new account',
+        section: 'Subscription Settings',
+        fields: [
+            {
+                name: 'termType',
+                label: 'Term Type',
+                type: 'string',
+                required: false,
+                enum: ['TERMED', 'EVERGREEN'],
+            },
+            {
+                name: 'contractEffectiveDate',
+                label: 'Contract Effective Date',
+                type: 'date',
+                required: false,
+            },
+            {
+                name: 'subscribeToRatePlans',
+                label: 'Rate Plans',
+                type: 'object',
+                required: false,
+                // Simplified for now, this can be complex
+                fields: [
+                    {
+                        name: 'productRatePlanId',
+                        label: 'Product Rate Plan ID',
+                        type: 'string',
+                        required: false,
+                    }
+                ]
+            }
+        ]
+    },
+
     // ===== COMMUNICATION SETTINGS =====
     {
       name: 'communicationProfileId',
@@ -549,6 +760,72 @@ export const postAccountEndpoint: ApiEndpoint = {
       description: 'Comma-separated list of additional email addresses for notifications',
       placeholder: 'email1@example.com, email2@example.com',
       section: 'Communication Settings',
+    },
+
+    // ===== INTEGRATIONS (NetSuite) =====
+    {
+      name: 'Class__NS',
+      label: 'Class (NetSuite)',
+      type: 'string',
+      required: false,
+      section: 'Integrations',
+    },
+    {
+      name: 'CustomerType__NS',
+      label: 'Customer Type (NetSuite)',
+      type: 'string',
+      required: false,
+      section: 'Integrations',
+    },
+    {
+      name: 'Department__NS',
+      label: 'Department (NetSuite)',
+      type: 'string',
+      required: false,
+      section: 'Integrations',
+    },
+    {
+      name: 'IntegrationId__NS',
+      label: 'Integration ID (NetSuite)',
+      type: 'string',
+      required: false,
+      section: 'Integrations',
+    },
+    {
+      name: 'IntegrationStatus__NS',
+      label: 'Integration Status (NetSuite)',
+      type: 'string',
+      required: false,
+      section: 'Integrations',
+    },
+    {
+      name: 'Location__NS',
+      label: 'Location (NetSuite)',
+      type: 'string',
+      required: false,
+      section: 'Integrations',
+    },
+    {
+      name: 'Subsidiary__NS',
+      label: 'Subsidiary (NetSuite)',
+      type: 'string',
+      required: false,
+      section: 'Integrations',
+    },
+    {
+      name: 'SyncDate__NS',
+      label: 'Sync Date (NetSuite)',
+      type: 'string',
+      required: false,
+      section: 'Integrations',
+    },
+    {
+      name: 'SynctoNetSuite__NS',
+      label: 'Sync to NetSuite',
+      type: 'string',
+      required: false,
+      enum: ['Yes', 'No'],
+      section: 'Integrations',
     },
 
     // ===== ADVANCED SETTINGS =====

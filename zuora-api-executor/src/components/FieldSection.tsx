@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { FieldDefinition } from '../types/api';
 import { FormField } from './FormField';
 
@@ -9,6 +9,8 @@ interface FieldSectionProps {
   onFieldChange: (fieldName: string, value: any) => void;
   defaultExpanded?: boolean;
   isAdvanced?: boolean;
+  isExpanded?: boolean;
+  onToggle?: () => void;
 }
 
 export const FieldSection = ({
@@ -18,31 +20,43 @@ export const FieldSection = ({
   onFieldChange,
   defaultExpanded = true,
   isAdvanced = false,
+  isExpanded: controlledIsExpanded,
+  onToggle,
 }: FieldSectionProps) => {
-  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const [localIsExpanded, setLocalIsExpanded] = useState(defaultExpanded);
+
+  const isExpanded = controlledIsExpanded !== undefined ? controlledIsExpanded : localIsExpanded;
+
+  const handleToggle = () => {
+    if (onToggle) {
+      onToggle();
+    } else {
+      setLocalIsExpanded(!localIsExpanded);
+    }
+  };
 
   if (fields.length === 0) return null;
 
   return (
-    <div className="border border-gray-200 rounded-lg mb-4">
+    <div className="border border-slate-200 dark:border-slate-700 rounded-lg mb-4 bg-slate-50 dark:bg-slate-800/30 overflow-hidden transition-colors duration-200">
       <button
         type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-4 py-3 flex items-center justify-between bg-gray-50 hover:bg-gray-100 rounded-t-lg transition-colors"
+        onClick={handleToggle}
+        className="w-full px-4 py-3 flex items-center justify-between bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-t-lg transition-colors border-b border-transparent hover:border-slate-200 dark:hover:border-slate-700"
       >
         <div className="flex items-center space-x-2">
-          <span className="font-semibold text-gray-700">{title}</span>
+          <span className="font-semibold text-slate-700 dark:text-slate-200">{title}</span>
           {isAdvanced && (
-            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+            <span className="text-xs bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 px-2 py-1 rounded border border-indigo-200 dark:border-indigo-500/30">
               Optional
             </span>
           )}
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-slate-500">
             ({fields.length} field{fields.length !== 1 ? 's' : ''})
           </span>
         </div>
         <svg
-          className={`w-5 h-5 text-gray-500 transition-transform ${
+          className={`w-5 h-5 text-slate-400 transition-transform ${
             isExpanded ? 'transform rotate-180' : ''
           }`}
           fill="none"
@@ -57,7 +71,7 @@ export const FieldSection = ({
       </button>
 
       {isExpanded && (
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 border-t border-slate-200 dark:border-slate-700/50">
           {fields.map((field) => (
             <FormField
               key={field.name}
