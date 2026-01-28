@@ -12,10 +12,18 @@ export class ApiExecutor {
   }
 
   async execute(request: ApiRequest): Promise<ApiResponse> {
-    const { endpoint, authToken, data, customHeaders } = request;
+    const { endpoint, authToken, data, customHeaders, pathParams } = request;
     const startTime = Date.now();
 
     try {
+      // Replace path parameters in the URL
+      let path = endpoint.path;
+      if (pathParams) {
+        Object.entries(pathParams).forEach(([key, value]) => {
+          path = path.replace(`{${key}}`, String(value));
+        });
+      }
+
       // Build the request URL
       let finalUrl: string;
       const headers: Record<string, string> = {
@@ -25,12 +33,12 @@ export class ApiExecutor {
 
       if (this.useProxy) {
         // Use local proxy server
-        finalUrl = `${this.proxyUrl}${endpoint.path}`;
+        finalUrl = `${this.proxyUrl}${path}`;
         // Pass the base URL as a custom header
         headers['X-Target-URL'] = endpoint.baseUrl;
       } else {
         // Direct request
-        finalUrl = `${endpoint.baseUrl}${endpoint.path}`;
+        finalUrl = `${endpoint.baseUrl}${path}`;
       }
 
       const config: AxiosRequestConfig = {
@@ -55,6 +63,16 @@ export class ApiExecutor {
         }
       }
 
+      // Add an idempotency key for POST/PUT/PATCH unless explicitly provided
+      if (['POST', 'PUT', 'PATCH'].includes(endpoint.method)) {
+        const existingKey =
+          (config.headers as Record<string, string>)['Idempotency-Key'] ||
+          (config.headers as Record<string, string>)['idempotency-key'];
+        if (!existingKey && typeof crypto?.randomUUID === 'function') {
+          (config.headers as Record<string, string>)['Idempotency-Key'] = crypto.randomUUID();
+        }
+      }
+
       // Add request body
       if (data && (endpoint.method === 'POST' || endpoint.method === 'PUT' || endpoint.method === 'PATCH')) {
         config.data = data;
@@ -70,6 +88,12 @@ export class ApiExecutor {
         data: response.data,
         headers: response.headers as Record<string, string>,
         duration,
+        request: {
+          url: finalUrl,
+          method: endpoint.method,
+          headers: (config.headers || {}) as Record<string, string>,
+          data: config.data,
+        },
       };
     } catch (error: any) {
       const duration = Date.now() - startTime;
@@ -82,6 +106,12 @@ export class ApiExecutor {
           data: error.response.data,
           headers: error.response.headers as Record<string, string>,
           duration,
+          request: {
+            url: finalUrl,
+            method: endpoint.method,
+            headers: (config.headers || {}) as Record<string, string>,
+            data: config.data,
+          },
         };
       } else if (error.request) {
         // Request made but no response

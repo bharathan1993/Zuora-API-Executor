@@ -13,6 +13,9 @@ export interface FieldDefinition {
   maxLength?: number;
   pattern?: string;
   fields?: FieldDefinition[]; // For nested objects
+  itemType?: FieldType; // For array items
+  itemFields?: FieldDefinition[]; // For array of objects
+  itemEnum?: string[]; // For array of enum values
   section?: string; // Group fields into sections
   advanced?: boolean; // Mark as advanced/optional field
 }
@@ -48,6 +51,12 @@ export interface ApiResponse {
   data: any;
   headers: Record<string, string>;
   duration: number;
+  request?: {
+    url: string;
+    method: string;
+    headers: Record<string, string>;
+    data?: any;
+  };
 }
 
 export interface ApiRequest {

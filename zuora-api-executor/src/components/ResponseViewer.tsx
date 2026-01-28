@@ -7,7 +7,19 @@ interface ResponseViewerProps {
 }
 
 export const ResponseViewer = ({ response, error }: ResponseViewerProps) => {
-  const [activeTab, setActiveTab] = useState<'body' | 'headers'>('body');
+  const [activeTab, setActiveTab] = useState<'body' | 'headers' | 'request'>('body');
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    if (!response) return;
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(response.data, null, 2));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   if (error) {
     return (
@@ -59,7 +71,7 @@ export const ResponseViewer = ({ response, error }: ResponseViewerProps) => {
           </div>
         </div>
 
-        <div className="border-b border-slate-200 dark:border-slate-800 mb-4 transition-colors duration-200">
+        <div className="border-b border-slate-200 dark:border-slate-800 mb-4 transition-colors duration-200 flex items-center justify-between">
           <nav className="flex space-x-4">
             <button
               onClick={() => setActiveTab('body')}
@@ -81,7 +93,40 @@ export const ResponseViewer = ({ response, error }: ResponseViewerProps) => {
             >
               Headers
             </button>
+            <button
+              onClick={() => setActiveTab('request')}
+              className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                activeTab === 'request'
+                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700'
+              }`}
+            >
+              Request
+            </button>
           </nav>
+
+          {activeTab === 'body' && (
+            <button
+              onClick={handleCopy}
+              className="mb-1 px-3 py-1 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 transition-colors"
+            >
+              {copied ? (
+                <>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                  </svg>
+                  Copy Body
+                </>
+              )}
+            </button>
+          )}
         </div>
 
         {activeTab === 'body' && (
@@ -101,6 +146,38 @@ export const ResponseViewer = ({ response, error }: ResponseViewerProps) => {
                   <span className="text-slate-600 dark:text-slate-400 w-2/3 break-all font-mono text-xs">{value}</span>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'request' && (
+          <div className="bg-slate-50 dark:bg-slate-950 rounded-lg p-4 border border-slate-200 dark:border-slate-800 transition-colors duration-200 space-y-3">
+            <div className="text-xs font-mono text-slate-600 dark:text-slate-400">
+              <span className="font-semibold text-slate-700 dark:text-slate-300">URL:</span>{' '}
+              {response.request?.url || 'Unknown'}
+            </div>
+            <div className="text-xs font-mono text-slate-600 dark:text-slate-400">
+              <span className="font-semibold text-slate-700 dark:text-slate-300">Method:</span>{' '}
+              {response.request?.method || 'Unknown'}
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Headers</div>
+              <div className="space-y-2">
+                {response.request?.headers
+                  ? Object.entries(response.request.headers).map(([key, value]) => (
+                      <div key={key} className="flex border-b border-slate-200 dark:border-slate-800 pb-2 last:border-0 last:pb-0">
+                        <span className="font-semibold text-indigo-700 dark:text-indigo-300 w-1/3 font-mono text-xs">{key}:</span>
+                        <span className="text-slate-600 dark:text-slate-400 w-2/3 break-all font-mono text-xs">{value}</span>
+                      </div>
+                    ))
+                  : <div className="text-xs text-slate-500">No request headers captured.</div>}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Body</div>
+              <pre className="text-slate-800 dark:text-emerald-400 text-xs font-mono leading-relaxed">
+                {response.request?.data ? JSON.stringify(response.request.data, null, 2) : '{}'}
+              </pre>
             </div>
           </div>
         )}

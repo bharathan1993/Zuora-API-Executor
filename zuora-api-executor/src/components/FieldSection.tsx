@@ -71,13 +71,14 @@ export const FieldSection = ({
       </button>
 
       {isExpanded && (
-        <div className="p-4 space-y-4 border-t border-slate-200 dark:border-slate-700/50">
+        <div className="p-4 border-t border-slate-200 dark:border-slate-700/50 grid grid-cols-1 md:grid-cols-2 gap-4">
           {fields.map((field) => (
             <FormField
               key={field.name}
               field={field}
               value={formData[field.name]}
               onChange={(value) => onFieldChange(field.name, value)}
+              className={field.type === 'object' || field.type === 'textarea' ? 'col-span-1 md:col-span-2' : ''}
             />
           ))}
         </div>

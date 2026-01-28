@@ -69,7 +69,7 @@ function App() {
     localStorage.setItem('zuora_environment', environmentId);
   };
 
-  const handleSubmit = async (data: any, customHeaders?: Record<string, string>) => {
+  const handleSubmit = async (data: any, customHeaders?: Record<string, string>, pathParams?: Record<string, any>) => {
     if (!authToken) {
       setError('Please generate an OAuth token first');
       return;
@@ -99,6 +99,7 @@ function App() {
       authToken: authToken,
       data,
       customHeaders,
+      pathParams,
     };
 
     setCurrentRequest(request);
@@ -170,7 +171,7 @@ function App() {
 
         {/* Scrollable Content */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 scroll-smooth">
-          <div className="max-w-6xl mx-auto space-y-8 pb-12">
+          <div className="max-w-[1920px] mx-auto space-y-8 pb-12">
             
             {/* View Content */}
             {currentView === 'auth' ? (

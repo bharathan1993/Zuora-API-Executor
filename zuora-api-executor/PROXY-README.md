@@ -1,4 +1,4 @@
-# Zuora API Executor - Proxy Server Setup
+# Zuora API Studio - Proxy Server Setup
 
 ## Why Do We Need This?
 

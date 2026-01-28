@@ -6,7 +6,7 @@ import { EnvironmentSelector } from './EnvironmentSelector';
 
 interface ApiFormProps {
   endpoint: ApiEndpoint;
-  onSubmit: (data: any, customHeaders?: Record<string, string>) => void;
+  onSubmit: (data: any, customHeaders?: Record<string, string>, pathParams?: Record<string, any>) => void;
   isLoading: boolean;
   formId?: string;
   showSubmit?: boolean;
@@ -27,6 +27,7 @@ export const ApiForm = ({
 }: ApiFormProps) => {
   const [activeTab, setActiveTab] = useState<'body' | 'headers'>('body');
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [pathParams, setPathParams] = useState<Record<string, any>>({});
   const [customHeaders, setCustomHeaders] = useState<Array<{ key: string; value: string }>>([
     { key: '', value: '' },
   ]);
@@ -68,6 +69,7 @@ export const ApiForm = ({
     // Initialize form with default values
     const initData: Record<string, any> = {};
     const initExpanded: Record<string, boolean> = {};
+    const initPathParams: Record<string, any> = {};
 
     endpoint.bodyFields?.forEach((field) => {
       if (field.defaultValue !== undefined) {
@@ -82,7 +84,12 @@ export const ApiForm = ({
         }
       }
     });
-    
+
+    // Initialize path parameters
+    endpoint.pathParams?.forEach((param) => {
+      initPathParams[param.name] = param.defaultValue || '';
+    });
+
     // Ensure all sections are initialized
     Object.keys(groupedFields.sections).forEach(section => {
         if (expandedSections[section] === undefined) {
@@ -91,6 +98,7 @@ export const ApiForm = ({
     });
 
     setFormData(initData);
+    setPathParams(initPathParams);
     setExpandedSections(initExpanded);
     setCustomHeaders([{ key: '', value: '' }]);
     setActiveTab('body');
@@ -100,6 +108,13 @@ export const ApiForm = ({
     setFormData((prev) => ({
       ...prev,
       [fieldName]: value,
+    }));
+  };
+
+  const handlePathParamChange = (paramName: string, value: any) => {
+    setPathParams((prev) => ({
+      ...prev,
+      [paramName]: value,
     }));
   };
 
@@ -134,8 +149,12 @@ export const ApiForm = ({
         acc[header.key.trim()] = header.value;
         return acc;
       }, {});
-      
-    onSubmit(formData, Object.keys(headerPairs).length > 0 ? headerPairs : undefined);
+
+    onSubmit(
+      formData,
+      Object.keys(headerPairs).length > 0 ? headerPairs : undefined,
+      Object.keys(pathParams).length > 0 ? pathParams : undefined
+    );
   };
 
   const loadExample = () => {
@@ -146,6 +165,56 @@ export const ApiForm = ({
 
   const clearForm = () => {
     setFormData({});
+  };
+
+  const formatDescription = (desc: string) => {
+    if (!desc) return generateFallbackDescription();
+
+    // Remove long "Note:" blocks and URLs often found in Zuora docs
+    let cleaned = desc
+      .split('**Note**:')[0]
+      .split('**Important**:')[0]
+      .split('For more information')[0]
+      .split('See [')[0]
+      .split('https://')[0]
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove markdown links
+      .trim();
+
+    // If description is too short or starts with unhelpful text, generate fallback
+    if (cleaned.length < 10 || cleaned.startsWith('This operation') || cleaned.startsWith('Use this')) {
+      return generateFallbackDescription();
+    }
+
+    // Take only the first 1-2 sentences (up to 200 chars)
+    const sentences = cleaned.split(/[.!?]+\s/);
+    const firstSentences = sentences.slice(0, 2).join('. ');
+
+    // If still too long, truncate at 200 characters
+    if (firstSentences.length > 200) {
+      return firstSentences.substring(0, 200).trim() + '...';
+    }
+
+    return firstSentences + (firstSentences.endsWith('.') ? '' : '.');
+  };
+
+  const generateFallbackDescription = () => {
+    const method = endpoint.method;
+    const pathParts = endpoint.path.split('/').filter(Boolean);
+    const resource = pathParts[pathParts.length - 1]?.replace(/[{}]/g, '').replace(/-/g, ' ');
+
+    // Generate description based on method and resource
+    const actionMap: Record<string, string> = {
+      GET: 'Retrieves',
+      POST: 'Creates',
+      PUT: 'Updates',
+      DELETE: 'Deletes',
+      PATCH: 'Partially updates',
+    };
+
+    const action = actionMap[method] || 'Manages';
+    const resourceName = resource || 'resource';
+
+    return `${action} ${resourceName} information in Zuora.`;
   };
 
   return (
@@ -163,7 +232,7 @@ export const ApiForm = ({
             {endpoint.method}
           </span>
         </div>
-        <p className="text-slate-600 dark:text-slate-400 mb-4">{endpoint.description}</p>
+        <p className="text-slate-600 dark:text-slate-400 mb-4">{formatDescription(endpoint.description)}</p>
 
         {/* Environment Selector */}
         {endpoint.environments && endpoint.environments.length > 0 && selectedEnvironmentId && onEnvironmentChange && (
@@ -176,15 +245,50 @@ export const ApiForm = ({
           </div>
         )}
 
+        {/* Path Parameters */}
+        {endpoint.pathParams && endpoint.pathParams.length > 0 && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-500/10 dark:to-purple-500/10 rounded-lg border border-indigo-200 dark:border-indigo-500/30 transition-colors duration-200">
+            <div className="flex items-center gap-2 mb-3">
+              <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <h4 className="font-semibold text-indigo-900 dark:text-indigo-300 text-sm uppercase tracking-wider">
+                Path Parameters
+              </h4>
+            </div>
+            <div className="space-y-3">
+              {endpoint.pathParams.map((param) => (
+                <div key={param.name}>
+                  <FormField
+                    field={param}
+                    value={pathParams[param.name]}
+                    onChange={(value) => handlePathParamChange(param.name, value)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Final URL */}
         {(() => {
           const selectedEnv = endpoint.environments?.find(env => env.id === selectedEnvironmentId);
           const baseUrl = selectedEnv?.baseUrl || endpoint.baseUrl;
+
+          // Replace path parameters in the URL
+          let finalPath = endpoint.path;
+          if (endpoint.pathParams) {
+            endpoint.pathParams.forEach((param) => {
+              const value = pathParams[param.name] || `{${param.name}}`;
+              finalPath = finalPath.replace(`{${param.name}}`, value);
+            });
+          }
+
           return (
             <div className="mb-6">
               <p className="text-xs text-slate-500 mb-1 font-medium uppercase tracking-wider">Endpoint URL:</p>
               <code className="text-sm bg-slate-100 dark:bg-slate-950 text-indigo-600 dark:text-indigo-300 px-3 py-2 rounded-lg block break-all border border-slate-200 dark:border-slate-800 font-mono transition-colors duration-200">
-                {baseUrl}{endpoint.path}
+                {baseUrl}{finalPath}
               </code>
             </div>
           );
@@ -265,17 +369,20 @@ export const ApiForm = ({
 
               {/* Required Fields */}
               {groupedFields.required.length > 0 && (
-                <div className="space-y-4 mb-6">
-                  <h4 className="font-semibold text-slate-500 dark:text-slate-300 flex items-center text-xs uppercase tracking-wider">
-                    <span className="text-rose-500 mr-1">*</span>
-                    Required
-                  </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="col-span-1 md:col-span-2">
+                    <h4 className="font-semibold text-slate-500 dark:text-slate-300 flex items-center text-xs uppercase tracking-wider">
+                      <span className="text-rose-500 mr-1">*</span>
+                      Required
+                    </h4>
+                  </div>
                   {groupedFields.required.map((field) => (
                     <FormField
                       key={field.name}
                       field={field}
                       value={formData[field.name]}
                       onChange={(value) => handleFieldChange(field.name, value)}
+                      className={field.type === 'object' || field.type === 'textarea' ? 'col-span-1 md:col-span-2' : ''}
                     />
                   ))}
                 </div>
