@@ -138,14 +138,31 @@ export const ResponseViewer = ({ response, error }: ResponseViewerProps) => {
         )}
 
         {activeTab === 'headers' && (
-          <div className="bg-slate-50 dark:bg-slate-950 rounded-lg p-4 border border-slate-200 dark:border-slate-800 transition-colors duration-200">
-            <div className="space-y-2">
-              {Object.entries(response.headers).map(([key, value]) => (
-                <div key={key} className="flex border-b border-slate-200 dark:border-slate-800 pb-2 last:border-0 last:pb-0">
-                  <span className="font-semibold text-indigo-700 dark:text-indigo-300 w-1/3 font-mono text-xs">{key}:</span>
-                  <span className="text-slate-600 dark:text-slate-400 w-2/3 break-all font-mono text-xs">{value}</span>
-                </div>
-              ))}
+          <div className="bg-slate-50 dark:bg-slate-950 rounded-lg p-4 border border-slate-200 dark:border-slate-800 transition-colors duration-200 space-y-4">
+            <div>
+              <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">Response Headers</div>
+              <div className="space-y-2">
+                {Object.entries(response.headers).map(([key, value]) => (
+                  <div key={`response-${key}`} className="flex border-b border-slate-200 dark:border-slate-800 pb-2 last:border-0 last:pb-0">
+                    <span className="font-semibold text-indigo-700 dark:text-indigo-300 w-1/3 font-mono text-xs">{key}:</span>
+                    <span className="text-slate-600 dark:text-slate-400 w-2/3 break-all font-mono text-xs">{value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">Request Headers</div>
+              <div className="space-y-2">
+                {response.request?.headers
+                  ? Object.entries(response.request.headers).map(([key, value]) => (
+                      <div key={`request-${key}`} className="flex border-b border-slate-200 dark:border-slate-800 pb-2 last:border-0 last:pb-0">
+                        <span className="font-semibold text-indigo-700 dark:text-indigo-300 w-1/3 font-mono text-xs">{key}:</span>
+                        <span className="text-slate-600 dark:text-slate-400 w-2/3 break-all font-mono text-xs">{value}</span>
+                      </div>
+                    ))
+                  : <div className="text-xs text-slate-500">No request headers captured.</div>}
+              </div>
             </div>
           </div>
         )}

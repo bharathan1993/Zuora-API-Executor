@@ -15,6 +15,8 @@ export class ApiExecutor {
     const { endpoint, authToken, data, customHeaders, pathParams } = request;
     const startTime = Date.now();
 
+    let finalUrl = '';
+    let config: AxiosRequestConfig = {};
     try {
       // Replace path parameters in the URL
       let path = endpoint.path;
@@ -25,7 +27,6 @@ export class ApiExecutor {
       }
 
       // Build the request URL
-      let finalUrl: string;
       const headers: Record<string, string> = {
         ...endpoint.headers,
         ...(customHeaders || {}),
@@ -41,7 +42,7 @@ export class ApiExecutor {
         finalUrl = `${endpoint.baseUrl}${path}`;
       }
 
-      const config: AxiosRequestConfig = {
+      config = {
         method: endpoint.method,
         url: finalUrl,
         headers,

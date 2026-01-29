@@ -7,6 +7,7 @@ interface FieldSectionProps {
   fields: FieldDefinition[];
   formData: Record<string, any>;
   onFieldChange: (fieldName: string, value: any) => void;
+  onFieldTouched?: (path: string) => void;
   defaultExpanded?: boolean;
   isAdvanced?: boolean;
   isExpanded?: boolean;
@@ -18,6 +19,7 @@ export const FieldSection = ({
   fields,
   formData,
   onFieldChange,
+  onFieldTouched,
   defaultExpanded = true,
   isAdvanced = false,
   isExpanded: controlledIsExpanded,
@@ -78,6 +80,7 @@ export const FieldSection = ({
               field={field}
               value={formData[field.name]}
               onChange={(value) => onFieldChange(field.name, value)}
+              onTouched={onFieldTouched}
               className={field.type === 'object' || field.type === 'textarea' ? 'col-span-1 md:col-span-2' : ''}
             />
           ))}

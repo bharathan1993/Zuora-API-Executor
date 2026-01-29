@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import type { ApiEndpoint, FieldDefinition } from '../types/api';
 import { FormField } from './FormField';
 import { FieldSection } from './FieldSection';
@@ -15,6 +15,20 @@ interface ApiFormProps {
   onFormDataChange?: (data: any) => void;
 }
 
+type HeaderRow = {
+  id: string;
+  key: string;
+  value: string;
+};
+
+const createHeaderRow = (): HeaderRow => ({
+  id: typeof crypto?.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  key: '',
+  value: '',
+});
+
 export const ApiForm = ({
   endpoint,
   onSubmit,
@@ -28,17 +42,9 @@ export const ApiForm = ({
   const [activeTab, setActiveTab] = useState<'body' | 'headers'>('body');
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [pathParams, setPathParams] = useState<Record<string, any>>({});
-  const [customHeaders, setCustomHeaders] = useState<Array<{ key: string; value: string }>>([
-    { key: '', value: '' },
-  ]);
+  const [customHeaders, setCustomHeaders] = useState<HeaderRow[]>([createHeaderRow()]);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
-
-  // Notify parent of form data changes
-  useEffect(() => {
-    if (onFormDataChange) {
-      onFormDataChange(formData);
-    }
-  }, [formData, onFormDataChange]);
+  const touchedFieldsRef = useRef<Set<string>>(new Set());
 
   // Group fields by section
   const groupedFields = useMemo(() => {
@@ -72,7 +78,7 @@ export const ApiForm = ({
     const initPathParams: Record<string, any> = {};
 
     endpoint.bodyFields?.forEach((field) => {
-      if (field.defaultValue !== undefined) {
+      if (field.required && field.defaultValue !== undefined) {
         initData[field.name] = field.defaultValue;
       }
       if (field.section) {
@@ -100,9 +106,128 @@ export const ApiForm = ({
     setFormData(initData);
     setPathParams(initPathParams);
     setExpandedSections(initExpanded);
-    setCustomHeaders([{ key: '', value: '' }]);
+    setCustomHeaders([createHeaderRow()]);
     setActiveTab('body');
+    touchedFieldsRef.current = new Set();
   }, [endpoint]); // Note: relying on endpoint change to reset
+
+  const markTouched = (path: string) => {
+    touchedFieldsRef.current.add(path);
+  };
+
+  const markTouchedFromObject = (obj: Record<string, any>, prefix = '') => {
+    Object.entries(obj).forEach(([key, value]) => {
+      const path = prefix ? `${prefix}.${key}` : key;
+      if (Array.isArray(value)) {
+        markTouched(path);
+        value.forEach((item, index) => {
+          const itemPath = `${path}[${index}]`;
+          if (item && typeof item === 'object') {
+            markTouchedFromObject(item, itemPath);
+          } else {
+            markTouched(itemPath);
+          }
+        });
+        return;
+      }
+      if (value && typeof value === 'object') {
+        markTouched(path);
+        markTouchedFromObject(value, path);
+        return;
+      }
+      markTouched(path);
+    });
+  };
+
+  const hasTouched = (path: string) => {
+    for (const touched of touchedFieldsRef.current) {
+      if (touched === path || touched.startsWith(`${path}.`) || touched.startsWith(`${path}[`)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const isValueEmpty = (value: any) =>
+    value === undefined || value === null || value === '';
+
+  const buildRequestBody = () => {
+    const buildFieldValue = (field: FieldDefinition, value: any, path: string): any => {
+      if (!hasTouched(path)) {
+        return undefined;
+      }
+
+      if (field.type === 'object') {
+        const obj: Record<string, any> = {};
+        field.fields?.forEach((subField) => {
+          const subPath = `${path}.${subField.name}`;
+          const subValue = buildFieldValue(subField, value?.[subField.name], subPath);
+          if (subValue !== undefined) {
+            obj[subField.name] = subValue;
+          }
+        });
+        return Object.keys(obj).length ? obj : undefined;
+      }
+
+      if (field.type === 'array') {
+        const items = Array.isArray(value) ? value : [];
+        if (!items.length) return undefined;
+
+        if (field.itemFields && field.itemFields.length > 0) {
+          const mapped = items
+            .map((item, index) => {
+              const itemPath = `${path}[${index}]`;
+              if (!hasTouched(itemPath)) return undefined;
+              const obj: Record<string, any> = {};
+              field.itemFields?.forEach((subField) => {
+                const subPath = `${itemPath}.${subField.name}`;
+                const subValue = buildFieldValue(subField, item?.[subField.name], subPath);
+                if (subValue !== undefined) {
+                  obj[subField.name] = subValue;
+                }
+              });
+              return Object.keys(obj).length ? obj : undefined;
+            })
+            .filter((item) => item !== undefined);
+          return mapped.length ? mapped : undefined;
+        }
+
+        const mapped = items
+          .map((item, index) => {
+            const itemPath = `${path}[${index}]`;
+            if (!hasTouched(itemPath)) return undefined;
+            return isValueEmpty(item) ? undefined : item;
+          })
+          .filter((item) => item !== undefined);
+
+        return mapped.length ? mapped : undefined;
+      }
+
+      return isValueEmpty(value) ? undefined : value;
+    };
+
+    const result: Record<string, any> = {};
+    endpoint.bodyFields?.forEach((field) => {
+      const path = field.name;
+      const value = buildFieldValue(field, formData[field.name], path);
+      if (value !== undefined) {
+        result[field.name] = value;
+      }
+    });
+    if (endpoint.id === 'post-account' && result.autoPay === undefined) {
+      result.autoPay = false;
+    }
+    return result;
+  };
+
+  const previewData = useMemo(() => buildRequestBody(), [formData, endpoint]);
+
+  // Notify parent of filtered form data changes
+  useEffect(() => {
+    if (onFormDataChange) {
+      onFormDataChange(previewData);
+    }
+  }, [previewData, onFormDataChange]);
 
   const handleFieldChange = (fieldName: string, value: any) => {
     setFormData((prev) => ({
@@ -143,6 +268,7 @@ export const ApiForm = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const dataForSubmit = buildRequestBody();
     const headerPairs = customHeaders
       .filter((header) => header.key.trim() !== '')
       .reduce<Record<string, string>>((acc, header) => {
@@ -151,7 +277,7 @@ export const ApiForm = ({
       }, {});
 
     onSubmit(
-      formData,
+      dataForSubmit,
       Object.keys(headerPairs).length > 0 ? headerPairs : undefined,
       Object.keys(pathParams).length > 0 ? pathParams : undefined
     );
@@ -160,11 +286,14 @@ export const ApiForm = ({
   const loadExample = () => {
     if (endpoint.exampleRequest) {
       setFormData(endpoint.exampleRequest);
+      touchedFieldsRef.current = new Set();
+      markTouchedFromObject(endpoint.exampleRequest);
     }
   };
 
   const clearForm = () => {
     setFormData({});
+    touchedFieldsRef.current = new Set();
   };
 
   const formatDescription = (desc: string) => {
@@ -382,6 +511,7 @@ export const ApiForm = ({
                       field={field}
                       value={formData[field.name]}
                       onChange={(value) => handleFieldChange(field.name, value)}
+                      onTouched={markTouched}
                       className={field.type === 'object' || field.type === 'textarea' ? 'col-span-1 md:col-span-2' : ''}
                     />
                   ))}
@@ -396,6 +526,7 @@ export const ApiForm = ({
                   fields={fields}
                   formData={formData}
                   onFieldChange={handleFieldChange}
+                  onFieldTouched={markTouched}
                   defaultExpanded={false}
                   isAdvanced={sectionName === 'Additional Fields'}
                   isExpanded={expandedSections[sectionName]}
@@ -417,7 +548,7 @@ export const ApiForm = ({
               <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Custom Headers</h3>
               <button
                 type="button"
-                onClick={() => setCustomHeaders([...customHeaders, { key: '', value: '' }])}
+                onClick={() => setCustomHeaders([...customHeaders, createHeaderRow()])}
                 className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline transition-colors"
               >
                 + Add Header
@@ -426,7 +557,7 @@ export const ApiForm = ({
             
             <div className="space-y-3">
               {customHeaders.map((header, index) => (
-                <div key={`${header.key}-${index}`} className="flex gap-2 items-start">
+                <div key={header.id} className="flex gap-2 items-start">
                   <div className="flex-1">
                     <input
                       type="text"
@@ -457,7 +588,7 @@ export const ApiForm = ({
                     type="button"
                     onClick={() => {
                       const next = customHeaders.filter((_, i) => i !== index);
-                      setCustomHeaders(next.length ? next : [{ key: '', value: '' }]);
+                      setCustomHeaders(next.length ? next : [createHeaderRow()]);
                     }}
                     className="p-2 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
                     aria-label="Remove header"

@@ -5,11 +5,12 @@ interface FormFieldProps {
   field: FieldDefinition;
   value: any;
   onChange: (value: any) => void;
+  onTouched?: (path: string) => void;
   path?: string;
   className?: string;
 }
 
-export const FormField = ({ field, value, onChange, path = '', className = '' }: FormFieldProps) => {
+export const FormField = ({ field, value, onChange, onTouched, path = '', className = '' }: FormFieldProps) => {
 
   const [isExpanded, setIsExpanded] = useState(field.required || false);
 
@@ -39,6 +40,7 @@ export const FormField = ({ field, value, onChange, path = '', className = '' }:
 
 
 
+    onTouched?.(fieldPath);
     onChange(newValue);
 
   };
@@ -134,17 +136,20 @@ export const FormField = ({ field, value, onChange, path = '', className = '' }:
         itemType === 'number' ? 0 :
         itemType === 'boolean' ? false :
         '';
+      onTouched?.(fieldPath);
       onChange([...items, emptyValue]);
     };
 
     const updateItem = (index: number, newValue: any) => {
       const next = [...items];
       next[index] = newValue;
+      onTouched?.(`${fieldPath}[${index}]`);
       onChange(next);
     };
 
     const removeItem = (index: number) => {
       const next = items.filter((_, i) => i !== index);
+      onTouched?.(fieldPath);
       onChange(next);
     };
 
@@ -157,6 +162,7 @@ export const FormField = ({ field, value, onChange, path = '', className = '' }:
         } else if (itemType === 'boolean') {
           newValue = (e.target as HTMLInputElement).checked;
         }
+        onTouched?.(`${fieldPath}[${index}]`);
         updateItem(index, newValue);
       };
 
@@ -227,6 +233,7 @@ export const FormField = ({ field, value, onChange, path = '', className = '' }:
                       const nextItem = { ...(item || {}), [subField.name]: subValue };
                       updateItem(index, nextItem);
                     }}
+                    onTouched={onTouched}
                     path={`${fieldPath}[${index}]`}
                   />
                 ))}
@@ -365,7 +372,7 @@ export const FormField = ({ field, value, onChange, path = '', className = '' }:
                   onChange(newValue);
 
                 }}
-
+                onTouched={onTouched}
                 path={fieldPath}
 
               />
@@ -584,7 +591,7 @@ export const FormField = ({ field, value, onChange, path = '', className = '' }:
 
               id={fieldPath}
 
-              checked={value || false}
+              checked={value === true}
 
               onChange={handleChange}
 
