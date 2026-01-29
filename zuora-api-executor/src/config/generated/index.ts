@@ -732,7 +732,7 @@ export const zuoraEndpoints: ApiEndpoint[] = [
   get_billingdocumentfilesdeletionjobEndpoint,
   post_generatebillingdocumentsEndpoint,
   queryaccountsEndpoint,
-  queryaccountbykeyEndpoint,
+  // queryaccountbykeyEndpoint,
   get_ordersbysubscriptionownerEndpoint,
   get_ordersbysubscriptionnumberEndpoint,
   put_updatesubscriptioncustomfieldsEndpoint,

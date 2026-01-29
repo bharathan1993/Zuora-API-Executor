@@ -64,16 +64,6 @@ export class ApiExecutor {
         }
       }
 
-      // Add an idempotency key for POST/PUT/PATCH unless explicitly provided
-      if (['POST', 'PUT', 'PATCH'].includes(endpoint.method)) {
-        const existingKey =
-          (config.headers as Record<string, string>)['Idempotency-Key'] ||
-          (config.headers as Record<string, string>)['idempotency-key'];
-        if (!existingKey && typeof crypto?.randomUUID === 'function') {
-          (config.headers as Record<string, string>)['Idempotency-Key'] = crypto.randomUUID();
-        }
-      }
-
       // Add request body
       if (data && (endpoint.method === 'POST' || endpoint.method === 'PUT' || endpoint.method === 'PATCH')) {
         config.data = data;

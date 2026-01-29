@@ -13,7 +13,6 @@ export const postAccountEndpoint: ApiEndpoint = {
   authType: 'bearer',
   headers: {
     'Content-Type': 'application/json',
-    'Idempotency-Key': '',
     'Zuora-Track-Id': '',
     'Zuora-Entity-Ids': '',
     'Zuora-Org-Ids': '',
