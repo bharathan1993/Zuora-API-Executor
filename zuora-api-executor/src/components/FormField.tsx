@@ -53,7 +53,7 @@ export const FormField = ({ field, value, onChange, onTouched, path = '', classN
 
       {leftChild}
 
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 flex-wrap">
 
         <label 
 
@@ -211,13 +211,13 @@ export const FormField = ({ field, value, onChange, onTouched, path = '', classN
     return (
       <div className="space-y-3">
         {items.map((item, index) => (
-          <div key={`${fieldPath}-${index}`} className="border border-slate-200 dark:border-slate-800 rounded-lg p-3 bg-white dark:bg-slate-900">
+          <div key={`${fieldPath}-${index}`} className="relative border border-slate-200 dark:border-slate-800 rounded-lg p-3 bg-slate-50/50 dark:bg-slate-900/50 group">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-slate-500">Item {index + 1}</span>
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Item {index + 1}</span>
               <button
                 type="button"
                 onClick={() => removeItem(index)}
-                className="text-xs text-slate-500 hover:text-indigo-500 transition-colors"
+                className="text-xs font-medium text-rose-500 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300 transition-colors opacity-60 group-hover:opacity-100"
               >
                 Remove
               </button>
@@ -246,9 +246,12 @@ export const FormField = ({ field, value, onChange, onTouched, path = '', classN
         <button
           type="button"
           onClick={addItem}
-          className="text-sm text-indigo-600 hover:text-indigo-700 underline"
+          className="w-full py-2 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-500 dark:text-slate-400 hover:border-indigo-500 hover:text-indigo-500 dark:hover:border-indigo-400 dark:hover:text-indigo-400 transition-all duration-200 flex items-center justify-center gap-2 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800/50"
         >
-          Add item
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Add Item
         </button>
       </div>
     );
@@ -353,7 +356,7 @@ export const FormField = ({ field, value, onChange, onTouched, path = '', classN
 
         return (
 
-          <div className="ml-4 space-y-4 border-l-2 border-slate-200 dark:border-slate-700 pl-4 transition-colors duration-200 mt-2">
+          <div className="ml-2 space-y-4 border-l-2 border-slate-200 dark:border-slate-700 pl-2 transition-colors duration-200 mt-2">
 
             {field.fields?.map((subField) => (
 

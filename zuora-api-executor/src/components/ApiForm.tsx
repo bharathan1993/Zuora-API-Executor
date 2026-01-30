@@ -512,7 +512,7 @@ export const ApiForm = ({
                       value={formData[field.name]}
                       onChange={(value) => handleFieldChange(field.name, value)}
                       onTouched={markTouched}
-                      className={field.type === 'object' || field.type === 'textarea' ? 'col-span-1 md:col-span-2' : ''}
+                      className={field.type === 'object' || field.type === 'array' || field.type === 'textarea' ? 'col-span-1 md:col-span-2' : ''}
                     />
                   ))}
                 </div>

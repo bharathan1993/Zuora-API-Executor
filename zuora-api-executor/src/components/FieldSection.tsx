@@ -81,7 +81,7 @@ export const FieldSection = ({
               value={formData[field.name]}
               onChange={(value) => onFieldChange(field.name, value)}
               onTouched={onFieldTouched}
-              className={field.type === 'object' || field.type === 'textarea' ? 'col-span-1 md:col-span-2' : ''}
+              className={field.type === 'object' || field.type === 'array' || field.type === 'textarea' ? 'col-span-1 md:col-span-2' : ''}
             />
           ))}
         </div>
