@@ -77,7 +77,7 @@ export const ResponseViewer = ({ response, error }: ResponseViewerProps) => {
               onClick={() => setActiveTab('body')}
               className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
                 activeTab === 'body'
-                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                  ? 'border-zuora-500 text-zuora-600 dark:text-zuora-400'
                   : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700'
               }`}
             >
@@ -87,7 +87,7 @@ export const ResponseViewer = ({ response, error }: ResponseViewerProps) => {
               onClick={() => setActiveTab('headers')}
               className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
                 activeTab === 'headers'
-                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                  ? 'border-zuora-500 text-zuora-600 dark:text-zuora-400'
                   : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700'
               }`}
             >
@@ -97,7 +97,7 @@ export const ResponseViewer = ({ response, error }: ResponseViewerProps) => {
               onClick={() => setActiveTab('request')}
               className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
                 activeTab === 'request'
-                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                  ? 'border-zuora-500 text-zuora-600 dark:text-zuora-400'
                   : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700'
               }`}
             >
@@ -108,7 +108,7 @@ export const ResponseViewer = ({ response, error }: ResponseViewerProps) => {
           {activeTab === 'body' && (
             <button
               onClick={handleCopy}
-              className="mb-1 px-3 py-1 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 transition-colors"
+              className="mb-1 px-3 py-1 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-zuora-600 dark:hover:text-zuora-400 flex items-center gap-1 transition-colors"
             >
               {copied ? (
                 <>
@@ -144,7 +144,7 @@ export const ResponseViewer = ({ response, error }: ResponseViewerProps) => {
               <div className="space-y-2">
                 {Object.entries(response.headers).map(([key, value]) => (
                   <div key={`response-${key}`} className="flex border-b border-slate-200 dark:border-slate-800 pb-2 last:border-0 last:pb-0">
-                    <span className="font-semibold text-indigo-700 dark:text-indigo-300 w-1/3 font-mono text-xs">{key}:</span>
+                    <span className="font-semibold text-zuora-700 dark:text-zuora-300 w-1/3 font-mono text-xs">{key}:</span>
                     <span className="text-slate-600 dark:text-slate-400 w-2/3 break-all font-mono text-xs">{value}</span>
                   </div>
                 ))}
@@ -157,7 +157,7 @@ export const ResponseViewer = ({ response, error }: ResponseViewerProps) => {
                 {response.request?.headers
                   ? Object.entries(response.request.headers).map(([key, value]) => (
                       <div key={`request-${key}`} className="flex border-b border-slate-200 dark:border-slate-800 pb-2 last:border-0 last:pb-0">
-                        <span className="font-semibold text-indigo-700 dark:text-indigo-300 w-1/3 font-mono text-xs">{key}:</span>
+                        <span className="font-semibold text-zuora-700 dark:text-zuora-300 w-1/3 font-mono text-xs">{key}:</span>
                         <span className="text-slate-600 dark:text-slate-400 w-2/3 break-all font-mono text-xs">{value}</span>
                       </div>
                     ))
@@ -183,7 +183,7 @@ export const ResponseViewer = ({ response, error }: ResponseViewerProps) => {
                 {response.request?.headers
                   ? Object.entries(response.request.headers).map(([key, value]) => (
                       <div key={key} className="flex border-b border-slate-200 dark:border-slate-800 pb-2 last:border-0 last:pb-0">
-                        <span className="font-semibold text-indigo-700 dark:text-indigo-300 w-1/3 font-mono text-xs">{key}:</span>
+                        <span className="font-semibold text-zuora-700 dark:text-zuora-300 w-1/3 font-mono text-xs">{key}:</span>
                         <span className="text-slate-600 dark:text-slate-400 w-2/3 break-all font-mono text-xs">{value}</span>
                       </div>
                     ))

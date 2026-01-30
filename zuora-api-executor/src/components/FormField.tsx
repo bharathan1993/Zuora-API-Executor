@@ -87,7 +87,7 @@ export const FormField = ({ field, value, onChange, onTouched, path = '', classN
 
             <svg 
 
-              className="w-4 h-4 text-slate-400 hover:text-indigo-500 dark:text-slate-500 dark:hover:text-indigo-400 cursor-help transition-colors" 
+              className="w-4 h-4 text-slate-400 hover:text-zuora-500 dark:text-slate-500 dark:hover:text-zuora-400 cursor-help transition-colors" 
 
               fill="none" 
 
@@ -154,7 +154,7 @@ export const FormField = ({ field, value, onChange, onTouched, path = '', classN
     };
 
     const renderPrimitiveInput = (itemValue: any, index: number) => {
-      const baseClasses = "w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white text-sm placeholder:text-xs placeholder-slate-400 dark:placeholder-slate-600 transition-colors duration-200";
+      const baseClasses = "w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent text-slate-900 dark:text-white text-sm placeholder:text-xs placeholder-slate-400 dark:placeholder-slate-600 transition-colors duration-200";
       const onPrimitiveChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         let newValue: any = e.target.value;
         if (itemType === 'number') {
@@ -173,7 +173,7 @@ export const FormField = ({ field, value, onChange, onTouched, path = '', classN
               type="checkbox"
               checked={Boolean(itemValue)}
               onChange={onPrimitiveChange}
-              className="w-4 h-4 text-indigo-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-indigo-500 focus:ring-offset-white dark:focus:ring-offset-slate-900 transition-colors duration-200 cursor-pointer"
+              className="w-4 h-4 text-zuora-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-zuora-500 focus:ring-offset-white dark:focus:ring-offset-slate-900 transition-colors duration-200 cursor-pointer"
             />
             <span>Item {index + 1}</span>
           </label>
@@ -246,7 +246,7 @@ export const FormField = ({ field, value, onChange, onTouched, path = '', classN
         <button
           type="button"
           onClick={addItem}
-          className="w-full py-2 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-500 dark:text-slate-400 hover:border-indigo-500 hover:text-indigo-500 dark:hover:border-indigo-400 dark:hover:text-indigo-400 transition-all duration-200 flex items-center justify-center gap-2 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800/50"
+          className="w-full py-2 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-500 dark:text-slate-400 hover:border-zuora-500 hover:text-zuora-500 dark:hover:border-zuora-400 dark:hover:text-zuora-400 transition-all duration-200 flex items-center justify-center gap-2 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800/50"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -260,7 +260,7 @@ export const FormField = ({ field, value, onChange, onTouched, path = '', classN
 
   const renderInput = () => {
 
-    const baseClasses = "w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white text-sm placeholder:text-xs placeholder-slate-400 dark:placeholder-slate-600 transition-colors duration-200";
+    const baseClasses = "w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent text-slate-900 dark:text-white text-sm placeholder:text-xs placeholder-slate-400 dark:placeholder-slate-600 transition-colors duration-200";
 
 
 
@@ -534,7 +534,7 @@ export const FormField = ({ field, value, onChange, onTouched, path = '', classN
 
             onClick={() => setIsExpanded(!isExpanded)}
 
-            className="text-slate-400 hover:text-indigo-500 transition-colors p-1"
+            className="text-slate-400 hover:text-zuora-500 transition-colors p-1"
 
           >
 
@@ -600,7 +600,7 @@ export const FormField = ({ field, value, onChange, onTouched, path = '', classN
 
               aria-label={displayName}
 
-              className="w-4 h-4 text-indigo-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-indigo-500 focus:ring-offset-white dark:focus:ring-offset-slate-900 transition-colors duration-200 cursor-pointer"
+              className="w-4 h-4 text-zuora-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-zuora-500 focus:ring-offset-white dark:focus:ring-offset-slate-900 transition-colors duration-200 cursor-pointer"
 
             />
 

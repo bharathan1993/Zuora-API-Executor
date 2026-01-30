@@ -65,7 +65,7 @@ export const CodeGenerator = ({ request }: CodeGeneratorProps) => {
             onClick={() => setActiveLanguage('curl')}
             className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
               activeLanguage === 'curl'
-                ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                ? 'border-zuora-500 text-zuora-600 dark:text-zuora-400'
                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700'
             }`}
           >
@@ -75,7 +75,7 @@ export const CodeGenerator = ({ request }: CodeGeneratorProps) => {
             onClick={() => setActiveLanguage('javascript')}
             className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
               activeLanguage === 'javascript'
-                ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                ? 'border-zuora-500 text-zuora-600 dark:text-zuora-400'
                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700'
             }`}
           >
@@ -85,7 +85,7 @@ export const CodeGenerator = ({ request }: CodeGeneratorProps) => {
             onClick={() => setActiveLanguage('python')}
             className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
               activeLanguage === 'python'
-                ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                ? 'border-zuora-500 text-zuora-600 dark:text-zuora-400'
                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700'
             }`}
           >

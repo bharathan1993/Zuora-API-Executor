@@ -22,7 +22,7 @@ export const EnvironmentSelector = ({
         id="environment"
         value={selectedEnvironmentId}
         onChange={(e) => onEnvironmentChange(e.target.value)}
-        className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-colors duration-200"
+        className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent text-slate-900 dark:text-white transition-colors duration-200"
       >
         {environments.map((env) => (
           <option key={env.id} value={env.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">

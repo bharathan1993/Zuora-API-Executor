@@ -13,6 +13,12 @@ interface ApiFormProps {
   selectedEnvironmentId?: string;
   onEnvironmentChange?: (environmentId: string) => void;
   onFormDataChange?: (data: any) => void;
+  onHeadersChange?: (headers?: Record<string, string>) => void;
+  onPathParamsChange?: (pathParams?: Record<string, any>) => void;
+  prefillData?: Record<string, any>;
+  prefillHeaders?: Record<string, string>;
+  prefillPathParams?: Record<string, any>;
+  prefillId?: string;
 }
 
 type HeaderRow = {
@@ -37,7 +43,13 @@ export const ApiForm = ({
   showSubmit = true,
   selectedEnvironmentId,
   onEnvironmentChange,
-  onFormDataChange
+  onFormDataChange,
+  onHeadersChange,
+  onPathParamsChange,
+  prefillData,
+  prefillHeaders,
+  prefillPathParams,
+  prefillId
 }: ApiFormProps) => {
   const [activeTab, setActiveTab] = useState<'body' | 'headers'>('body');
   const [formData, setFormData] = useState<Record<string, any>>({});
@@ -220,6 +232,17 @@ export const ApiForm = ({
     return result;
   };
 
+  const headersToRows = (headers?: Record<string, string>) => {
+    if (!headers) return [createHeaderRow()];
+    const entries = Object.entries(headers).filter(([, value]) => value !== '');
+    if (!entries.length) return [createHeaderRow()];
+    return entries.map(([key, value]) => ({
+      ...createHeaderRow(),
+      key,
+      value,
+    }));
+  };
+
   const previewData = useMemo(() => buildRequestBody(), [formData, endpoint]);
 
   // Notify parent of filtered form data changes
@@ -228,6 +251,39 @@ export const ApiForm = ({
       onFormDataChange(previewData);
     }
   }, [previewData, onFormDataChange]);
+
+  useEffect(() => {
+    if (onHeadersChange) {
+      const headerPairs = customHeaders
+        .filter((header) => header.key.trim() !== '')
+        .reduce<Record<string, string>>((acc, header) => {
+          acc[header.key.trim()] = header.value;
+          return acc;
+        }, {});
+      onHeadersChange(Object.keys(headerPairs).length ? headerPairs : undefined);
+    }
+  }, [customHeaders, onHeadersChange]);
+
+  useEffect(() => {
+    if (onPathParamsChange) {
+      const hasAny = Object.values(pathParams).some((value) => value !== '' && value !== undefined && value !== null);
+      onPathParamsChange(hasAny ? pathParams : undefined);
+    }
+  }, [pathParams, onPathParamsChange]);
+
+  useEffect(() => {
+    if (!prefillId) return;
+    if (prefillData) {
+      setFormData(prefillData);
+      touchedFieldsRef.current = new Set();
+      markTouchedFromObject(prefillData);
+    } else {
+      setFormData({});
+      touchedFieldsRef.current = new Set();
+    }
+    setCustomHeaders(headersToRows(prefillHeaders));
+    setPathParams(prefillPathParams || {});
+  }, [prefillId]);
 
   const handleFieldChange = (fieldName: string, value: any) => {
     setFormData((prev) => ({
@@ -376,12 +432,12 @@ export const ApiForm = ({
 
         {/* Path Parameters */}
         {endpoint.pathParams && endpoint.pathParams.length > 0 && (
-          <div className="mb-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-500/10 dark:to-purple-500/10 rounded-lg border border-indigo-200 dark:border-indigo-500/30 transition-colors duration-200">
+          <div className="mb-6 p-4 bg-gradient-to-r from-zuora-50 to-zuora-50 dark:from-zuora-500/10 dark:to-zuora-500/10 rounded-lg border border-zuora-200 dark:border-zuora-500/30 transition-colors duration-200">
             <div className="flex items-center gap-2 mb-3">
-              <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 text-zuora-600 dark:text-zuora-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              <h4 className="font-semibold text-indigo-900 dark:text-indigo-300 text-sm uppercase tracking-wider">
+              <h4 className="font-semibold text-zuora-900 dark:text-zuora-300 text-sm uppercase tracking-wider">
                 Path Parameters
               </h4>
             </div>
@@ -416,7 +472,7 @@ export const ApiForm = ({
           return (
             <div className="mb-6">
               <p className="text-xs text-slate-500 mb-1 font-medium uppercase tracking-wider">Endpoint URL:</p>
-              <code className="text-sm bg-slate-100 dark:bg-slate-950 text-indigo-600 dark:text-indigo-300 px-3 py-2 rounded-lg block break-all border border-slate-200 dark:border-slate-800 font-mono transition-colors duration-200">
+              <code className="text-sm bg-slate-100 dark:bg-slate-950 text-zuora-600 dark:text-zuora-300 px-3 py-2 rounded-lg block break-all border border-slate-200 dark:border-slate-800 font-mono transition-colors duration-200">
                 {baseUrl}{finalPath}
               </code>
             </div>
@@ -430,7 +486,7 @@ export const ApiForm = ({
               onClick={() => setActiveTab('body')}
               className={`pb-3 text-sm font-medium transition-colors border-b-2 ${
                 activeTab === 'body'
-                  ? 'border-indigo-600 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400'
+                  ? 'border-zuora-600 dark:border-zuora-400 text-zuora-600 dark:text-zuora-400'
                   : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
@@ -440,13 +496,13 @@ export const ApiForm = ({
               onClick={() => setActiveTab('headers')}
               className={`pb-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${
                 activeTab === 'headers'
-                  ? 'border-indigo-600 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400'
+                  ? 'border-zuora-600 dark:border-zuora-400 text-zuora-600 dark:text-zuora-400'
                   : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
               Headers
               {customHeaders.some(h => h.key.trim() !== '') && (
-                <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                <span className="w-2 h-2 rounded-full bg-zuora-500"></span>
               )}
             </button>
           </nav>
@@ -481,7 +537,7 @@ export const ApiForm = ({
                     <button
                       type="button"
                       onClick={loadExample}
-                      className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline transition-colors"
+                      className="text-xs font-medium text-zuora-600 dark:text-zuora-400 hover:text-zuora-700 dark:hover:text-zuora-300 hover:underline transition-colors"
                     >
                       Load Example
                     </button>
@@ -549,7 +605,7 @@ export const ApiForm = ({
               <button
                 type="button"
                 onClick={() => setCustomHeaders([...customHeaders, createHeaderRow()])}
-                className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline transition-colors"
+                className="text-xs font-medium text-zuora-600 dark:text-zuora-400 hover:text-zuora-700 dark:hover:text-zuora-300 hover:underline transition-colors"
               >
                 + Add Header
               </button>
@@ -568,7 +624,7 @@ export const ApiForm = ({
                         setCustomHeaders(next);
                       }}
                       placeholder="Key"
-                      className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent transition-colors"
                     />
                   </div>
                   <div className="flex-1">
@@ -581,7 +637,7 @@ export const ApiForm = ({
                         setCustomHeaders(next);
                       }}
                       placeholder="Value"
-                      className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent transition-colors"
                     />
                   </div>
                   <button
@@ -612,7 +668,7 @@ export const ApiForm = ({
             <button
               type="submit"
               disabled={isLoading}
-              className={`flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-lg font-bold shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:from-indigo-500 hover:to-purple-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900 transition-all transform active:scale-[0.99] ${
+              className={`flex-1 bg-gradient-to-r from-zuora-600 to-zuora-600 text-white py-3 px-6 rounded-lg font-bold shadow-lg shadow-zuora-500/25 hover:shadow-zuora-500/40 hover:from-zuora-500 hover:to-zuora-500 focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900 transition-all transform active:scale-[0.99] ${
                 isLoading ? 'opacity-70 cursor-not-allowed' : ''
               }`}
             >

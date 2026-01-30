@@ -49,7 +49,7 @@ export const FieldSection = ({
         <div className="flex items-center space-x-2">
           <span className="font-semibold text-slate-700 dark:text-slate-200">{title}</span>
           {isAdvanced && (
-            <span className="text-xs bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 px-2 py-1 rounded border border-indigo-200 dark:border-indigo-500/30">
+            <span className="text-xs bg-zuora-50 dark:bg-zuora-500/20 text-zuora-600 dark:text-zuora-300 px-2 py-1 rounded border border-zuora-200 dark:border-zuora-500/30">
               Optional
             </span>
           )}

@@ -156,7 +156,7 @@ export const OAuthAuthentication = ({
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm dark:shadow-xl dark:shadow-black/20 transition-colors duration-200">
       <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-        <svg className="w-5 h-5 text-indigo-500 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-5 h-5 text-zuora-500 dark:text-zuora-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11.535 19.336a2 2 0 00-.586 1.414V22h-3v-2.277c0-.245.01-.491.028-.738a6 6 0 017.752-12.016z" />
         </svg>
         OAuth Authentication
@@ -171,7 +171,7 @@ export const OAuthAuthentication = ({
           id="oauth-environment"
           value={selectedEnvironmentId}
           onChange={(e) => onEnvironmentChange(e.target.value)}
-          className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-colors duration-200"
+          className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent text-slate-900 dark:text-white transition-colors duration-200"
         >
           {environments.map((env) => (
             <option key={env.id} value={env.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
@@ -191,7 +191,7 @@ export const OAuthAuthentication = ({
               </div>
               <div>
                 <p className="text-xs text-slate-500">OAuth Endpoint:</p>
-                <code className="text-xs bg-indigo-50 dark:bg-indigo-500/5 text-indigo-700 dark:text-indigo-300 px-2 py-1 rounded block mt-1 break-all border border-indigo-200 dark:border-indigo-500/20 font-mono transition-colors duration-200">
+                <code className="text-xs bg-zuora-50 dark:bg-zuora-500/5 text-zuora-700 dark:text-zuora-300 px-2 py-1 rounded block mt-1 break-all border border-zuora-200 dark:border-zuora-500/20 font-mono transition-colors duration-200">
                   {selectedEnv.baseUrl}/oauth/token
                 </code>
               </div>
@@ -207,7 +207,7 @@ export const OAuthAuthentication = ({
           onClick={() => setUseManualToken(false)}
           className={`px-4 py-1.5 rounded-md font-medium text-sm transition-all ${
             !useManualToken
-              ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm dark:shadow-md'
+              ? 'bg-white dark:bg-zuora-600 text-zuora-600 dark:text-white shadow-sm dark:shadow-md'
               : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
@@ -218,7 +218,7 @@ export const OAuthAuthentication = ({
           onClick={() => setUseManualToken(true)}
           className={`px-4 py-1.5 rounded-md font-medium text-sm transition-all ${
             useManualToken
-              ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm dark:shadow-md'
+              ? 'bg-white dark:bg-zuora-600 text-zuora-600 dark:text-white shadow-sm dark:shadow-md'
               : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
@@ -240,7 +240,7 @@ export const OAuthAuthentication = ({
             value={clientId}
             onChange={(e) => setClientId(e.target.value)}
             placeholder="Enter OAuth Client ID"
-            className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 transition-colors duration-200"
+            className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 transition-colors duration-200"
           />
         </div>
 
@@ -256,7 +256,7 @@ export const OAuthAuthentication = ({
               value={clientSecret}
               onChange={(e) => setClientSecret(e.target.value)}
               placeholder="Enter OAuth Client Secret"
-              className="w-full px-3 py-2 pr-10 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 transition-colors duration-200"
+              className="w-full px-3 py-2 pr-10 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 transition-colors duration-200"
             />
             <button
               type="button"
@@ -285,15 +285,15 @@ export const OAuthAuthentication = ({
             className={`w-full py-2.5 px-4 rounded-lg font-semibold transition-all ${
               isGenerating || !clientId || !clientSecret
                 ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700'
-                : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/20'
+                : 'bg-zuora-600 text-white hover:bg-zuora-500 shadow-lg shadow-zuora-500/20'
             }`}
           >
             {isGenerating ? 'Generating Token...' : 'Generate OAuth Token'}
           </button>
 
           {/* CORS Note */}
-          <div className="mt-4 p-3 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-lg">
-            <p className="text-xs text-indigo-700 dark:text-indigo-300">
+          <div className="mt-4 p-3 bg-zuora-50 dark:bg-zuora-500/10 border border-zuora-200 dark:border-zuora-500/20 rounded-lg">
+            <p className="text-xs text-zuora-700 dark:text-zuora-300">
               <strong>Note:</strong> If auto-generation fails due to CORS restrictions, use "Manual Entry" to paste a token generated via curl or Postman.
             </p>
           </div>
@@ -312,7 +312,7 @@ export const OAuthAuthentication = ({
                 onChange={(e) => setManualToken(e.target.value)}
                 placeholder="Paste your OAuth access token here..."
                 rows={4}
-                className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 font-mono text-sm transition-colors duration-200"
+                className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 font-mono text-sm transition-colors duration-200"
               />
             </div>
 
@@ -322,7 +322,7 @@ export const OAuthAuthentication = ({
               className={`w-full py-2.5 px-4 rounded-lg font-semibold transition-all ${
                 !manualToken.trim()
                   ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700'
-                  : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/20'
+                  : 'bg-zuora-600 text-white hover:bg-zuora-500 shadow-lg shadow-zuora-500/20'
               }`}
             >
               Use This Token

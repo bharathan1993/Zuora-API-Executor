@@ -110,14 +110,14 @@ export const Sidebar = ({ currentView, onSelectView, endpoints, isOpen, onClose 
       >
         {/* Logo Area */}
         <div className="p-6 border-b border-slate-100 dark:border-slate-900 flex items-center gap-3">
-          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-2 rounded-xl shadow-lg shadow-indigo-500/20">
+          <div className="bg-gradient-to-br from-zuora-500 to-zuora-600 p-2 rounded-xl shadow-lg shadow-zuora-500/20">
             <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
           <div>
             <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight leading-none">
-              Zuora <span className="text-indigo-600 dark:text-indigo-400">API Studio</span>
+              Zuora <span className="text-zuora-600 dark:text-zuora-400">API Studio</span>
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-500 font-medium uppercase tracking-wider mt-1">
               {endpoints.length} APIs Available
@@ -136,7 +136,7 @@ export const Sidebar = ({ currentView, onSelectView, endpoints, isOpen, onClose 
               placeholder="Search APIs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600"
+              className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600"
             />
           </div>
         </div>
@@ -155,11 +155,11 @@ export const Sidebar = ({ currentView, onSelectView, endpoints, isOpen, onClose 
                   onClick={() => onSelectView('auth')}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
                     currentView === 'auth'
-                      ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 shadow-sm border border-indigo-100 dark:border-indigo-500/20'
+                      ? 'bg-zuora-50 dark:bg-zuora-500/10 text-zuora-700 dark:text-zuora-300 shadow-sm border border-zuora-100 dark:border-zuora-500/20'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-200'
                   }`}
                 >
-                  <svg className={`w-5 h-5 transition-colors ${currentView === 'auth' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className={`w-5 h-5 transition-colors ${currentView === 'auth' ? 'text-zuora-600 dark:text-zuora-400' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11.535 19.336a2 2 0 00-.586 1.414V22h-3v-2.277c0-.245.01-.491.028-.738a6 6 0 017.752-12.016z" />
                   </svg>
                   Authentication
@@ -247,7 +247,7 @@ export const Sidebar = ({ currentView, onSelectView, endpoints, isOpen, onClose 
         {/* User/Footer Area */}
         <div className="p-4 border-t border-slate-100 dark:border-slate-900 bg-slate-50/50 dark:bg-slate-900/50">
           <div className="flex items-center gap-3 px-2">
-            <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-xs border border-indigo-200 dark:border-indigo-500/30">
+            <div className="w-8 h-8 rounded-full bg-zuora-100 dark:bg-zuora-900/50 flex items-center justify-center text-zuora-600 dark:text-zuora-400 font-bold text-xs border border-zuora-200 dark:border-zuora-500/30">
               Dev
             </div>
             <div className="flex-1 min-w-0">

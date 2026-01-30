@@ -5,11 +5,12 @@ import { CodeGenerator } from './components/CodeGenerator';
 import { OAuthAuthentication } from './components/OAuthAuthentication';
 import { Sidebar } from './components/Sidebar';
 import { JsonPreview } from './components/JsonPreview';
+import { SavedRequests } from './components/SavedRequests';
 import { zuoraEndpoints } from './config/zuoraEndpoints';
 import { zuoraEnvironments } from './config/environments';
 import { apiExecutor } from './services/apiExecutor';
 import { useTheme } from './hooks/useTheme';
-import type { ApiEndpoint, ApiResponse, ApiRequest } from './types/api';
+import type { ApiEndpoint, ApiResponse, ApiRequest, SavedFolder, SavedRequest } from './types/api';
 
 function App() {
   const [selectedEndpoint, setSelectedEndpoint] = useState<ApiEndpoint>(zuoraEndpoints[0]);
@@ -25,8 +26,35 @@ function App() {
   const [currentView, setCurrentView] = useState<string>('auth');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [liveFormData, setLiveFormData] = useState<Record<string, any>>({});
+  const [liveHeaders, setLiveHeaders] = useState<Record<string, string> | undefined>();
+  const [livePathParams, setLivePathParams] = useState<Record<string, any> | undefined>();
+  const [savedRequests, setSavedRequests] = useState<SavedRequest[]>([]);
+  const [savedFolders, setSavedFolders] = useState<SavedFolder[]>([]);
+  const [prefillRequest, setPrefillRequest] = useState<SavedRequest | null>(null);
   const { theme, toggleTheme } = useTheme();
   const formId = 'zuora-api-form';
+  const savedRequestsKey = 'zuora_saved_requests';
+
+  const loadSavedRequests = () => {
+    try {
+      const raw = localStorage.getItem(savedRequestsKey);
+      if (!raw) return { requests: [], folders: [] as SavedFolder[] };
+      const parsed = JSON.parse(raw) as { requests?: SavedRequest[]; folders?: SavedFolder[] } | SavedRequest[];
+      if (Array.isArray(parsed)) {
+        return { requests: parsed, folders: [] as SavedFolder[] };
+      }
+      return {
+        requests: parsed.requests || [],
+        folders: parsed.folders || [],
+      };
+    } catch {
+      return { requests: [], folders: [] as SavedFolder[] };
+    }
+  };
+
+  const persistSavedRequests = (requests: SavedRequest[], folders: SavedFolder[]) => {
+    localStorage.setItem(savedRequestsKey, JSON.stringify({ requests, folders }));
+  };
 
   useEffect(() => {
     // Load auth token and environment from localStorage
@@ -43,6 +71,10 @@ function App() {
         setSelectedEnvironmentId(savedEnvironment);
       }
     }
+
+    const loaded = loadSavedRequests();
+    setSavedRequests(loaded.requests);
+    setSavedFolders(loaded.folders);
   }, []);
 
   const handleViewChange = (view: string) => {
@@ -69,7 +101,12 @@ function App() {
     localStorage.setItem('zuora_environment', environmentId);
   };
 
-  const handleSubmit = async (data: any, customHeaders?: Record<string, string>, pathParams?: Record<string, any>) => {
+  const executeRequest = async (
+    endpoint: ApiEndpoint,
+    data: any,
+    customHeaders?: Record<string, string>,
+    pathParams?: Record<string, any>
+  ) => {
     if (!authToken) {
       setError('Please generate an OAuth token first');
       return;
@@ -86,11 +123,11 @@ function App() {
     const selectedEnvironment = zuoraEnvironments.find(
       (env) => env.id === selectedEnvironmentId
     );
-    const baseUrl = selectedEnvironment?.baseUrl || selectedEndpoint.baseUrl;
+    const baseUrl = selectedEnvironment?.baseUrl || endpoint.baseUrl;
 
     // Create a modified endpoint with the selected environment's base URL
     const endpointWithEnv = {
-      ...selectedEndpoint,
+      ...endpoint,
       baseUrl,
     };
 
@@ -112,6 +149,175 @@ function App() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSubmit = async (data: any, customHeaders?: Record<string, string>, pathParams?: Record<string, any>) => {
+    await executeRequest(selectedEndpoint, data, customHeaders, pathParams);
+  };
+
+  const handleSaveRequest = () => {
+    if (!selectedEndpoint) return;
+    const name = window.prompt('Save request as:', selectedEndpoint.name);
+    if (!name) return;
+    const request: SavedRequest = {
+      id: typeof crypto?.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      name,
+      endpointId: selectedEndpoint.id,
+      environmentId: selectedEnvironmentId,
+      data: liveFormData,
+      customHeaders: liveHeaders,
+      pathParams: livePathParams,
+      createdAt: Date.now(),
+    };
+    setSavedRequests((prev) => {
+      const next = [request, ...prev];
+      persistSavedRequests(next, savedFolders);
+      return next;
+    });
+  };
+
+  const handleUseSavedRequest = (request: SavedRequest) => {
+    const endpoint = zuoraEndpoints.find((e) => e.id === request.endpointId);
+    if (endpoint) {
+      setSelectedEndpoint(endpoint);
+    }
+    if (request.environmentId) {
+      setSelectedEnvironmentId(request.environmentId);
+      localStorage.setItem('zuora_environment', request.environmentId);
+    }
+    setPrefillRequest(request);
+  };
+
+  const handleRunSavedRequest = (request: SavedRequest) => {
+    const endpoint = zuoraEndpoints.find((e) => e.id === request.endpointId);
+    if (!endpoint) return;
+    if (request.environmentId) {
+      setSelectedEnvironmentId(request.environmentId);
+      localStorage.setItem('zuora_environment', request.environmentId);
+    }
+    setSelectedEndpoint(endpoint);
+    executeRequest(endpoint, request.data || {}, request.customHeaders, request.pathParams);
+  };
+
+  const handleDeleteSavedRequest = (id: string) => {
+    setSavedRequests((prev) => {
+      const next = prev.filter((request) => request.id !== id);
+      persistSavedRequests(next, savedFolders);
+      return next;
+    });
+  };
+
+  const handleRenameSavedRequest = (id: string, name: string) => {
+    setSavedRequests((prev) => {
+      const next = prev.map((request) => (request.id === id ? { ...request, name } : request));
+      persistSavedRequests(next, savedFolders);
+      return next;
+    });
+  };
+
+  const handleDuplicateSavedRequest = (id: string) => {
+    setSavedRequests((prev) => {
+      const source = prev.find((request) => request.id === id);
+      if (!source) return prev;
+      const copy: SavedRequest = {
+        ...source,
+        id: typeof crypto?.randomUUID === 'function'
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        name: `${source.name} (Copy)`,
+        createdAt: Date.now(),
+      };
+      const next = [copy, ...prev];
+      persistSavedRequests(next, savedFolders);
+      return next;
+    });
+  };
+
+  const handleCreateFolder = (name: string) => {
+    setSavedFolders((prev) => {
+      const next = [
+        ...prev,
+        {
+          id: typeof crypto?.randomUUID === 'function'
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          name,
+          createdAt: Date.now(),
+        },
+      ];
+      persistSavedRequests(savedRequests, next);
+      return next;
+    });
+  };
+
+  const handleRenameFolder = (id: string, name: string) => {
+    setSavedFolders((prev) => {
+      const next = prev.map((folder) => (folder.id === id ? { ...folder, name } : folder));
+      persistSavedRequests(savedRequests, next);
+      return next;
+    });
+  };
+
+  const handleDeleteFolder = (id: string) => {
+    setSavedFolders((prevFolders) => {
+      const nextFolders = prevFolders.filter((folder) => folder.id !== id);
+      setSavedRequests((prevRequests) => {
+        const nextRequests = prevRequests.map((request) =>
+          request.folderId === id ? { ...request, folderId: undefined } : request
+        );
+        persistSavedRequests(nextRequests, nextFolders);
+        return nextRequests;
+      });
+      return nextFolders;
+    });
+  };
+
+  const handleMoveSavedRequest = (id: string, destination: { folderId?: string; index?: number }) => {
+    setSavedRequests((prev) => {
+      const sourceIndex = prev.findIndex((request) => request.id === id);
+      if (sourceIndex < 0) return prev;
+      const request = prev[sourceIndex];
+      const updated = { ...request, folderId: destination.folderId };
+
+      const grouped = new Map<string | undefined, SavedRequest[]>();
+      prev.forEach((item) => {
+        const key = item.folderId;
+        const existing = grouped.get(key) || [];
+        existing.push(item);
+        grouped.set(key, existing);
+      });
+
+      const sourceKey = request.folderId;
+      const sourceGroup = (grouped.get(sourceKey) || []).filter((item) => item.id !== id);
+      grouped.set(sourceKey, sourceGroup);
+
+      const targetKey = destination.folderId;
+      const targetGroup = grouped.get(targetKey) || [];
+      const insertIndex = destination.index ?? targetGroup.length;
+      const nextTargetGroup = [
+        ...targetGroup.slice(0, insertIndex),
+        updated,
+        ...targetGroup.slice(insertIndex),
+      ];
+      grouped.set(targetKey, nextTargetGroup);
+
+      const ordered: SavedRequest[] = [];
+      savedFolders.forEach((folder) => {
+        const items = grouped.get(folder.id);
+        if (items && items.length) {
+          ordered.push(...items);
+        }
+      });
+      const unsorted = grouped.get(undefined) || [];
+      if (unsorted.length) {
+        ordered.push(...unsorted);
+      }
+
+      persistSavedRequests(ordered, savedFolders);
+      return ordered;
+    });
   };
 
   return (
@@ -177,28 +383,28 @@ function App() {
             {currentView === 'auth' ? (
               <div className="space-y-8 animate-fadeIn">
                 {/* Proxy Server Toggle */}
-                <div className="bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-500/30 rounded-xl p-4 backdrop-blur-sm relative overflow-hidden group shadow-sm transition-colors duration-200">
-                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 opacity-50 dark:opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="bg-white dark:bg-slate-900 border border-zuora-200 dark:border-zuora-500/30 rounded-xl p-4 backdrop-blur-sm relative overflow-hidden group shadow-sm transition-colors duration-200">
+                  <div className="absolute inset-0 bg-gradient-to-r from-zuora-500/5 to-zuora-500/5 opacity-50 dark:opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   <div className="flex items-start relative z-10">
                     <div className="flex-shrink-0 mt-1">
-                      <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
+                      <div className="w-2 h-2 rounded-full bg-zuora-500 animate-pulse"></div>
                     </div>
                     <div className="ml-4 flex-1">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="text-sm font-semibold text-indigo-700 dark:text-indigo-400">
+                          <h3 className="text-sm font-semibold text-zuora-700 dark:text-zuora-400">
                             CORS Proxy Server
                           </h3>
                           <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                             Required to bypass browser restrictions. Run the local proxy server on port 3001.
                           </p>
                         </div>
-                        <label className="flex items-center cursor-pointer bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500/50 transition-colors">
+                        <label className="flex items-center cursor-pointer bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-zuora-400 dark:hover:border-zuora-500/50 transition-colors">
                           <input
                             type="checkbox"
                             checked={useProxy}
                             onChange={(e) => setUseProxy(e.target.checked)}
-                            className="w-4 h-4 text-indigo-600 bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded focus:ring-indigo-600 focus:ring-offset-white dark:focus:ring-offset-slate-900"
+                            className="w-4 h-4 text-zuora-600 bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded focus:ring-zuora-600 focus:ring-offset-white dark:focus:ring-offset-slate-900"
                           />
                           <span className="ml-2 text-sm text-slate-700 dark:text-slate-200 font-medium">
                             Enable Proxy
@@ -232,6 +438,12 @@ function App() {
                       selectedEnvironmentId={selectedEnvironmentId}
                       onEnvironmentChange={handleEnvironmentChange}
                       onFormDataChange={setLiveFormData}
+                      onHeadersChange={setLiveHeaders}
+                      onPathParamsChange={setLivePathParams}
+                      prefillData={prefillRequest?.data}
+                      prefillHeaders={prefillRequest?.customHeaders}
+                      prefillPathParams={prefillRequest?.pathParams}
+                      prefillId={prefillRequest?.id}
                     />
                   </div>
 
@@ -242,7 +454,7 @@ function App() {
                         type="submit"
                         form={formId}
                         disabled={isLoading}
-                        className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-lg font-bold shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:from-indigo-500 hover:to-purple-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900 transition-all transform active:scale-[0.99] ${
+                        className={`w-full bg-gradient-to-r from-zuora-600 to-zuora-600 text-white py-3 px-6 rounded-lg font-bold shadow-lg shadow-zuora-500/25 hover:shadow-zuora-500/40 hover:from-zuora-500 hover:to-zuora-500 focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900 transition-all transform active:scale-[0.99] ${
                           isLoading ? 'opacity-70 cursor-not-allowed' : ''
                         }`}
                       >
@@ -260,7 +472,21 @@ function App() {
                       </button>
                     </div>
                     
-                    <JsonPreview data={liveFormData} />
+                    <JsonPreview data={liveFormData} onSave={handleSaveRequest} />
+
+                    <SavedRequests
+                      requests={savedRequests}
+                      folders={savedFolders}
+                      onUse={handleUseSavedRequest}
+                      onRun={handleRunSavedRequest}
+                      onDelete={handleDeleteSavedRequest}
+                      onRename={handleRenameSavedRequest}
+                      onDuplicate={handleDuplicateSavedRequest}
+                      onCreateFolder={handleCreateFolder}
+                      onRenameFolder={handleRenameFolder}
+                      onDeleteFolder={handleDeleteFolder}
+                      onMoveRequest={handleMoveSavedRequest}
+                    />
                     
                     <ResponseViewer response={response} error={error} />
                     <CodeGenerator request={currentRequest} />

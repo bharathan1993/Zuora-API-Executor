@@ -67,3 +67,21 @@ export interface ApiRequest {
   pathParams?: Record<string, any>;
   customHeaders?: Record<string, string>;
 }
+
+export interface SavedRequest {
+  id: string;
+  name: string;
+  endpointId: string;
+  environmentId?: string;
+  folderId?: string;
+  data?: Record<string, any>;
+  customHeaders?: Record<string, string>;
+  pathParams?: Record<string, any>;
+  createdAt: number;
+}
+
+export interface SavedFolder {
+  id: string;
+  name: string;
+  createdAt: number;
+}
