@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_paymentscheduleitemEndpoint: ApiEndpoint = {
   "id": "put-paymentscheduleitem",
   "name": "Update a payment schedule item",
-  "description": "",
+  "description": "Updates a payment schedule item by ID.",
   "method": "PUT",
   "path": "/v1/payment-schedule-items/{psi-id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_paymentscheduleitemEndpoint: ApiEndpoint = {
       "name": "psi-id",
       "label": "Psi Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique ID of a payment schedule item."
     }
   ],
   "bodyFields": [
@@ -25,6 +26,7 @@ export const put_paymentscheduleitemEndpoint: ApiEndpoint = {
       "label": "Amount",
       "type": "number",
       "required": false,
+      "description": "The amount of the payment.",
       "section": "Additional Fields"
     },
     {
@@ -32,6 +34,7 @@ export const put_paymentscheduleitemEndpoint: ApiEndpoint = {
       "label": "Currency",
       "type": "string",
       "required": false,
+      "description": "The currency of the payment. **Note:** - For custom payments, if Multi-currency is enabled, the payment currency can be different from the account currency for custom payment. - For recurring payments, if Multi-currency is enabled, the payment currency can be different from the account currency but should be the same as billing currency for a recurring payment.",
       "section": "Additional Fields"
     },
     {
@@ -39,6 +42,7 @@ export const put_paymentscheduleitemEndpoint: ApiEndpoint = {
       "label": "Run Hour",
       "type": "number",
       "required": false,
+      "description": "At which hour of the day in the tenant’s timezone this payment will be collected. If the payment `runHour` and `scheduledDate` are backdated, the system will collect the payment when the next runHour occurs.",
       "section": "Additional Fields"
     },
     {
@@ -46,6 +50,7 @@ export const put_paymentscheduleitemEndpoint: ApiEndpoint = {
       "label": "Scheduled Date",
       "type": "date",
       "required": false,
+      "description": "The scheduled date when the payment is processed.",
       "section": "Additional Fields"
     },
     {
@@ -53,6 +58,7 @@ export const put_paymentscheduleitemEndpoint: ApiEndpoint = {
       "label": "Link Payments",
       "type": "array",
       "required": false,
+      "description": "Container for payments linked to the payment schedule item.",
       "itemType": "string",
       "section": "Payment Settings"
     },
@@ -61,6 +67,7 @@ export const put_paymentscheduleitemEndpoint: ApiEndpoint = {
       "label": "Payment Gateway Id",
       "type": "string",
       "required": false,
+      "description": "ID of the payment gateway of the payment schedule item.",
       "section": "Payment Settings"
     },
     {
@@ -68,6 +75,7 @@ export const put_paymentscheduleitemEndpoint: ApiEndpoint = {
       "label": "Payment Method Id",
       "type": "string",
       "required": false,
+      "description": "ID of the payment method of the payment schedule item.",
       "section": "Payment Settings"
     },
     {
@@ -75,6 +83,7 @@ export const put_paymentscheduleitemEndpoint: ApiEndpoint = {
       "label": "Payment Option",
       "type": "array",
       "required": false,
+      "description": "Container for the paymentOption items, which describe the transactional level rules for processing payments. Currently, only the Gateway Options type is supported. Here is an example: ``` \"paymentOption\": [ { \"type\": \"GatewayOptions\", \"detail\": { \"SecCode\":\"WEB\" } } ] ``` `paymentOption` of the payment schedule takes precedence over `paymentOption` of the payment schedule item.",
       "itemType": "object",
       "itemFields": [
         {
@@ -82,12 +91,14 @@ export const put_paymentscheduleitemEndpoint: ApiEndpoint = {
           "label": "Detail",
           "type": "object",
           "required": false,
+          "description": "The field used to pass the transactional payment data to the gateway side in the key-value format.",
           "fields": [
             {
               "name": "key",
               "label": "Key",
               "type": "string",
               "required": false,
+              "description": "The name of the field.",
               "section": "Additional Fields"
             },
             {
@@ -95,6 +106,7 @@ export const put_paymentscheduleitemEndpoint: ApiEndpoint = {
               "label": "Value",
               "type": "string",
               "required": false,
+              "description": "The value of the field.",
               "section": "Additional Fields"
             }
           ],
@@ -105,6 +117,7 @@ export const put_paymentscheduleitemEndpoint: ApiEndpoint = {
           "label": "Type",
           "type": "string",
           "required": false,
+          "description": "The type of the payment option. Currently, only `GatewayOptions` is supported for specifying Gateway Options fields supported by a payment gateway.",
           "section": "Additional Fields"
         }
       ],
@@ -115,6 +128,7 @@ export const put_paymentscheduleitemEndpoint: ApiEndpoint = {
       "label": "Unlink Payments",
       "type": "array",
       "required": false,
+      "description": "Container for payments to be unlinked from the payment schedule item.",
       "itemType": "string",
       "section": "Payment Settings"
     }

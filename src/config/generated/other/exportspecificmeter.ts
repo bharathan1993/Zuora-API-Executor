@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const exportspecificmeterEndpoint: ApiEndpoint = {
   "id": "exportspecificmeter",
   "name": "Export details of a specific meter",
-  "description": "",
+  "description": "The Export Meter operation exports the full definition of a specific meter in Zuora Mediation, including metadata, all versions, event schemas, and operator configurations (source, processor, sink). It's useful for reviewing, backing up, or replicating meter setups across environments.",
   "method": "GET",
   "path": "/meters/export/{meterId}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const exportspecificmeterEndpoint: ApiEndpoint = {
       "name": "meterId",
       "label": "Meter Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "ID of the meter to export."
     }
   ],
   "bodyFields": [],

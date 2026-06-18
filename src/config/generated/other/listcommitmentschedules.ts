@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const listcommitmentschedulesEndpoint: ApiEndpoint = {
   "id": "listcommitmentschedules",
   "name": "List schedules for a commitment",
-  "description": "",
+  "description": "Retrieves all the schedules for a specific commitment.",
   "method": "GET",
   "path": "/commitments/{commitmentKey}/schedules",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const listcommitmentschedulesEndpoint: ApiEndpoint = {
       "name": "commitmentKey",
       "label": "Commitment Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique identifier (ID or number) of the commitment."
     }
   ],
   "queryParams": [
@@ -25,6 +26,7 @@ export const listcommitmentschedulesEndpoint: ApiEndpoint = {
       "label": "Page",
       "type": "number",
       "required": false,
+      "description": "Page number for pagination.",
       "defaultValue": 1
     },
     {
@@ -32,6 +34,7 @@ export const listcommitmentschedulesEndpoint: ApiEndpoint = {
       "label": "Page Size",
       "type": "number",
       "required": false,
+      "description": "Page size for pagination.",
       "defaultValue": 20
     }
   ],

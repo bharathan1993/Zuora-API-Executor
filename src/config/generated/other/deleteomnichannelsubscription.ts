@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const deleteomnichannelsubscriptionEndpoint: ApiEndpoint = {
   "id": "deleteomnichannelsubscription",
   "name": "Delete an omnichannel subscription",
-  "description": "",
+  "description": "Deletes a specified omnichannel subscription.",
   "method": "DELETE",
   "path": "/v1/omni-channel-subscriptions/{subscriptionKey}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const deleteomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "name": "subscriptionKey",
       "label": "Subscription Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The key of the omnichannel subscription to be deleted."
     }
   ],
   "bodyFields": [],

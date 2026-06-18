@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const post_dm_taxationitemsEndpoint: ApiEndpoint = {
   "id": "post-dm-taxationitems",
   "name": "Create taxation items for a debit memo",
-  "description": "",
+  "description": "**Note:** This operation is only available if you have [Invoice Settlement](https://knowledgecenter.zuora.com/Billing/Billing_and_Payments/Invoice_Settlement) enabled. The Invoice Settlement feature is generally available as of Zuora Billing Release 296 (March 2021). This feature includes Unapplied Payments, Credit and Debit Memo, and Invoice Item Settlement. If you want to enable Invoice Settlement, see [Invoice Settlement Enablement and Checklist Guide](https://knowledgecenter.zuora.com/Billing/Billing_and_Payments/Invoice_Settlement/Invoice_Settlement_Migration_Checklist_and_Guide) for more information.",
   "method": "POST",
   "path": "/v1/debit-memos/{debitMemoKey}/taxation-items",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const post_dm_taxationitemsEndpoint: ApiEndpoint = {
       "name": "debitMemoKey",
       "label": "Debit Memo Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique ID or number of a debit memo. For example, 8a8082e65b27f6c3015ba419f3c2644e or DM00000001."
     }
   ],
   "bodyFields": [
@@ -25,6 +26,7 @@ export const post_dm_taxationitemsEndpoint: ApiEndpoint = {
       "label": "Taxation Items",
       "type": "array",
       "required": false,
+      "description": "Container for taxation items.",
       "itemType": "object",
       "itemFields": [
         {
@@ -32,6 +34,7 @@ export const post_dm_taxationitemsEndpoint: ApiEndpoint = {
           "label": "Exempt Amount",
           "type": "number",
           "required": false,
+          "description": "The calculated tax amount excluded due to the exemption.",
           "section": "Additional Fields"
         },
         {
@@ -39,12 +42,14 @@ export const post_dm_taxationitemsEndpoint: ApiEndpoint = {
           "label": "Finance Information",
           "type": "object",
           "required": false,
+          "description": "Container for the finance information related to the taxation item.",
           "fields": [
             {
               "name": "salesTaxPayableAccountingCode",
               "label": "Sales Tax Payable Accounting Code",
               "type": "string",
               "required": false,
+              "description": "The accounting code for the sales taxes payable.",
               "maxLength": 100,
               "section": "Account Settings"
             }
@@ -56,6 +61,7 @@ export const post_dm_taxationitemsEndpoint: ApiEndpoint = {
           "label": "Jurisdiction",
           "type": "string",
           "required": true,
+          "description": "The jurisdiction that applies the tax or VAT. This value is typically a state, province, county, or city.",
           "section": "Additional Fields"
         },
         {
@@ -63,6 +69,7 @@ export const post_dm_taxationitemsEndpoint: ApiEndpoint = {
           "label": "Location Code",
           "type": "string",
           "required": false,
+          "description": "The identifier for the location based on the value of the `taxCode` field.",
           "section": "Additional Fields"
         },
         {
@@ -70,6 +77,7 @@ export const post_dm_taxationitemsEndpoint: ApiEndpoint = {
           "label": "Memo Item Id",
           "type": "string",
           "required": false,
+          "description": "The ID of the debit memo that the taxation item is created for.",
           "section": "Credit & Settlement Settings"
         },
         {
@@ -77,6 +85,7 @@ export const post_dm_taxationitemsEndpoint: ApiEndpoint = {
           "label": "Name",
           "type": "string",
           "required": true,
+          "description": "The name of the taxation item.",
           "section": "Account Settings"
         },
         {
@@ -84,6 +93,7 @@ export const post_dm_taxationitemsEndpoint: ApiEndpoint = {
           "label": "Source Tax Item Id",
           "type": "string",
           "required": false,
+          "description": "The ID of the taxation item of the invoice, which the debit memo is created from. If you want to use this REST API to create taxation items for a debit memo created from an invoice, the taxation items of the invoice must be created or imported through the SOAP API call. **Note:** - This field is only used if the debit memo is created from an invoice. - If you do not contain this field in the request body, Zuora will automatically set a value for the `sourceTaxItemId` field based on the tax location code, tax jurisdiction, and tax rate.",
           "section": "Tax Settings"
         },
         {
@@ -91,6 +101,7 @@ export const post_dm_taxationitemsEndpoint: ApiEndpoint = {
           "label": "Tax Amount",
           "type": "number",
           "required": true,
+          "description": "The amount of the tax applied to the debit memo.",
           "section": "Tax Settings"
         },
         {
@@ -98,6 +109,7 @@ export const post_dm_taxationitemsEndpoint: ApiEndpoint = {
           "label": "Tax Code",
           "type": "string",
           "required": false,
+          "description": "The tax code identifies which tax rules and tax rates to apply to a specific debit memo.",
           "section": "Tax Settings"
         },
         {
@@ -105,6 +117,7 @@ export const post_dm_taxationitemsEndpoint: ApiEndpoint = {
           "label": "Tax Code Description",
           "type": "string",
           "required": false,
+          "description": "The description of the tax code.",
           "section": "Tax Settings"
         },
         {
@@ -112,6 +125,7 @@ export const post_dm_taxationitemsEndpoint: ApiEndpoint = {
           "label": "Tax Date",
           "type": "date",
           "required": false,
+          "description": "The date when the tax is applied to the debit memo.",
           "section": "Tax Settings"
         },
         {
@@ -119,6 +133,7 @@ export const post_dm_taxationitemsEndpoint: ApiEndpoint = {
           "label": "Tax Rate",
           "type": "number",
           "required": true,
+          "description": "The tax rate applied to the debit memo.",
           "section": "Tax Settings"
         },
         {
@@ -126,6 +141,7 @@ export const post_dm_taxationitemsEndpoint: ApiEndpoint = {
           "label": "Tax Rate Description",
           "type": "string",
           "required": false,
+          "description": "The description of the tax rate.",
           "section": "Tax Settings"
         },
         {
@@ -133,6 +149,7 @@ export const post_dm_taxationitemsEndpoint: ApiEndpoint = {
           "label": "Tax Rate Type",
           "type": "string",
           "required": true,
+          "description": "The type of the tax rate applied to the debit memo.",
           "enum": [
             "Percentage",
             "FlatFee"

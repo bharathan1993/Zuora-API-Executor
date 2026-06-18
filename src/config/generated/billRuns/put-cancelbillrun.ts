@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_cancelbillrunEndpoint: ApiEndpoint = {
   "id": "put-cancelbillrun",
   "name": "Cancel a bill run",
-  "description": "",
+  "description": "Cancels a bill run in Draft status.",
   "method": "PUT",
   "path": "/v1/bill-runs/{billRunId}/cancel",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_cancelbillrunEndpoint: ApiEndpoint = {
       "name": "billRunId",
       "label": "Bill Run Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique ID of a bill run."
     }
   ],
   "bodyFields": [
@@ -25,6 +26,7 @@ export const put_cancelbillrunEndpoint: ApiEndpoint = {
       "label": "Cancel Once",
       "type": "boolean",
       "required": false,
+      "description": "Whether to cancel the current bill run or cancel all future recurring bill runs, only valid for a scheduled bill run.",
       "defaultValue": true,
       "section": "Additional Fields"
     }

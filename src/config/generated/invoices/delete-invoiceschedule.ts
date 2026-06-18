@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const delete_invoicescheduleEndpoint: ApiEndpoint = {
   "id": "delete-invoiceschedule",
   "name": "Delete an invoice schedule",
-  "description": "",
+  "description": "Deletes an invoice schedule in Pending status. The status of the invoice",
   "method": "DELETE",
   "path": "/v1/invoice-schedules/{scheduleKey}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const delete_invoicescheduleEndpoint: ApiEndpoint = {
       "name": "scheduleKey",
       "label": "Schedule Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique ID or number of the invoice schedule to be deleted. For example, 2c92c8955bd63cc1015bd7c151af02ab or IS-0000001."
     }
   ],
   "bodyFields": [],

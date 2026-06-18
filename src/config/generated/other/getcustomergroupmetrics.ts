@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const getcustomergroupmetricsEndpoint: ApiEndpoint = {
   "id": "getcustomergroupmetrics",
   "name": "List the customer group metrics",
-  "description": "",
+  "description": "Gets the following metrics for each customer group that is in the active status:",
   "method": "GET",
   "path": "/api/v1/metrics/customer_group",
   "baseUrl": "https://rest.test.zuora.com",

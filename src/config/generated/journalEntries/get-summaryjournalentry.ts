@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_summaryjournalentryEndpoint: ApiEndpoint = {
   "id": "get-summaryjournalentry",
   "name": "Retrieve a summary journal entry",
-  "description": "",
+  "description": "This REST API reference describes how to get information about a summary journal entry by its journal entry number.",
   "method": "GET",
   "path": "/v1/journal-entries/{je-number}",
   "baseUrl": "https://rest.test.zuora.com",

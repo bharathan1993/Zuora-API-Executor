@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_einvoicefiletemplateEndpoint: ApiEndpoint = {
   "id": "get-einvoicefiletemplate",
   "name": "Retrieve an e-invoice file template",
-  "description": "",
+  "description": "Retrieves information about an e-invoice file template.",
   "method": "GET",
   "path": "/v1/einvoice/templates/{key}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_einvoicefiletemplateEndpoint: ApiEndpoint = {
       "name": "key",
       "label": "Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique number or ID of the e-invoice file template that you want to retrieve information about."
     }
   ],
   "bodyFields": [],

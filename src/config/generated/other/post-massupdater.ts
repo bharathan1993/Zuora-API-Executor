@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const post_massupdaterEndpoint: ApiEndpoint = {
   "id": "post-massupdater",
   "name": "Perform a mass action",
-  "description": "",
+  "description": "Describes how to perform a mass action through the REST API.",
   "method": "POST",
   "path": "/v1/bulk",
   "baseUrl": "https://rest.test.zuora.com",

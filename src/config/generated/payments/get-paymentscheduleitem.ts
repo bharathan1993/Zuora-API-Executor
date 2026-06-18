@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_paymentscheduleitemEndpoint: ApiEndpoint = {
   "id": "get-paymentscheduleitem",
   "name": "Retrieve a payment schedule item",
-  "description": "",
+  "description": "Retrieves a payment schedule item by ID.",
   "method": "GET",
   "path": "/v1/payment-schedule-items/{psi-id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_paymentscheduleitemEndpoint: ApiEndpoint = {
       "name": "psi-id",
       "label": "Psi Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique ID of a payment schedule item."
     }
   ],
   "bodyFields": [],

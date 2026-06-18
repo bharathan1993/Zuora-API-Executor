@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import type { ApiEndpoint } from '../types/api';
-import { getEndpointsByCategory, getAvailableCategories } from '../config/zuoraEndpoints';
+import {
+  getEndpointsByCategory,
+  getAvailableCategories,
+  getGeneralPurposeOperationGroups,
+} from '../config/zuoraEndpoints';
 
 interface SidebarProps {
   currentView: string;
@@ -25,6 +29,8 @@ export const Sidebar = ({
 }: SidebarProps) => {
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
     accounts: true,
+    'general-purpose-operations': true,
+    'general-purpose-operations:actions': true,
   });
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -86,6 +92,7 @@ export const Sidebar = ({
       contacts: 'Contacts',
       'credit-memos': 'Credit Memos',
       'debit-memos': 'Debit Memos',
+      'general-purpose-operations': 'General-Purpose Operations',
     };
 
     return labelMap[category] || category;
@@ -151,6 +158,51 @@ export const Sidebar = ({
       </span>
     </button>
   );
+
+  const renderGeneralPurposeGroups = (filteredEndpoints: ApiEndpoint[]) => {
+    const groups = getGeneralPurposeOperationGroups(filteredEndpoints);
+
+    return (
+      <div className="mt-1 ml-4 space-y-1 border-l-2 border-slate-100 dark:border-slate-900 pl-2">
+        {groups.map((group) => {
+          const groupKey = `general-purpose-operations:${group.id}`;
+          const isGroupExpanded = expandedCategories[groupKey] || Boolean(searchQuery.trim());
+
+          return (
+            <div key={group.id}>
+              <button
+                onClick={() => toggleCategory(groupKey)}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-semibold text-left text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900/50 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+              >
+                <span className="flex items-center gap-2 min-w-0 flex-1 justify-start text-left">
+                  <svg
+                    className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isGroupExpanded ? 'rotate-90' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  <span className="text-left leading-snug">{group.label}</span>
+                </span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-600">
+                  {group.endpoints.length}
+                </span>
+              </button>
+
+              {isGroupExpanded && (
+                <ul className="mt-0.5 ml-5 space-y-0.5 border-l border-slate-100 dark:border-slate-900 pl-2">
+                  {group.endpoints.map((endpoint) => (
+                    <li key={endpoint.id}>{renderEndpointButton(endpoint)}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <>
@@ -283,14 +335,14 @@ export const Sidebar = ({
                   <div key={category}>
                     <button
                       onClick={() => toggleCategory(category)}
-                      className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors group"
+                      className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium text-left text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors group"
                     >
-                      <div className="flex items-center gap-3">
-                        <svg className="w-5 h-5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <div className="flex items-center gap-3 min-w-0 flex-1 justify-start text-left">
+                        <svg className="w-5 h-5 shrink-0 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           {getCategoryIcon(category)}
                         </svg>
-                        <span>{getCategoryLabel(category)}</span>
-                        <span className="text-xs text-slate-400 dark:text-slate-600">
+                        <span className="text-left leading-snug">{getCategoryLabel(category)}</span>
+                        <span className="shrink-0 text-xs text-slate-400 dark:text-slate-600">
                           {filteredEndpoints.length}
                         </span>
                       </div>
@@ -304,7 +356,9 @@ export const Sidebar = ({
                       </svg>
                     </button>
 
-                    {isExpanded && (
+                    {isExpanded && category === 'general-purpose-operations' && renderGeneralPurposeGroups(filteredEndpoints)}
+
+                    {isExpanded && category !== 'general-purpose-operations' && (
                       <ul className="mt-1 ml-4 space-y-0.5 border-l-2 border-slate-100 dark:border-slate-900 pl-2">
                         {filteredEndpoints.map((endpoint) => (
                           <li key={endpoint.id}>{renderEndpointButton(endpoint)}</li>

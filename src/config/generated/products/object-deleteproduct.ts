@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const object_deleteproductEndpoint: ApiEndpoint = {
   "id": "object-deleteproduct",
   "name": "CRUD: Delete a product",
-  "description": "",
+  "description": "Deletes a specific product.",
   "method": "DELETE",
   "path": "/v1/object/product/{id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const object_deleteproductEndpoint: ApiEndpoint = {
       "name": "id",
       "label": "Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Object id"
     }
   ],
   "bodyFields": [],

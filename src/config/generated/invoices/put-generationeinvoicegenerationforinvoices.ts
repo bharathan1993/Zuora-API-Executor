@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_generationeinvoicegenerationforinvoicesEndpoint: ApiEndpoint = {
   "id": "put-generationeinvoicegenerationforinvoices",
   "name": "Generate an e-invoice file for an invoice",
-  "description": "",
+  "description": "Generates an e-invoice file for an invoice.",
   "method": "PUT",
   "path": "/v1/invoices/{invoiceKey}/einvoice/generate",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_generationeinvoicegenerationforinvoicesEndpoint: ApiEndpoint = 
       "name": "invoiceKey",
       "label": "Invoice Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The ID or number of the invoice. For example, 2c92c8955bd63cc1015bd7c151af02ab or INV-0000001."
     }
   ],
   "bodyFields": [],

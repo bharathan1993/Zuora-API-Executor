@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const canceleinvoicebyinvoicekeyEndpoint: ApiEndpoint = {
   "id": "canceleinvoicebyinvoicekey",
   "name": "Cancel the e-invoice file for an invoice",
-  "description": "",
+  "description": "Cancels the E-Invoice for the given billing document",
   "method": "PUT",
   "path": "/v1/invoices/{invoiceKey}/e-invoice/cancel",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const canceleinvoicebyinvoicekeyEndpoint: ApiEndpoint = {
       "name": "invoiceKey",
       "label": "Invoice Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Invoice Id or Number"
     }
   ],
   "bodyFields": [
@@ -25,6 +26,7 @@ export const canceleinvoicebyinvoicekeyEndpoint: ApiEndpoint = {
       "label": "Reason",
       "type": "string",
       "required": false,
+      "description": "The reason code for cancelation.",
       "enum": [
         "01",
         "02",
@@ -38,6 +40,7 @@ export const canceleinvoicebyinvoicekeyEndpoint: ApiEndpoint = {
       "label": "Document Reference I D",
       "type": "string",
       "required": false,
+      "description": "The ID or number of the billing document that replaces the e-invoice being canceled. You can replace the canceled e-invoice with a new invoice or debit memo. **Note:** The documentReferenceID is applicable only for the reason 01 when you cancel E-Invoice for Mexico.",
       "section": "Invoice & Document Settings"
     }
   ],

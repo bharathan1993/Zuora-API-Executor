@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const getcommitmentbykeyEndpoint: ApiEndpoint = {
   "id": "getcommitmentbykey",
   "name": "Retrieve a commitment",
-  "description": "",
+  "description": "Retrieves the details of a specific commitment using its ID or number.",
   "method": "GET",
   "path": "/commitments/{commitmentKey}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const getcommitmentbykeyEndpoint: ApiEndpoint = {
       "name": "commitmentKey",
       "label": "Commitment Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique identifier (ID or number) of the commitment."
     }
   ],
   "bodyFields": [],

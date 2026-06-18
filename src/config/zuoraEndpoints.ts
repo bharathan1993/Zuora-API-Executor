@@ -5,8 +5,9 @@
  * To regenerate endpoints, run: yarn generate-endpoints
  */
 
-import type { ApiEndpoint } from '../types/api';
+import type { ApiEndpoint, FieldDefinition } from '../types/api';
 import { postAccountEndpoint } from './accountsEndpoint';
+import { zuoraEnvironments } from './environments';
 
 // Import all auto-generated endpoints
 export { zuoraEndpoints as generatedEndpoints } from './generated/index';
@@ -14,16 +15,208 @@ export { zuoraEndpoints as generatedEndpoints } from './generated/index';
 // Re-import for local use
 import { zuoraEndpoints as generatedEndpoints } from './generated/index';
 
+const standardHeaders = {
+  'Content-Type': 'application/json',
+  'Zuora-Track-Id': '',
+  'Zuora-Entity-Ids': '',
+  'Zuora-Org-Ids': '',
+  'Zuora-Version': '',
+};
+
+const metadataEndpoints: ApiEndpoint[] = [
+  {
+    id: 'get-object-metadata',
+    name: 'List available metadata objects',
+    description: 'Returns available Zuora objects for the specified metadata context.',
+    method: 'GET',
+    path: '/object-metadata',
+    baseUrl: 'https://rest.test.zuora.com',
+    environments: zuoraEnvironments,
+    requiresAuth: true,
+    authType: 'bearer',
+    queryParams: [
+      {
+        name: 'context',
+        label: 'Context',
+        type: 'string',
+        required: true,
+        enum: ['DQ', 'OQ'],
+      },
+    ],
+    bodyFields: [],
+    headers: standardHeaders,
+  },
+  {
+    id: 'get-object-metadata-schema',
+    name: 'Retrieve metadata object schema',
+    description: 'Returns the complete JSON schema for the specified object and metadata context.',
+    method: 'GET',
+    path: '/object-metadata/{objectName}',
+    baseUrl: 'https://rest.test.zuora.com',
+    environments: zuoraEnvironments,
+    requiresAuth: true,
+    authType: 'bearer',
+    pathParams: [
+      {
+        name: 'objectName',
+        label: 'Object Name',
+        type: 'string',
+        required: true,
+      },
+    ],
+    queryParams: [
+      {
+        name: 'context',
+        label: 'Context',
+        type: 'string',
+        required: true,
+        enum: ['DQ', 'OQ', 'DSE', 'AQUA'],
+      },
+    ],
+    bodyFields: [],
+    headers: standardHeaders,
+  },
+];
+
 const overrides: ApiEndpoint[] = [
   postAccountEndpoint,
+  ...metadataEndpoints,
 ];
+
+const mergeFieldDescriptions = (
+  targetFields: FieldDefinition[] | undefined,
+  sourceFields: FieldDefinition[] | undefined,
+): FieldDefinition[] | undefined => {
+  if (!targetFields?.length) return targetFields;
+
+  const sourceByName = new Map((sourceFields || []).map((field) => [field.name, field]));
+
+  return targetFields.map((field) => {
+    const sourceField = sourceByName.get(field.name);
+    const merged: FieldDefinition = {
+      ...field,
+      description: field.description || sourceField?.description,
+    };
+
+    if (field.fields) {
+      merged.fields = mergeFieldDescriptions(field.fields, sourceField?.fields);
+    }
+
+    if (field.itemFields) {
+      merged.itemFields = mergeFieldDescriptions(field.itemFields, sourceField?.itemFields);
+    }
+
+    return merged;
+  });
+};
 
 const mergeOverrides = (endpoints: ApiEndpoint[], overrideList: ApiEndpoint[]) => {
   const overrideMap = new Map(overrideList.map((endpoint) => [endpoint.id, endpoint]));
-  return endpoints.map((endpoint) => overrideMap.get(endpoint.id) ?? endpoint);
+  const generatedById = new Map(endpoints.map((endpoint) => [endpoint.id, endpoint]));
+  const generatedIds = new Set(endpoints.map((endpoint) => endpoint.id));
+
+  const mergedEndpoints = endpoints.map((endpoint) => {
+    const override = overrideMap.get(endpoint.id);
+    if (!override) return endpoint;
+
+    return {
+      ...override,
+      description: override.description || endpoint.description,
+      bodyFields: mergeFieldDescriptions(override.bodyFields, endpoint.bodyFields),
+      queryParams: mergeFieldDescriptions(override.queryParams, endpoint.queryParams),
+      pathParams: mergeFieldDescriptions(override.pathParams, endpoint.pathParams),
+    };
+  });
+
+  const additionalEndpoints = overrideList
+    .filter((endpoint) => !generatedIds.has(endpoint.id))
+    .map((endpoint) => {
+      const generated = generatedById.get(endpoint.id);
+      if (!generated) return endpoint;
+
+      return {
+        ...endpoint,
+        description: endpoint.description || generated.description,
+        bodyFields: mergeFieldDescriptions(endpoint.bodyFields, generated.bodyFields),
+        queryParams: mergeFieldDescriptions(endpoint.queryParams, generated.queryParams),
+        pathParams: mergeFieldDescriptions(endpoint.pathParams, generated.pathParams),
+      };
+    });
+
+  return [...mergedEndpoints, ...additionalEndpoints];
 };
 
 export const zuoraEndpoints = mergeOverrides(generatedEndpoints, overrides);
+
+const isGeneralPurposeOperationPath = (path: string): boolean => (
+  path.includes('/v1/action/') ||
+  path.includes('/settings/') ||
+  path.includes('/v1/files/') ||
+  path.includes('/v1/object/import') ||
+  path.includes('/v1/custom-exchange-rates') ||
+  path.includes('/v1/attachments') ||
+  path.includes('/object-metadata') ||
+  path.includes('/v1/describe/')
+);
+
+export interface EndpointGroup {
+  id: string;
+  label: string;
+  endpoints: ApiEndpoint[];
+}
+
+const generalPurposeOperationGroups = [
+  {
+    id: 'actions',
+    label: 'Actions',
+    matches: (path: string) => path.includes('/v1/action/'),
+  },
+  {
+    id: 'settings',
+    label: 'Settings',
+    matches: (path: string) => path.includes('/settings/'),
+  },
+  {
+    id: 'files',
+    label: 'Files',
+    matches: (path: string) => path.includes('/v1/files/'),
+  },
+  {
+    id: 'imports',
+    label: 'Imports',
+    matches: (path: string) => path.includes('/v1/object/import'),
+  },
+  {
+    id: 'custom-exchange-rates',
+    label: 'Custom Exchange Rates',
+    matches: (path: string) => path.includes('/v1/custom-exchange-rates'),
+  },
+  {
+    id: 'attachments',
+    label: 'Attachments',
+    matches: (path: string) => path.includes('/v1/attachments'),
+  },
+  {
+    id: 'metadata',
+    label: 'Metadata',
+    matches: (path: string) => path.includes('/object-metadata'),
+  },
+  {
+    id: 'describe',
+    label: 'Describe',
+    matches: (path: string) => path.includes('/v1/describe/'),
+  },
+];
+
+export const getGeneralPurposeOperationGroups = (endpoints: ApiEndpoint[]): EndpointGroup[] => (
+  generalPurposeOperationGroups
+    .map((group) => ({
+      id: group.id,
+      label: group.label,
+      endpoints: endpoints.filter((endpoint) => group.matches(endpoint.path.toLowerCase())),
+    }))
+    .filter((group) => group.endpoints.length > 0)
+);
 
 /**
  * Find an endpoint by its ID
@@ -91,6 +284,8 @@ export const getEndpointsByCategory = (category: string): ApiEndpoint[] => {
         );
 
       // ── Platform & integration ────────────────────────────────────────
+      case 'general-purpose-operations':
+        return isGeneralPurposeOperationPath(path);
       case 'workflows':
         return path.includes('/workflow');
       case 'data-queries':
@@ -145,6 +340,7 @@ export const getAvailableCategories = (): string[] => {
     'journal-entries',
     'revenue',
     // Platform & integration
+    'general-purpose-operations',
     'workflows',
     'data-queries',
     'custom-objects',

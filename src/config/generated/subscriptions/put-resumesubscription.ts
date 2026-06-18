@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_resumesubscriptionEndpoint: ApiEndpoint = {
   "id": "put-resumesubscription",
   "name": "Resume a subscription",
-  "description": "",
+  "description": "This REST API reference describes how to resume a suspended subscription.",
   "method": "PUT",
   "path": "/v1/subscriptions/{subscription-key}/resume",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_resumesubscriptionEndpoint: ApiEndpoint = {
       "name": "subscription-key",
       "label": "Subscription Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Subscription number or ID. Subscription status must be Suspended."
     }
   ],
   "bodyFields": [
@@ -25,6 +26,7 @@ export const put_resumesubscriptionEndpoint: ApiEndpoint = {
       "label": "Application Order",
       "type": "array",
       "required": false,
+      "description": "The priority order to apply credit memos and/or unapplied payments to an invoice. Possible item values are: `CreditMemo`, `UnappliedPayment`. **Note:** - This field is valid only if the `applyCredit` field is set to `true`. - If no value is specified for this field, the default priority order is used, [\"CreditMemo\", \"UnappliedPayment\"], to apply credit memos first and then apply unapplied payments. - If only one item is specified, only the items of the spedified type are applied to invoices. For example, if the value is `[\"CreditMemo\"]`, only credit memos are used to apply to invoices.",
       "itemType": "string",
       "section": "Additional Fields"
     },
@@ -33,6 +35,7 @@ export const put_resumesubscriptionEndpoint: ApiEndpoint = {
       "label": "Booking Date",
       "type": "date",
       "required": false,
+      "description": "The booking date that you want to set for the amendment contract when you resume the subscription. If `extendsTerm` is `true`, which means you also extend the term, then this field is also the booking date for the Terms and Conditions amendment contract. This field must be in the `yyyy-mm-dd` format. The default value of this field is the current date when you make the API call.",
       "section": "Additional Fields"
     },
     {
@@ -40,6 +43,7 @@ export const put_resumesubscriptionEndpoint: ApiEndpoint = {
       "label": "Contract Effective Date",
       "type": "date",
       "required": false,
+      "description": "The date when the customer notifies you that they want to resume their subscription.",
       "section": "Additional Fields"
     },
     {
@@ -47,6 +51,7 @@ export const put_resumesubscriptionEndpoint: ApiEndpoint = {
       "label": "Extends Term",
       "type": "boolean",
       "required": false,
+      "description": "Whether to extend the subscription term by the length of time the suspension is in effect. Values: `true`, `false`.",
       "section": "Additional Fields"
     },
     {
@@ -54,6 +59,7 @@ export const put_resumesubscriptionEndpoint: ApiEndpoint = {
       "label": "Order Date",
       "type": "date",
       "required": false,
+      "description": "The date when the order is signed. If no additinal contractEffectiveDate is provided, this order will use this order date as the contract effective date. This field must be in the `yyyy-mm-dd` format. This field is required for Orders customers only, not applicable to Orders Harmonization customers.",
       "section": "Additional Fields"
     },
     {
@@ -61,6 +67,7 @@ export const put_resumesubscriptionEndpoint: ApiEndpoint = {
       "label": "Resume Periods",
       "type": "string",
       "required": false,
+      "description": "The length of the period used to specify when the subscription is resumed. The subscription resumption takes effect after a specified period based on the suspend date or today's date. You must use this field together with the `resumePeriodsType` field to specify the period. **Note:** This field is only applicable when the `suspendPolicy` field is set to `FixedPeriodsFromToday` or `FixedPeriodsFromSuspendDate`.",
       "section": "Additional Fields"
     },
     {
@@ -68,6 +75,7 @@ export const put_resumesubscriptionEndpoint: ApiEndpoint = {
       "label": "Resume Periods Type",
       "type": "string",
       "required": false,
+      "description": "The period type used to define when the subscription resumption takes effect. The subscription resumption takes effect after a specified period based on the suspend date or today's date. You must use this field together with the `resumePeriods` field to specify the period. Values: `Day`, `Week`, `Month`, `Year` **Note:** This field is only applicable when the `suspendPolicy` field is set to `FixedPeriodsFromToday` or `FixedPeriodsFromSuspendDate`.",
       "section": "Additional Fields"
     },
     {
@@ -75,6 +83,7 @@ export const put_resumesubscriptionEndpoint: ApiEndpoint = {
       "label": "Resume Policy",
       "type": "string",
       "required": true,
+      "description": "Resume methods. Specify a way to resume a subscription. Values: * `Today`: The subscription resumption takes effect on today's date. * `FixedPeriodsFromSuspendDate`: The subscription resumption takes effect after a specified period based on the suspend date. You must specify the `resumePeriods` and `resumePeriodsType` fields to define the period. * `SpecificDate`: The subscription resumption takes effect on a specific date. You must define the specific date in the `resumeSpecificDate` field. * `FixedPeriodsFromToday`: The subscription resumption takes effect after a specified period based on the today's date. You must specify the `resumePeriods` and `resumePeriodsType` fields to define the period. * `suspendDate`: The subscription resumption takes effect on the date of suspension of the subscription.",
       "section": "Additional Fields"
     },
     {
@@ -82,6 +91,7 @@ export const put_resumesubscriptionEndpoint: ApiEndpoint = {
       "label": "Resume Specific Date",
       "type": "date",
       "required": false,
+      "description": "A specific date when the subscription resumption takes effect, in the format yyyy-mm-dd. **Note:** This field is only applicable only when the `resumePolicy` field is set to `SpecificDate`. The value should not be earlier than the subscription suspension date.",
       "section": "Additional Fields"
     },
     {
@@ -89,6 +99,7 @@ export const put_resumesubscriptionEndpoint: ApiEndpoint = {
       "label": "Target Date",
       "type": "date",
       "required": false,
+      "description": "Date through which to calculate charges if an invoice or a credit memo is generated, as yyyy-mm-dd. Default is current date. **Note:** - This field is available only if you are on the latest Zuora API version, or you set the `Zuora-Version` request header to `211.0` or a later available version. - The credit memo is only available if you have the Invoice Settlement feature enabled.",
       "section": "Additional Fields"
     },
     {
@@ -96,6 +107,7 @@ export const put_resumesubscriptionEndpoint: ApiEndpoint = {
       "label": "Apply Credit",
       "type": "boolean",
       "required": false,
+      "description": "If the value is true, the credit memo or unapplied payment on the order account will be automatically applied to the invoices generated by this order. The credit memo generated by this order will not be automatically applied to any invoices. **Note:** This field is only available if you have [Invoice Settlement](https://knowledgecenter.zuora.com/Billing/Billing_and_Payments/Invoice_Settlement) enabled. The Invoice Settlement feature is generally available as of Zuora Billing Release 296 (March 2021). This feature includes Unapplied Payments, Credit and Debit Memo, and Invoice Item Settlement. If you want to enable Invoice Settlement, see [Invoice Settlement Enablement and Checklist Guide](https://knowledgecenter.zuora.com/Billing/Billing_and_Payments/Invoice_Settlement/Invoice_Settlement_Migration_Checklist_and_Guide) for more information.",
       "section": "Credit & Settlement Settings"
     },
     {
@@ -103,6 +115,7 @@ export const put_resumesubscriptionEndpoint: ApiEndpoint = {
       "label": "Apply Credit Balance",
       "type": "boolean",
       "required": false,
+      "description": "Whether to automatically apply a credit balance to an invoice. If the value is `true`, the credit balance is applied to the invoice. If the value is `false`, no action is taken. To view the credit balance adjustment, retrieve the details of the invoice using the Get Invoices method. Prerequisite: `invoice` must be `true`. **Note:** This field is deprecated if you have the Invoice Settlement feature enabled.",
       "section": "Credit & Settlement Settings"
     },
     {
@@ -110,6 +123,7 @@ export const put_resumesubscriptionEndpoint: ApiEndpoint = {
       "label": "Credit Memo Reason Code",
       "type": "string",
       "required": false,
+      "description": "A code identifying the reason for the credit memo transaction that is generated by the request. The value must be an existing reason code. If you do not pass the field or pass the field with empty value, Zuora uses the default reason code.",
       "section": "Credit & Settlement Settings"
     },
     {
@@ -117,6 +131,7 @@ export const put_resumesubscriptionEndpoint: ApiEndpoint = {
       "label": "Collect",
       "type": "boolean",
       "required": false,
+      "description": "Collects an automatic payment for a subscription. The collection generated in this operation is only for this subscription, not for the entire customer account. If the value is `true`, the automatic payment is collected. If the value is `false`, no action is taken. Prerequisite: The `invoice` or `runBilling` field must be `true`. **Note**: This field is available only if you are on the latest Zuora API version, or you set the `Zuora-Version` request header to `196.0` or a later available version.",
       "defaultValue": false,
       "section": "Subscription Settings"
     },
@@ -125,6 +140,7 @@ export const put_resumesubscriptionEndpoint: ApiEndpoint = {
       "label": "Document Date",
       "type": "date",
       "required": false,
+      "description": "The date of the billing document, in `yyyy-mm-dd` format. It represents the invoice date for invoices, credit memo date for credit memos, and debit memo date for debit memos. - If this field is specified, the specified date is used as the billing document date. - If this field is not specified, the date specified in the `targetDate` is used as the billing document date.",
       "section": "Invoice & Document Settings"
     },
     {
@@ -132,6 +148,7 @@ export const put_resumesubscriptionEndpoint: ApiEndpoint = {
       "label": "Run Billing",
       "type": "boolean",
       "required": false,
+      "description": "Creates an invoice for a subscription. If you have the Invoice Settlement feature enabled, a credit memo might also be created based on the [invoice and credit memo generation rule](https://knowledgecenter.zuora.com/CB_Billing/Invoice_Settlement/Credit_and_Debit_Memos/Rules_for_Generating_Invoices_and_Credit_Memos). The billing documents generated in this operation is only for this subscription, not for the entire customer account. Possible values: - `true`: An invoice is created. If you have the Invoice Settlement feature enabled, a credit memo might also be created. - `false`: No invoice is created. **Note**: This field is available only if you are on the latest Zuora API version, or you set the `Zuora-Version` request header to `211.0` or a later available version.",
       "defaultValue": false,
       "section": "Invoice & Document Settings"
     }

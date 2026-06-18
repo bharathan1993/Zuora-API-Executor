@@ -16,7 +16,8 @@ export const put_scrubcontactEndpoint: ApiEndpoint = {
       "name": "contactId",
       "label": "Contact Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The ID of the contact that you want to scrub sensitive data from."
     }
   ],
   "bodyFields": [],

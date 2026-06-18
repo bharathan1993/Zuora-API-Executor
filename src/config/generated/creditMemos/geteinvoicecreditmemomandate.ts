@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const geteinvoicecreditmemomandateEndpoint: ApiEndpoint = {
   "id": "geteinvoicecreditmemomandate",
   "name": "Retrieve a mandate for downloading a credit memo",
-  "description": "",
+  "description": "Fetches mandates for downloading a Credit Memo file based on the country code, category, and process type selection.",
   "method": "GET",
   "path": "/v1/credit-memos/{creditMemoKey}/e-invoice/mandate",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const geteinvoicecreditmemomandateEndpoint: ApiEndpoint = {
       "name": "creditMemoKey",
       "label": "Credit Memo Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique number or ID of the Credit Memo."
     }
   ],
   "bodyFields": [],

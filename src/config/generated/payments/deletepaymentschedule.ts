@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const deletepaymentscheduleEndpoint: ApiEndpoint = {
   "id": "deletepaymentschedule",
   "name": "Delete a payment schedule",
-  "description": "",
+  "description": "**Note:** This operation is only available if you have [Invoice Settlement](https://knowledgecenter.zuora.com/Billing/Billing_and_Payments/Invoice_Settlement) enabled. The Invoice Settlement feature is generally available as of Zuora Billing Release 296 (March 2021). This feature includes Unapplied Payments, Credit and Debit Memo, and Invoice Item Settlement. If you want to enable Invoice Settlement, see [Invoice Settlement Enablement and Checklist Guide](https://knowledgecenter.zuora.com/Billing/Billing_and_Payments/Invoice_Settlement/Invoice_Settlement_Migration_Checklist_and_Guide) for more information.",
   "method": "DELETE",
   "path": "/v1/payment-schedules/{paymentScheduleKey}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const deletepaymentscheduleEndpoint: ApiEndpoint = {
       "name": "paymentScheduleKey",
       "label": "Payment Schedule Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique ID or number of a payment schedule. For example, `8a90857b822459cd018224dcb9eb13be` or `PS-00000007`."
     }
   ],
   "bodyFields": [],

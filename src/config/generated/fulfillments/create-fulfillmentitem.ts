@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const create_fulfillmentitemEndpoint: ApiEndpoint = {
   "id": "create-fulfillmentitem",
   "name": "Create fulfillment items",
-  "description": "",
+  "description": "Creates one or multiple fulfillment items.",
   "method": "POST",
   "path": "/v1/fulfillment-items",
   "baseUrl": "https://rest.test.zuora.com",
@@ -24,6 +24,7 @@ export const create_fulfillmentitemEndpoint: ApiEndpoint = {
           "label": "Fulfillment Number",
           "type": "string",
           "required": false,
+          "description": "The reference of the related Fulfillment.",
           "section": "Account Settings"
         },
         {
@@ -31,6 +32,7 @@ export const create_fulfillmentitemEndpoint: ApiEndpoint = {
           "label": "Custom Fields",
           "type": "object",
           "required": false,
+          "description": "Container for custom fields of a Fulfillment Item object.",
           "section": "Additional Fields"
         },
         {
@@ -38,6 +40,7 @@ export const create_fulfillmentitemEndpoint: ApiEndpoint = {
           "label": "Item Identifier",
           "type": "string",
           "required": false,
+          "description": "The external identifier of the Fulfillment Item.",
           "section": "Additional Fields"
         }
       ],

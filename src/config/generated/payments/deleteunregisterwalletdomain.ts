@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const deleteunregisterwalletdomainEndpoint: ApiEndpoint = {
   "id": "deleteunregisterwalletdomain",
   "name": "Unregister a wallet domain",
-  "description": "",
+  "description": "Use this operation to unregister a wallet domain.",
   "method": "DELETE",
   "path": "/v1/payment-methods/wallet/domains/{id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const deleteunregisterwalletdomainEndpoint: ApiEndpoint = {
       "name": "id",
       "label": "Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The ID of the domain, such as `402881a38924ff1001892502da090021`."
     }
   ],
   "bodyFields": [],

@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const truncateeventstoreEndpoint: ApiEndpoint = {
   "id": "truncateeventstore",
   "name": "Truncate all data from an event store",
-  "description": "",
+  "description": "Truncates (deletes) all events from a specific event store in Zuora Mediation.",
   "method": "POST",
   "path": "/meters/events/stores/{eventStoreId}/truncate",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const truncateeventstoreEndpoint: ApiEndpoint = {
       "name": "eventStoreId",
       "label": "Event Store Id",
       "type": "number",
-      "required": true
+      "required": true,
+      "description": "ID of the event store to truncate."
     }
   ],
   "bodyFields": [],

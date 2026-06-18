@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_accountingperiodEndpoint: ApiEndpoint = {
   "id": "get-accountingperiod",
   "name": "Retrieve an accounting period",
-  "description": "",
+  "description": "Retrieves an accounting period.",
   "method": "GET",
   "path": "/v1/accounting-periods/{ap-id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_accountingperiodEndpoint: ApiEndpoint = {
       "name": "ap-id",
       "label": "Ap Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "ID of the accounting period you want to get."
     }
   ],
   "bodyFields": [],

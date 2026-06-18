@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_invoicescheduleEndpoint: ApiEndpoint = {
   "id": "get-invoiceschedule",
   "name": "Retrieve an invoice schedule",
-  "description": "",
+  "description": "Retrieves detailed information about an invoice schedule.",
   "method": "GET",
   "path": "/v1/invoice-schedules/{scheduleKey}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_invoicescheduleEndpoint: ApiEndpoint = {
       "name": "scheduleKey",
       "label": "Schedule Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique ID or number of the invoice schedule to be retrieved. For example, 2c92c8955bd63cc1015bd7c151af02ab or IS-0000001."
     }
   ],
   "queryParams": [
@@ -25,6 +26,7 @@ export const get_invoicescheduleEndpoint: ApiEndpoint = {
       "label": "Page",
       "type": "number",
       "required": false,
+      "description": "The index number of the page that you want to retrieve. This parameter is dependent on `pageSize`. You must set `pageSize` before specifying `page`. For example, if you set `pageSize` to `20` and `page` to `2`, the 21st to 40th records are returned in the response.",
       "defaultValue": 1
     },
     {
@@ -32,6 +34,7 @@ export const get_invoicescheduleEndpoint: ApiEndpoint = {
       "label": "Page Size",
       "type": "number",
       "required": false,
+      "description": "The number of records returned per page in the response.",
       "defaultValue": 20
     }
   ],

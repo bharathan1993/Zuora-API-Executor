@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const getdebitmemocyclehistoryEndpoint: ApiEndpoint = {
   "id": "getdebitmemocyclehistory",
   "name": "List the retry cycle history for a debit memo.",
-  "description": "",
+  "description": "Gets information of all retry cycles for a debit memo in Configurable Payment Retry.",
   "method": "GET",
   "path": "/api/v1/payments/debit_memo_cycle_history/{debit_memo_id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const getdebitmemocyclehistoryEndpoint: ApiEndpoint = {
       "name": "debit_memo_id",
       "label": "Debit Memo Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "ID of a debit memo."
     }
   ],
   "bodyFields": [],

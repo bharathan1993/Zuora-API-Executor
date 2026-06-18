@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_accountEndpoint: ApiEndpoint = {
   "id": "put-account",
   "name": "Update an account",
-  "description": "",
+  "description": "Updates a customer account by specifying the account-key.",
   "method": "PUT",
   "path": "/v1/accounts/{account-key}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_accountEndpoint: ApiEndpoint = {
       "name": "account-key",
       "label": "Account Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Account number or account ID."
     }
   ],
   "bodyFields": [
@@ -25,6 +26,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Additional Email Addresses",
       "type": "array",
       "required": false,
+      "description": "A list of additional email addresses to receive email notifications. Use commas to separate email addresses.",
       "itemType": "string",
       "section": "Communication Settings"
     },
@@ -33,6 +35,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Communication Profile Id",
       "type": "string",
       "required": false,
+      "description": "The ID of the communication profile that this account is linked to. You can provide either or both of the `communicationProfileId` and `profileNumber` fields. If both are provided, the request will fail if they do not refer to the same communication profile.",
       "section": "Communication Settings"
     },
     {
@@ -40,6 +43,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Auto Pay",
       "type": "boolean",
       "required": false,
+      "description": "Whether future payments are to be automatically billed when they are due.",
       "section": "Payment Settings"
     },
     {
@@ -47,6 +51,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Default Payment Method Id",
       "type": "string",
       "required": false,
+      "description": "ID of the default payment method for the account. Values: a valid ID for an existing payment method.",
       "maxLength": 64,
       "section": "Payment Settings"
     },
@@ -55,6 +60,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Gateway Routing Eligible",
       "type": "boolean",
       "required": false,
+      "description": "Indicates whether to include the applicable billing accounts to gateway routing for controlled adoption.",
       "defaultValue": false,
       "section": "Payment Settings"
     },
@@ -63,6 +69,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Payment Gateway",
       "type": "string",
       "required": false,
+      "description": "The name of the payment gateway instance. If null or left unassigned, the Account will use the Default Gateway.",
       "section": "Payment Settings"
     },
     {
@@ -70,6 +77,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Payment Term",
       "type": "string",
       "required": false,
+      "description": "Payment terms for this account. Possible values are `Due Upon Receipt`, `Net 30`, `Net 60`, `Net 90`.",
       "section": "Payment Settings"
     },
     {
@@ -77,6 +85,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Batch",
       "type": "string",
       "required": false,
+      "description": "The alias name given to a batch. A string of 50 characters or less. **Note**: By default, you have 50 configurable account batches. To increase the limit to 200 batches, you must have the Performance Booster Elite package.",
       "section": "Account Settings"
     },
     {
@@ -84,6 +93,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Crm Id",
       "type": "string",
       "required": false,
+      "description": "CRM account ID for the account, up to 100 characters.",
       "section": "Account Settings"
     },
     {
@@ -91,6 +101,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Customer Service Rep Name",
       "type": "string",
       "required": false,
+      "description": "Name of the account’s customer service representative, if applicable.",
       "maxLength": 50,
       "section": "Account Settings"
     },
@@ -99,6 +110,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Name",
       "type": "string",
       "required": false,
+      "description": "Account name, up to 255 characters.",
       "section": "Account Settings"
     },
     {
@@ -106,6 +118,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Parent Id",
       "type": "string",
       "required": false,
+      "description": "Identifier of the parent customer account for this Account object. The length is 32 characters. Use this field if you have Customer Hierarchy enabled.",
       "section": "Account Settings"
     },
     {
@@ -113,6 +126,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Partner Account",
       "type": "boolean",
       "required": false,
+      "description": "Whether the customer account is a partner, distributor, or reseller. You can set this field to `true` if you have business with distributors or resellers, or operating in B2B model to manage numerous subscriptions through concurrent API requests. After this field is set to `true`, the calculation of account metrics is performed asynchronously during operations such as subscription creation, order changes, invoice generation, and payments. **Note**: This field is available only if you have the Reseller Account feature enabled.",
       "defaultValue": false,
       "section": "Account Settings"
     },
@@ -121,6 +135,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Profile Number",
       "type": "string",
       "required": false,
+      "description": "The number of the communication profile that this account is linked to. You can provide either or both of the `communicationProfileId` and `profileNumber` fields. If both are provided, the request will fail if they do not refer to the same communication profile.",
       "section": "Account Settings"
     },
     {
@@ -128,6 +143,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Purchase Order Number",
       "type": "string",
       "required": false,
+      "description": "The purchase order number provided by your customer for services, products, or both purchased.",
       "section": "Account Settings"
     },
     {
@@ -135,6 +151,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Bill Cycle Day",
       "type": "number",
       "required": false,
+      "description": "Sets the bill cycle day (BCD) for the charge. The BCD determines which day of the month the customer is billed. Values: Any activated system-defined bill cycle day （`1`-`31`）",
       "maxLength": 2,
       "section": "Invoice & Document Settings"
     },
@@ -149,6 +166,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Address1",
           "type": "string",
           "required": false,
+          "description": "First address line, 255 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -156,6 +174,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Address2",
           "type": "string",
           "required": false,
+          "description": "Second address line, 255 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -163,6 +182,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "City",
           "type": "string",
           "required": false,
+          "description": "City",
           "maxLength": 100,
           "section": "Additional Fields"
         },
@@ -171,6 +191,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Country",
           "type": "string",
           "required": false,
+          "description": "Country; must be a valid country name or abbreviation. If using Zuora Tax, you must specify a country in the sold-to contact to calculate tax. A bill-to contact may be used if no sold-to contact is provided.",
           "section": "Additional Fields"
         },
         {
@@ -178,6 +199,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "County",
           "type": "string",
           "required": false,
+          "description": "May optionally be used by Zuora Tax to calculate county tax.",
           "maxLength": 100,
           "section": "Additional Fields"
         },
@@ -186,6 +208,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Fax",
           "type": "string",
           "required": false,
+          "description": "Fax phone number, 40 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -193,6 +216,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "First Name",
           "type": "string",
           "required": false,
+          "description": "First name, 100 characters or less.",
           "section": "Account Settings"
         },
         {
@@ -200,6 +224,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Home Phone",
           "type": "string",
           "required": false,
+          "description": "Home phone number, 40 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -207,6 +232,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Last Name",
           "type": "string",
           "required": false,
+          "description": "Last name, 100 characters or less.",
           "section": "Account Settings"
         },
         {
@@ -214,6 +240,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Mobile Phone",
           "type": "string",
           "required": false,
+          "description": "Mobile phone number, 40 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -221,6 +248,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Nickname",
           "type": "string",
           "required": false,
+          "description": "Nickname for this contact",
           "section": "Account Settings"
         },
         {
@@ -228,6 +256,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Other Phone",
           "type": "string",
           "required": false,
+          "description": "Other phone number, 40 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -235,6 +264,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Other Phone Type",
           "type": "string",
           "required": false,
+          "description": "Possible values are: `Work`, `Mobile`, `Home`, `Other`.",
           "section": "Additional Fields"
         },
         {
@@ -242,6 +272,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Personal Email",
           "type": "email",
           "required": false,
+          "description": "Personal email address.",
           "maxLength": 80,
           "section": "Communication Settings"
         },
@@ -250,6 +281,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "State",
           "type": "string",
           "required": false,
+          "description": "State; must be a valid subregion (state or province) name or code. For more information, see View subregions of a specific country or region. If using Zuora Tax, be aware that Zuora Tax requires a state (in the US) or province (in Canada) in this field for the sold-to contact to calculate tax, and that a bill-to contact may be used if no sold-to contact is provided.",
           "maxLength": 100,
           "section": "Additional Fields"
         },
@@ -258,6 +290,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Tax Region",
           "type": "string",
           "required": false,
+          "description": "If using Zuora Tax, a region string as optionally defined in your tax rules. Not required.",
           "maxLength": 100,
           "section": "Tax Settings"
         },
@@ -266,6 +299,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Work Email",
           "type": "string",
           "required": false,
+          "description": "Work email address, 80 characters or less.",
           "section": "Communication Settings"
         },
         {
@@ -273,6 +307,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Work Phone",
           "type": "string",
           "required": false,
+          "description": "Work phone number, 40 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -280,6 +315,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Zip Code",
           "type": "string",
           "required": false,
+          "description": "Zip code, 20 characters or less.",
           "section": "Additional Fields"
         }
       ],
@@ -290,6 +326,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Bill To Contact Id",
       "type": "string",
       "required": false,
+      "description": "The ID of a contact that will be the bill-to contact of the current account.",
       "section": "Invoice & Document Settings"
     },
     {
@@ -297,6 +334,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Credit Memo Template Id",
       "type": "string",
       "required": false,
+      "description": "**Note:** This field is only available if you have [Invoice Settlement](https://knowledgecenter.zuora.com/Billing/Billing_and_Payments/Invoice_Settlement) enabled. The Invoice Settlement feature is generally available as of Zuora Billing Release 296 (March 2021). This feature includes Unapplied Payments, Credit and Debit Memo, and Invoice Item Settlement. If you want to enable Invoice Settlement, see [Invoice Settlement Enablement and Checklist Guide](https://knowledgecenter.zuora.com/Billing/Billing_and_Payments/Invoice_Settlement/Invoice_Settlement_Migration_Checklist_and_Guide) for more information. The unique ID of the credit memo template, configured in **Billing Settings** > **Manage Billing Document Configuration** through the Zuora UI. For example, 2c92c08a6246fdf101626b1b3fe0144b.",
       "section": "Invoice & Document Settings"
     },
     {
@@ -304,6 +342,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Debit Memo Template Id",
       "type": "string",
       "required": false,
+      "description": "**Note:** This field is only available if you have [Invoice Settlement](https://knowledgecenter.zuora.com/Billing/Billing_and_Payments/Invoice_Settlement) enabled. The Invoice Settlement feature is generally available as of Zuora Billing Release 296 (March 2021). This feature includes Unapplied Payments, Credit and Debit Memo, and Invoice Item Settlement. If you want to enable Invoice Settlement, see [Invoice Settlement Enablement and Checklist Guide](https://knowledgecenter.zuora.com/Billing/Billing_and_Payments/Invoice_Settlement/Invoice_Settlement_Migration_Checklist_and_Guide) for more information. The unique ID of the debit memo template, configured in **Billing Settings** > **Manage Billing Document Configuration** through the Zuora UI. For example, 2c92c08d62470a8501626b19d24f19e2.",
       "section": "Invoice & Document Settings"
     },
     {
@@ -317,6 +356,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Business Category",
           "type": "string",
           "required": false,
+          "description": "The high-level category of the business.",
           "enum": [
             "B2B",
             "B2C",
@@ -329,6 +369,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Business Name",
           "type": "string",
           "required": false,
+          "description": "Legal Business Name. The full formal name by which the Buyer is registered with the relevant legal authority.",
           "maxLength": 255,
           "section": "Account Settings"
         },
@@ -337,6 +378,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Business Number",
           "type": "string",
           "required": false,
+          "description": "Buyer legal registration identifier. An identifier issued by an official registrar that identifies the Buyer as a legal entity or person. GSTIN of buyer for India.",
           "section": "Account Settings"
         },
         {
@@ -344,6 +386,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Business Number Scheme Id",
           "type": "string",
           "required": false,
+          "description": "Business Number Schema Id. The identification scheme identifier of the Buyer legal registration identifier.",
           "section": "Account Settings"
         },
         {
@@ -351,6 +394,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Enabled",
           "type": "boolean",
           "required": false,
+          "description": "Enable e-invoice for the account. All invoices generated from this account can be submitted to generate e-invoices when invoices meet the conditions: A business region must be created for the billing country contact, and it must be linked to a service provider. The account must be enabled to generate e-invoices. The invoice must be in the \"Posted\" status.",
           "section": "Additional Fields"
         },
         {
@@ -358,6 +402,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Endpoint Id",
           "type": "string",
           "required": false,
+          "description": "Buyer electronic address.Identifies the Buyer's electronic address to which the invoice is delivered.",
           "section": "Additional Fields"
         },
         {
@@ -365,6 +410,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Endpoint Scheme Id",
           "type": "string",
           "required": false,
+          "description": "Buyer electronic address identification scheme identifier.",
           "section": "Additional Fields"
         },
         {
@@ -372,6 +418,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Tax Register Number",
           "type": "string",
           "required": false,
+          "description": "Buyer VAT identifier. The Buyer's VAT identifier (also known as Buyer VAT identification number).",
           "section": "Account Settings"
         }
       ],
@@ -382,6 +429,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Invoice Delivery Prefs Email",
       "type": "boolean",
       "required": false,
+      "description": "Whether the customer wants to receive invoices through email. The default value is `false`.",
       "section": "Invoice & Document Settings"
     },
     {
@@ -389,6 +437,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Invoice Delivery Prefs Print",
       "type": "boolean",
       "required": false,
+      "description": "Whether the customer wants to receive printed invoices, such as through postal mail. The default value is `false`.",
       "section": "Invoice & Document Settings"
     },
     {
@@ -396,6 +445,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Invoice Template Id",
       "type": "string",
       "required": false,
+      "description": "Invoice template ID, configured in Billing Settings in the Zuora UI.",
       "section": "Invoice & Document Settings"
     },
     {
@@ -403,6 +453,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Summary Statement Template Id",
       "type": "string",
       "required": false,
+      "description": "The summary statement template ID or number. When a user attempts to generate a summary statement from the \"Account Summary Statement\" screen, the system utilizes this template to produce the PDF.",
       "section": "Invoice & Document Settings"
     },
     {
@@ -410,6 +461,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Notes",
       "type": "string",
       "required": false,
+      "description": "A string of up to 65,535 characters.",
       "section": "Additional Fields"
     },
     {
@@ -417,6 +469,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Sales Rep",
       "type": "string",
       "required": false,
+      "description": "The name of the sales representative associated with this account, if applicable. Maximum of 50 characters.",
       "section": "Additional Fields"
     },
     {
@@ -424,6 +477,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Sequence Set Id",
       "type": "string",
       "required": false,
+      "description": "The ID of the billing document sequence set to assign to the customer account. The billing documents to generate for this account will adopt the prefix and starting document number configured in the sequence set. If a customer account has no assigned billing document sequence set, billing documents generated for this account adopt the prefix and starting document number from the default sequence set.",
       "section": "Additional Fields"
     },
     {
@@ -438,6 +492,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Class N S",
       "type": "string",
       "required": false,
+      "description": "Value of the Class field for the corresponding customer account in NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -446,6 +501,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Customer Type N S",
       "type": "string",
       "required": false,
+      "description": "Value of the Customer Type field for the corresponding customer account in NetSuite. The Customer Type field is used when the customer account is created in NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "enum": [
         "Company",
         "Individual"
@@ -457,6 +513,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Department N S",
       "type": "string",
       "required": false,
+      "description": "Value of the Department field for the corresponding customer account in NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -465,6 +522,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Integration Id N S",
       "type": "string",
       "required": false,
+      "description": "ID of the corresponding object in NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -473,6 +531,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Integration Status N S",
       "type": "string",
       "required": false,
+      "description": "Status of the account's synchronization with NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -481,6 +540,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Location N S",
       "type": "string",
       "required": false,
+      "description": "Value of the Location field for the corresponding customer account in NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -489,6 +549,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Subsidiary N S",
       "type": "string",
       "required": false,
+      "description": "Value of the Subsidiary field for the corresponding customer account in NetSuite. The Subsidiary field is required if you use NetSuite OneWorld. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -497,6 +558,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Sync Date N S",
       "type": "string",
       "required": false,
+      "description": "Date when the account was sychronized with NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -505,6 +567,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Syncto Net Suite N S",
       "type": "string",
       "required": false,
+      "description": "Specifies whether the account should be synchronized with NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "enum": [
         "Yes",
         "No"
@@ -522,6 +585,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Address1",
           "type": "string",
           "required": false,
+          "description": "First address line, 255 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -529,6 +593,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Address2",
           "type": "string",
           "required": false,
+          "description": "Second address line, 255 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -536,6 +601,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "City",
           "type": "string",
           "required": false,
+          "description": "City",
           "maxLength": 100,
           "section": "Additional Fields"
         },
@@ -544,6 +610,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Country",
           "type": "string",
           "required": false,
+          "description": "Country; must be a valid country name or abbreviation.",
           "section": "Additional Fields"
         },
         {
@@ -551,6 +618,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "County",
           "type": "string",
           "required": false,
+          "description": "May optionally be used by Zuora Tax to calculate county tax.",
           "maxLength": 100,
           "section": "Additional Fields"
         },
@@ -559,6 +627,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Fax",
           "type": "string",
           "required": false,
+          "description": "Fax phone number, 40 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -566,6 +635,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "First Name",
           "type": "string",
           "required": false,
+          "description": "First name, 100 characters or less.",
           "section": "Account Settings"
         },
         {
@@ -573,6 +643,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Home Phone",
           "type": "string",
           "required": false,
+          "description": "Home phone number, 40 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -580,6 +651,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Last Name",
           "type": "string",
           "required": false,
+          "description": "Last name, 100 characters or less.",
           "section": "Account Settings"
         },
         {
@@ -587,6 +659,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Mobile Phone",
           "type": "string",
           "required": false,
+          "description": "Mobile phone number, 40 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -594,6 +667,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Nickname",
           "type": "string",
           "required": false,
+          "description": "Nickname for this contact",
           "section": "Account Settings"
         },
         {
@@ -601,6 +675,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Other Phone",
           "type": "string",
           "required": false,
+          "description": "Other phone number, 40 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -608,6 +683,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Other Phone Type",
           "type": "string",
           "required": false,
+          "description": "Possible values are: `Work`, `Mobile`, `Home`, `Other`.",
           "section": "Additional Fields"
         },
         {
@@ -615,6 +691,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Personal Email",
           "type": "email",
           "required": false,
+          "description": "Personal email address.",
           "maxLength": 80,
           "section": "Communication Settings"
         },
@@ -623,6 +700,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "State",
           "type": "string",
           "required": false,
+          "description": "State; must be a valid subregion (state or province) name or code. For more information, see View subregions of a specific country or region.",
           "maxLength": 100,
           "section": "Additional Fields"
         },
@@ -631,6 +709,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Tax Region",
           "type": "string",
           "required": false,
+          "description": "If using Zuora Tax, a region string as optionally defined in your tax rules. Not required.",
           "maxLength": 100,
           "section": "Tax Settings"
         },
@@ -639,6 +718,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Work Email",
           "type": "string",
           "required": false,
+          "description": "Work email address, 80 characters or less.",
           "section": "Communication Settings"
         },
         {
@@ -646,6 +726,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Work Phone",
           "type": "string",
           "required": false,
+          "description": "Work phone number, 40 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -653,6 +734,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Zip Code",
           "type": "string",
           "required": false,
+          "description": "Zip code, 20 characters or less.",
           "section": "Additional Fields"
         }
       ],
@@ -663,6 +745,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Ship To Contact Id",
       "type": "string",
       "required": false,
+      "description": "The ID of a contact that will be the ship-to contact of the current account.",
       "section": "Contact Information"
     },
     {
@@ -676,6 +759,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Address1",
           "type": "string",
           "required": false,
+          "description": "First address line, 255 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -683,6 +767,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Address2",
           "type": "string",
           "required": false,
+          "description": "Second address line, 255 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -690,6 +775,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "City",
           "type": "string",
           "required": false,
+          "description": "City, 100 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -697,6 +783,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Country",
           "type": "string",
           "required": false,
+          "description": "Country; must be a valid country name or abbreviation. If using Zuora Tax, you must specify a country in the sold-to contact to calculate tax. A bill-to contact may be used if no sold-to contact is provided.",
           "section": "Additional Fields"
         },
         {
@@ -704,6 +791,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "County",
           "type": "string",
           "required": false,
+          "description": "County; 100 characters or less. May optionally be used by Zuora Tax to calculate county tax.",
           "section": "Additional Fields"
         },
         {
@@ -711,6 +799,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Fax",
           "type": "string",
           "required": false,
+          "description": "Fax phone number, 40 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -718,6 +807,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "First Name",
           "type": "string",
           "required": false,
+          "description": "First name, 100 characters or less.",
           "section": "Account Settings"
         },
         {
@@ -725,6 +815,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Home Phone",
           "type": "string",
           "required": false,
+          "description": "Home phone number, 40 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -732,6 +823,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Last Name",
           "type": "string",
           "required": false,
+          "description": "Last name, 100 characters or less.",
           "section": "Account Settings"
         },
         {
@@ -739,6 +831,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Mobile Phone",
           "type": "string",
           "required": false,
+          "description": "Mobile phone number, 40 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -746,6 +839,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Nickname",
           "type": "string",
           "required": false,
+          "description": "Nickname for this contact",
           "section": "Account Settings"
         },
         {
@@ -753,6 +847,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Other Phone",
           "type": "string",
           "required": false,
+          "description": "Other phone number, 40 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -760,6 +855,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Other Phone Type",
           "type": "string",
           "required": false,
+          "description": "Possible values are: `Work`, `Mobile`, `Home`, `Other`.",
           "section": "Additional Fields"
         },
         {
@@ -767,6 +863,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Personal Email",
           "type": "email",
           "required": false,
+          "description": "Personal email address.",
           "maxLength": 80,
           "section": "Communication Settings"
         },
@@ -775,6 +872,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "State",
           "type": "string",
           "required": false,
+          "description": "100 characters or less. State; must be a valid subregion (state or province) name or code. For more information, see View subregions of a specific country or region. If using Zuora Tax, be aware that Zuora Tax requires a state (in the US) or province (in Canada) in this field for the sold-to contact to calculate tax, and that a bill-to contact may be used if no sold-to contact is provided.",
           "section": "Additional Fields"
         },
         {
@@ -782,6 +880,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Tax Region",
           "type": "string",
           "required": false,
+          "description": "100 characters or less. If using Zuora Tax, a region string as optionally defined in your tax rules. Not required.",
           "section": "Tax Settings"
         },
         {
@@ -789,6 +888,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Work Email",
           "type": "string",
           "required": false,
+          "description": "Work email address, 80 characters or less.",
           "section": "Communication Settings"
         },
         {
@@ -796,6 +896,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Work Phone",
           "type": "string",
           "required": false,
+          "description": "Work phone number, 40 characters or less.",
           "section": "Additional Fields"
         },
         {
@@ -803,6 +904,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Zip Code",
           "type": "string",
           "required": false,
+          "description": "Zip code, 20 characters or less.",
           "section": "Additional Fields"
         }
       ],
@@ -813,6 +915,7 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Sold To Contact Id",
       "type": "string",
       "required": false,
+      "description": "The ID of a contact that will be the sold-to contact of the current account.",
       "section": "Contact Information"
     },
     {
@@ -820,12 +923,14 @@ export const put_accountEndpoint: ApiEndpoint = {
       "label": "Tax Info",
       "type": "object",
       "required": false,
+      "description": "Container for tax exempt information, used to establish the tax exempt status of a customer account.",
       "fields": [
         {
           "name": "VATId",
           "label": "V A T Id",
           "type": "string",
           "required": false,
+          "description": "EU Value Added Tax ID. **Note:** This feature is in Limited Availability. If you wish to have access to the feature, submit a request at [Zuora Global Support](https://support.zuora.com).",
           "section": "Tax Settings"
         },
         {
@@ -833,6 +938,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Company Code",
           "type": "string",
           "required": false,
+          "description": "Unique code that identifies a company account in Avalara. Use this field to calculate taxes based on origin and sold-to addresses in Avalara. **Note:** This feature is in Limited Availability. If you wish to have access to the feature, submit a request at [Zuora Global Support](https://support.zuora.com).",
           "section": "Additional Fields"
         },
         {
@@ -840,6 +946,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Exempt Certificate Id",
           "type": "string",
           "required": false,
+          "description": "ID of the customer tax exemption certificate. Requires Zuora Tax.",
           "section": "Additional Fields"
         },
         {
@@ -847,6 +954,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Exempt Certificate Type",
           "type": "string",
           "required": false,
+          "description": "Type of tax exemption certificate that the customer holds. Requires Zuora Tax.",
           "section": "Additional Fields"
         },
         {
@@ -854,6 +962,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Exempt Description",
           "type": "string",
           "required": false,
+          "description": "Description of the tax exemption certificate that the customer holds. Requires Zuora Tax.",
           "section": "Additional Fields"
         },
         {
@@ -861,6 +970,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Exempt Effective Date",
           "type": "date",
           "required": false,
+          "description": "Date when the customer tax exemption starts. Requires Zuora Tax. Format: `yyyy-mm-dd`. Defaults to the current date.",
           "section": "Additional Fields"
         },
         {
@@ -868,6 +978,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Exempt Entity Use Code",
           "type": "string",
           "required": false,
+          "description": "A unique entity use code to apply exemptions in Avalara AvaTax. This account-level field is required only when you choose Avalara as your tax engine. See [Exempt Transactions](https://developer.avalara.com/avatax/handling-tax-exempt-customers/)for more details.",
           "maxLength": 64,
           "section": "Additional Fields"
         },
@@ -876,6 +987,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Exempt Expiration Date",
           "type": "date",
           "required": false,
+          "description": "Date when the customer tax exemption expires. Requires Zuora Tax. Format: `yyyy-mm-dd`. Defaults to the current date.",
           "section": "Additional Fields"
         },
         {
@@ -883,6 +995,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Exempt Issuing Jurisdiction",
           "type": "string",
           "required": false,
+          "description": "Jurisdiction in which the customer tax exemption certificate was issued.",
           "section": "Additional Fields"
         },
         {
@@ -890,6 +1003,7 @@ export const put_accountEndpoint: ApiEndpoint = {
           "label": "Exempt Status",
           "type": "string",
           "required": false,
+          "description": "Status of the account tax exemption. Requires Zuora Tax. Required if you use Zuora Tax. This field is unavailable if Zuora Tax is not used. Values: `Yes`, `No`(default), `pendingVerification`. Note that the value will be set to `No` if no input.",
           "section": "Additional Fields"
         }
       ],

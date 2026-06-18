@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const post_retrypaymentscheduleitemEndpoint: ApiEndpoint = {
   "id": "post-retrypaymentscheduleitem",
   "name": "Retry failed payment schedule items",
-  "description": "",
+  "description": "Retries failed payment schedule items. The payment method and payment gateway of the failed payment can be updated to new values before the retry.",
   "method": "POST",
   "path": "/v1/payment-schedule-items/retry-payment",
   "baseUrl": "https://rest.test.zuora.com",
@@ -17,6 +17,7 @@ export const post_retrypaymentscheduleitemEndpoint: ApiEndpoint = {
       "label": "Items",
       "type": "array",
       "required": false,
+      "description": "The maximum number of items allowable to pass is 10.",
       "itemType": "object",
       "itemFields": [
         {
@@ -24,6 +25,7 @@ export const post_retrypaymentscheduleitemEndpoint: ApiEndpoint = {
           "label": "Id",
           "type": "string",
           "required": false,
+          "description": "Specifies the ID of the payment schedule item to be retried.",
           "section": "Additional Fields"
         },
         {
@@ -31,6 +33,7 @@ export const post_retrypaymentscheduleitemEndpoint: ApiEndpoint = {
           "label": "Payment Gateway Id",
           "type": "string",
           "required": false,
+          "description": "Specifies the ID of a payment gateway that will be used in the retry.",
           "section": "Payment Settings"
         },
         {
@@ -38,6 +41,7 @@ export const post_retrypaymentscheduleitemEndpoint: ApiEndpoint = {
           "label": "Payment Method Id",
           "type": "string",
           "required": false,
+          "description": "Specifies the ID of a payment method that will be used in the retry.",
           "section": "Payment Settings"
         }
       ],

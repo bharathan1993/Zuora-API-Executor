@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const delete_productrateplandefnitionEndpoint: ApiEndpoint = {
   "id": "delete-productrateplandefnition",
   "name": "Delete a product rate plan definition",
-  "description": "",
+  "description": "Deletes a product rate plan definition.",
   "method": "DELETE",
   "path": "/v1/product-rateplan-definitions/{product-rateplan-definition-key}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const delete_productrateplandefnitionEndpoint: ApiEndpoint = {
       "name": "product-rateplan-definition-key",
       "label": "Product Rateplan Definition Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique ID of the product rate plan definition to be deleted."
     }
   ],
   "bodyFields": [],

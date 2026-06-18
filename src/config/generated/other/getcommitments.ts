@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const getcommitmentsEndpoint: ApiEndpoint = {
   "id": "getcommitments",
   "name": "List commitments for an account",
-  "description": "",
+  "description": "Retrieves a paginated list of commitments for a commitment owner account.",
   "method": "GET",
   "path": "/commitments",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,13 +16,15 @@ export const getcommitmentsEndpoint: ApiEndpoint = {
       "name": "accountNumber",
       "label": "Account Number",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Account number to fetch commitments for."
     },
     {
       "name": "type",
       "label": "Type",
       "type": "string",
       "required": false,
+      "description": "Filter commitments by type.",
       "enum": [
         "MinCommitment",
         "MaxCommitment"
@@ -33,6 +35,7 @@ export const getcommitmentsEndpoint: ApiEndpoint = {
       "label": "Page",
       "type": "number",
       "required": false,
+      "description": "Page number for pagination.",
       "defaultValue": 1
     },
     {
@@ -40,6 +43,7 @@ export const getcommitmentsEndpoint: ApiEndpoint = {
       "label": "Page Size",
       "type": "number",
       "required": false,
+      "description": "Page size for pagination.",
       "defaultValue": 20
     }
   ],

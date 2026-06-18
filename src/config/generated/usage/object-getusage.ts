@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const object_getusageEndpoint: ApiEndpoint = {
   "id": "object-getusage",
   "name": "CRUD: Retrieve a usage record",
-  "description": "",
+  "description": "Retrieve a usage record.",
   "method": "GET",
   "path": "/v1/object/usage/{id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const object_getusageEndpoint: ApiEndpoint = {
       "name": "id",
       "label": "Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Object id"
     }
   ],
   "queryParams": [
@@ -24,7 +25,8 @@ export const object_getusageEndpoint: ApiEndpoint = {
       "name": "fields",
       "label": "Fields",
       "type": "string",
-      "required": false
+      "required": false,
+      "description": "Object fields to return"
     }
   ],
   "bodyFields": [],

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ApiForm } from './components/ApiForm';
 import { ResponseViewer } from './components/ResponseViewer';
 import { CodeGenerator } from './components/CodeGenerator';
@@ -35,6 +35,8 @@ function App() {
   const [prefillRequest, setPrefillRequest] = useState<SavedRequest | null>(null);
   const [favoriteEndpointIds, setFavoriteEndpointIds] = useState<string[]>([]);
   const [recentEndpointIds, setRecentEndpointIds] = useState<string[]>([]);
+  const [isJsonBodyMode, setIsJsonBodyMode] = useState(false);
+  const [showInspectorPanel, setShowInspectorPanel] = useState(true);
   const { theme, toggleTheme } = useTheme();
   const formId = 'zuora-api-form';
   const savedRequestsKey = 'zuora_saved_requests';
@@ -377,6 +379,33 @@ function App() {
     });
   };
 
+  const handleJsonModeChange = (isJsonMode: boolean) => {
+    setIsJsonBodyMode(isJsonMode);
+    setShowInspectorPanel(!isJsonMode);
+  };
+
+  const liveRequest = useMemo<ApiRequest | null>(() => {
+    if (currentView === 'auth') return null;
+    const selectedEnvironment = zuoraEnvironments.find(
+      (env) => env.id === selectedEnvironmentId
+    );
+    const baseUrl = selectedEnvironment?.baseUrl || selectedEndpoint.baseUrl;
+
+    return {
+      endpoint: {
+        ...selectedEndpoint,
+        baseUrl,
+      },
+      authToken: authToken || 'YOUR_ACCESS_TOKEN',
+      data: liveFormData,
+      customHeaders: liveHeaders,
+      pathParams: livePathParams,
+      queryParams: liveQueryParams,
+    };
+  }, [currentView, selectedEndpoint, selectedEnvironmentId, authToken, liveFormData, liveHeaders, livePathParams, liveQueryParams]);
+
+  const inspectorPanelVisible = !isJsonBodyMode || showInspectorPanel;
+
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 transition-colors duration-200 overflow-hidden">
       
@@ -415,6 +444,22 @@ function App() {
               </h2>
 
               <div className="flex items-center space-x-3">
+                {isJsonBodyMode && currentView !== 'auth' && (
+                  <button
+                    type="button"
+                    onClick={() => setShowInspectorPanel((visible) => !visible)}
+                    className={`hidden sm:inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                      showInspectorPanel
+                        ? 'border-zuora-200 bg-zuora-50 text-zuora-700 dark:border-zuora-500/30 dark:bg-zuora-500/10 dark:text-zuora-300'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" />
+                    </svg>
+                    {showInspectorPanel ? 'Hide Inspector' : 'Show Inspector'}
+                  </button>
+                )}
                 <button
                   onClick={toggleTheme}
                   className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
@@ -486,9 +531,9 @@ function App() {
             ) : (
               <div className="animate-fadeIn space-y-8">
                  {/* Two Column Layout for API */}
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                <div className={`grid gap-8 ${inspectorPanelVisible ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1'}`}>
                   {/* Left Column - Form */}
-                  <div className="space-y-6">
+                  <div className="space-y-6 min-w-0">
                     <ApiForm
                       endpoint={selectedEndpoint}
                       onSubmit={handleSubmit}
@@ -503,6 +548,7 @@ function App() {
                       onHeadersChange={setLiveHeaders}
                       onPathParamsChange={setLivePathParams}
                       onQueryParamsChange={setLiveQueryParams}
+                      onJsonModeChange={handleJsonModeChange}
                       prefillData={prefillRequest?.data}
                       prefillQueryParams={prefillRequest?.queryParams}
                       prefillHeaders={prefillRequest?.customHeaders}
@@ -512,8 +558,11 @@ function App() {
                   </div>
 
                   {/* Right Column - Response & Code */}
-                  <div className="space-y-6 xl:sticky xl:top-6 xl:self-start xl:max-h-[calc(100vh-3rem)] xl:overflow-y-auto xl:pr-1">
-                    <JsonPreview data={liveFormData} onSave={handleSaveRequest} onEdit={handlePreviewEdit} />
+                  {inspectorPanelVisible && (
+                  <div className="space-y-6 xl:sticky xl:top-6 xl:self-start xl:max-h-[calc(100vh-3rem)] xl:overflow-y-auto xl:pr-1 min-w-0">
+                    {!isJsonBodyMode && (
+                      <JsonPreview data={liveFormData} onSave={handleSaveRequest} onEdit={handlePreviewEdit} />
+                    )}
 
                     <SavedRequests
                       requests={savedRequests.filter((r) => r.endpointId === selectedEndpoint?.id)}
@@ -564,8 +613,9 @@ function App() {
                     </div>
                     
                     <ResponseViewer response={response} error={error} />
-                    <CodeGenerator request={currentRequest} />
+                    <CodeGenerator request={liveRequest} />
                   </div>
+                  )}
                 </div>
               </div>
             )}

@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const delete_accountingcodeEndpoint: ApiEndpoint = {
   "id": "delete-accountingcode",
   "name": "Delete an accounting code",
-  "description": "",
+  "description": "This reference describes how to delete an accounting code through the REST API.",
   "method": "DELETE",
   "path": "/v1/accounting-codes/{ac-id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const delete_accountingcodeEndpoint: ApiEndpoint = {
       "name": "ac-id",
       "label": "Ac Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "ID of the accounting code you want to delete."
     }
   ],
   "bodyFields": [],

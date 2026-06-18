@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const delete_fulfillmentEndpoint: ApiEndpoint = {
   "id": "delete-fulfillment",
   "name": "Delete a fulfillment",
-  "description": "",
+  "description": "Deletes a specified fulfillment. A fulfillment can only be deleted when it is in the `Executing` state.",
   "method": "DELETE",
   "path": "/v1/fulfillments/{key}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const delete_fulfillmentEndpoint: ApiEndpoint = {
       "name": "key",
       "label": "Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The id or fulfillment number of the Fulfillment to delete."
     }
   ],
   "bodyFields": [],

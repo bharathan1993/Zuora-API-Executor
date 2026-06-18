@@ -16,7 +16,8 @@ export const put_fulfillmentEndpoint: ApiEndpoint = {
       "name": "key",
       "label": "Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The id or fulfillment number of the Fulfillment to update."
     }
   ],
   "bodyFields": [
@@ -25,6 +26,7 @@ export const put_fulfillmentEndpoint: ApiEndpoint = {
       "label": "Bill Target Date",
       "type": "date",
       "required": false,
+      "description": "The target date for the Fulfillment to be picked up by bill run for billing.",
       "section": "Invoice & Document Settings"
     },
     {
@@ -32,6 +34,7 @@ export const put_fulfillmentEndpoint: ApiEndpoint = {
       "label": "Carrier",
       "type": "string",
       "required": false,
+      "description": "The carrier of the Fulfillment. The available values can be managed in the Fulfillment Settings page under Billing Settings.",
       "section": "Additional Fields"
     },
     {
@@ -39,6 +42,7 @@ export const put_fulfillmentEndpoint: ApiEndpoint = {
       "label": "Custom Fields",
       "type": "object",
       "required": false,
+      "description": "Container for custom fields of a Fulfillment object.",
       "section": "Additional Fields"
     },
     {
@@ -46,6 +50,7 @@ export const put_fulfillmentEndpoint: ApiEndpoint = {
       "label": "External Id",
       "type": "string",
       "required": false,
+      "description": "The external id of the Fulfillment.",
       "section": "Additional Fields"
     },
     {
@@ -53,6 +58,7 @@ export const put_fulfillmentEndpoint: ApiEndpoint = {
       "label": "Fulfillment Date",
       "type": "date",
       "required": false,
+      "description": "The date of the Fulfillment.",
       "section": "Additional Fields"
     },
     {
@@ -60,6 +66,7 @@ export const put_fulfillmentEndpoint: ApiEndpoint = {
       "label": "Fulfillment Location",
       "type": "string",
       "required": false,
+      "description": "The fulfillment location of the Fulfillment. The available values can be managed in the Fulfillment Settings page under Billing Settings.",
       "section": "Additional Fields"
     },
     {
@@ -67,6 +74,7 @@ export const put_fulfillmentEndpoint: ApiEndpoint = {
       "label": "Fulfillment System",
       "type": "string",
       "required": false,
+      "description": "The fulfillment system of the Fulfillment. The available values can be managed in the Fulfillment Settings page under Billing Settings.",
       "section": "Additional Fields"
     },
     {
@@ -74,6 +82,7 @@ export const put_fulfillmentEndpoint: ApiEndpoint = {
       "label": "Quantity",
       "type": "number",
       "required": false,
+      "description": "The quantity of the Fulfillment.",
       "section": "Additional Fields"
     },
     {
@@ -81,6 +90,7 @@ export const put_fulfillmentEndpoint: ApiEndpoint = {
       "label": "State",
       "type": "string",
       "required": false,
+      "description": "The state of the Fulfillment. See [Order Line Item states, Order states, and state transitions](https://knowledgecenter.zuora.com/Billing/Subscriptions/Orders/Order_Line_Items/AB_Order_Line_Item_States_and_Order_States) for more information.",
       "enum": [
         "Executing",
         "Booked",
@@ -95,6 +105,7 @@ export const put_fulfillmentEndpoint: ApiEndpoint = {
       "label": "Tracking Number",
       "type": "string",
       "required": false,
+      "description": "The tracking number of the Fulfillment.",
       "section": "Account Settings"
     }
   ],

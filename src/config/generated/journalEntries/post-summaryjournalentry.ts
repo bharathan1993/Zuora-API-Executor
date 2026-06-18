@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const post_summaryjournalentryEndpoint: ApiEndpoint = {
   "id": "post-summaryjournalentry",
   "name": "Create a summary journal entry",
-  "description": "",
+  "description": "This REST API reference describes how to manually create a summary journal entry. Request and response field descriptions and sample code are provided.",
   "method": "POST",
   "path": "/v1/journal-entries",
   "baseUrl": "https://rest.test.zuora.com",
@@ -17,6 +17,7 @@ export const post_summaryjournalentryEndpoint: ApiEndpoint = {
       "label": "Accounting Period Name",
       "type": "string",
       "required": true,
+      "description": "Name of the accounting period. The open-ended accounting period is named `Open-Ended`.",
       "section": "Account Settings"
     },
     {
@@ -24,6 +25,7 @@ export const post_summaryjournalentryEndpoint: ApiEndpoint = {
       "label": "Transferred To Accounting",
       "type": "string",
       "required": false,
+      "description": "Status shows whether the journal entry has been transferred to an accounting system.",
       "enum": [
         "No",
         "Processing",
@@ -38,6 +40,7 @@ export const post_summaryjournalentryEndpoint: ApiEndpoint = {
       "label": "Currency",
       "type": "string",
       "required": true,
+      "description": "The type of currency used. Currency must be active.",
       "section": "Additional Fields"
     },
     {
@@ -45,6 +48,7 @@ export const post_summaryjournalentryEndpoint: ApiEndpoint = {
       "label": "Journal Entry Date",
       "type": "date",
       "required": true,
+      "description": "Date of the journal entry.",
       "section": "Additional Fields"
     },
     {
@@ -52,6 +56,7 @@ export const post_summaryjournalentryEndpoint: ApiEndpoint = {
       "label": "Journal Entry Items",
       "type": "array",
       "required": true,
+      "description": "Key name that represents the list of journal entry items.",
       "itemType": "object",
       "itemFields": [
         {
@@ -59,6 +64,7 @@ export const post_summaryjournalentryEndpoint: ApiEndpoint = {
           "label": "Accounting Code Name",
           "type": "string",
           "required": true,
+          "description": "Name of the accounting code.",
           "section": "Account Settings"
         },
         {
@@ -66,6 +72,7 @@ export const post_summaryjournalentryEndpoint: ApiEndpoint = {
           "label": "Accounting Code Type",
           "type": "string",
           "required": false,
+          "description": "Accounting code type. This field is required if `accountingCodeName` is not unique. Note that `On-Account Receivable` is only available if you enable the Invoice Settlement feature.",
           "enum": [
             "AccountsReceivable",
             "On-Account Receivable",
@@ -89,6 +96,7 @@ export const post_summaryjournalentryEndpoint: ApiEndpoint = {
           "label": "Amount",
           "type": "string",
           "required": true,
+          "description": "Journal entry item amount in transaction currency.",
           "section": "Additional Fields"
         },
         {
@@ -96,6 +104,7 @@ export const post_summaryjournalentryEndpoint: ApiEndpoint = {
           "label": "Home Currency Amount",
           "type": "string",
           "required": false,
+          "description": "Journal entry item amount in home currency. This field is required if you have set your home currency for foreign currency conversion. Otherwise, do not pass this field.",
           "section": "Additional Fields"
         },
         {
@@ -103,6 +112,7 @@ export const post_summaryjournalentryEndpoint: ApiEndpoint = {
           "label": "Type",
           "type": "string",
           "required": true,
+          "description": "Type of journal entry item.",
           "enum": [
             "Credit",
             "Debit"
@@ -117,6 +127,7 @@ export const post_summaryjournalentryEndpoint: ApiEndpoint = {
       "label": "Notes",
       "type": "string",
       "required": false,
+      "description": "The number associated with the revenue event. Character limit: 2,000",
       "section": "Additional Fields"
     },
     {
@@ -124,6 +135,7 @@ export const post_summaryjournalentryEndpoint: ApiEndpoint = {
       "label": "Organization Label",
       "type": "string",
       "required": false,
+      "description": "Name of the organization that the journal entry belongs to. This field is only required when you have already turned on Multi-Org feature.",
       "section": "Additional Fields"
     },
     {
@@ -131,6 +143,7 @@ export const post_summaryjournalentryEndpoint: ApiEndpoint = {
       "label": "Segments",
       "type": "array",
       "required": false,
+      "description": "List of segments that apply to the summary journal entry.",
       "itemType": "object",
       "itemFields": [
         {
@@ -138,6 +151,7 @@ export const post_summaryjournalentryEndpoint: ApiEndpoint = {
           "label": "Segment Name",
           "type": "string",
           "required": true,
+          "description": "Name of segment. You must use the segment name that has already been specified in the default segment rule. In addition, segments need to be passed in the order where they were defined in the segmentation rule. If multiple segments are configured in the default rule, you need to specify all of them in order.",
           "section": "Account Settings"
         },
         {
@@ -145,6 +159,7 @@ export const post_summaryjournalentryEndpoint: ApiEndpoint = {
           "label": "Segment Value",
           "type": "string",
           "required": true,
+          "description": "Value of segment in this summary journal entry.",
           "section": "Additional Fields"
         }
       ],

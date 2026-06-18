@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_orderactionsEndpoint: ApiEndpoint = {
   "id": "put-orderactions",
   "name": "Update an order action",
-  "description": "",
+  "description": "Updates the change reason and custom fields for an order action.",
   "method": "PUT",
   "path": "/v1/orderActions/{id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_orderactionsEndpoint: ApiEndpoint = {
       "name": "id",
       "label": "Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The id of the Order Action to update."
     }
   ],
   "bodyFields": [
@@ -25,6 +26,7 @@ export const put_orderactionsEndpoint: ApiEndpoint = {
       "label": "Change Reason",
       "type": "string",
       "required": false,
+      "description": "The change reason set for an order action when the order action is updated.",
       "section": "Additional Fields"
     },
     {
@@ -32,6 +34,7 @@ export const put_orderactionsEndpoint: ApiEndpoint = {
       "label": "Custom Fields",
       "type": "object",
       "required": false,
+      "description": "Container for custom fields of an Order Action object.",
       "section": "Additional Fields"
     }
   ],

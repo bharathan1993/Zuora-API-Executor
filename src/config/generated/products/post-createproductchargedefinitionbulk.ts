@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
   "id": "post-createproductchargedefinitionbulk",
   "name": "Create product charge definitions",
-  "description": "",
+  "description": "Bulk creates product charge definitions for a charge. You can create up to 1000 product charge definitions at a given time for a specific charge.",
   "method": "POST",
   "path": "/v1/product-charge-definitions/bulk",
   "baseUrl": "https://rest.test.zuora.com",
@@ -17,6 +17,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
       "label": "Product Charge Definitions",
       "type": "array",
       "required": false,
+      "description": "Container for the array of product charge definition.",
       "itemType": "object",
       "itemFields": [
         {
@@ -24,6 +25,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Billing Period",
           "type": "string",
           "required": false,
+          "description": "The billing period for the product charge definition.",
           "section": "Invoice & Document Settings"
         },
         {
@@ -31,6 +33,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Billing Timing",
           "type": "string",
           "required": false,
+          "description": "The billing timing setting for the product charge definition.",
           "enum": [
             "IN_ADVANCE",
             "IN_ARREARS"
@@ -42,6 +45,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Charge Model",
           "type": "string",
           "required": false,
+          "description": "Determines how to calculate charges. Charge models must be individually activated in Zuora Billing administration.",
           "enum": [
             "DiscountFixedAmount",
             "DiscountPercentage",
@@ -58,6 +62,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Default Quantity",
           "type": "number",
           "required": false,
+          "description": "The default quantity. This field is applicable only for one-time and recurring charges.",
           "section": "Additional Fields"
         },
         {
@@ -65,6 +70,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Effective End Date",
           "type": "date",
           "required": false,
+          "description": "The effective end date of the product charge definition.",
           "section": "Additional Fields"
         },
         {
@@ -72,6 +78,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Effective Start Date",
           "type": "date",
           "required": false,
+          "description": "The effective start date of the product charge definition.",
           "section": "Additional Fields"
         },
         {
@@ -79,6 +86,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "List Price Base",
           "type": "string",
           "required": false,
+          "description": "The list price base. This field is applicable only for recurring charges. **Note**: The `Per_Year` enum value is available only if you have the Annual List Price feature enabled.",
           "enum": [
             "Per_Billing_Period",
             "Per_Month",
@@ -92,6 +100,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Prices",
           "type": "array",
           "required": false,
+          "description": "Container for the prices of the product charge definition.",
           "itemType": "object",
           "itemFields": [
             {
@@ -99,6 +108,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
               "label": "Currency",
               "type": "string",
               "required": false,
+              "description": "The currency for the price.",
               "section": "Additional Fields"
             },
             {
@@ -106,6 +116,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
               "label": "Discount Amount",
               "type": "number",
               "required": false,
+              "description": "The specific amount for a fixed discount. The field is applicable only for charges based on the Discount-Fixed Amount charge model.",
               "section": "Additional Fields"
             },
             {
@@ -113,6 +124,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
               "label": "Discount Percentage",
               "type": "number",
               "required": false,
+              "description": "The percentage of discount for a percentage discount. The field is applicable only for charges based on the Discount-Percentage charge model.",
               "section": "Additional Fields"
             },
             {
@@ -120,6 +132,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
               "label": "Price",
               "type": "number",
               "required": false,
+              "description": "The price of this item. This field is only applicable for charges based on the following charge models: - Flat Fee - Per Unit - Delivery Pricing",
               "section": "Additional Fields"
             },
             {
@@ -127,6 +140,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
               "label": "Tiers",
               "type": "array",
               "required": false,
+              "description": "Container for the tiers of the price item. This field is only applicable for charges based on the following charge models: - Tiered Pricing - Volume Pricing You must specify all relevant fields of all tiers, including pricing information for each currency. For each currency, ensure that the tiers appear in ascending order of `StartingUnit`. For example: ``` [ { \"startingUnit\": \"1\", \"endingUnit\": \"150\", \"currency\": \"USD\", \"price\": 1.95, \"priceFormat\": \"Per Unit\" }, { \"startingUnit\": \"151\", \"endingUnit\": \"300\", \"currency\": \"USD\", \"price\": 1.45, \"priceFormat\": \"Per Unit\" }, { \"startingUnit\": \"1\", \"endingUnit\": \"150\", \"currency\": \"EUR\", \"price\": 1.75, \"priceFormat\": \"Per Unit\" }, { \"startingUnit\": \"151\", \"endingUnit\": \"300\", \"currency\": \"EUR\", \"price\": 1.30, \"priceFormat\": \"Per Unit\" } ] ```",
               "itemType": "array",
               "section": "Additional Fields"
             }
@@ -138,6 +152,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Product Rate Plan Charge Id",
           "type": "string",
           "required": false,
+          "description": "The unique ID of the charge of the charge definition.",
           "section": "Additional Fields"
         },
         {
@@ -145,6 +160,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Product Rate Plan Charge Number",
           "type": "string",
           "required": false,
+          "description": "The unique number (natural key) of the charge of the charge definition.",
           "section": "Account Settings"
         },
         {
@@ -152,6 +168,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Product Rate Plan Id",
           "type": "string",
           "required": false,
+          "description": "The unique ID of the product rate plan that uses this charge definition.",
           "section": "Additional Fields"
         },
         {
@@ -159,6 +176,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Product Rate Plan Number",
           "type": "string",
           "required": false,
+          "description": "The unique number (natural key) of the product rate plan that uses this charge definition.",
           "section": "Account Settings"
         },
         {
@@ -166,6 +184,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Specific Billing Period",
           "type": "number",
           "required": false,
+          "description": "The specific number of billing periods for the product charge definition.",
           "section": "Invoice & Document Settings"
         },
         {
@@ -173,6 +192,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Specific List Price Base",
           "type": "number",
           "required": false,
+          "description": "The number of months for the list price base of the charge definition. This field is `null` if the `listPriceBase` field is not set to `Per_Specific_Months`.",
           "section": "Additional Fields"
         },
         {
@@ -180,6 +200,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Tax Code",
           "type": "string",
           "required": false,
+          "description": "Specifies the tax code for taxation rules. This field is required when the `Taxable` field is set to `True`. **Note**: This value affects the tax calculation of the charge.",
           "maxLength": 64,
           "section": "Tax Settings"
         },
@@ -188,6 +209,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Tax Mode",
           "type": "string",
           "required": false,
+          "description": "Determines how to define taxation for the charge. This field is required when the `Taxable` field is set to `True`. **Note**: This value affects the tax calculation of the charge.",
           "enum": [
             "TaxExclusive",
             "TaxInclusive",
@@ -200,6 +222,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Taxable",
           "type": "boolean",
           "required": false,
+          "description": "Determines whether the charge definition is taxable. When this field is set to `True`, the `TaxMode` and `TaxCode` fields are required. **Character limit**: 5 **Values**: `True`, `False` **Note**: This value affects the tax calculation of the charge.",
           "section": "Tax Settings"
         },
         {
@@ -207,6 +230,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Term",
           "type": "number",
           "required": false,
+          "description": "The number of periods of a termed subscription that is eligible for this charge definition. This field is applicable when the `termType` field is set to `TERMED`, and is to be used together with the `termPeriodType` field.",
           "section": "Additional Fields"
         },
         {
@@ -214,6 +238,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Term Period Type",
           "type": "string",
           "required": false,
+          "description": "Specifies the period type for the subscription term that is eligible for this charge definition.",
           "enum": [
             "Month",
             "Year",
@@ -228,6 +253,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Term Type",
           "type": "string",
           "required": false,
+          "description": "The type of the subscription that is eligible for this charge definition.",
           "enum": [
             "TERMED",
             "EVERGREEN",
@@ -240,6 +266,7 @@ export const post_createproductchargedefinitionbulkEndpoint: ApiEndpoint = {
           "label": "Uom",
           "type": "string",
           "required": false,
+          "description": "Describes the unit of measure (UOM) configured in **Settings > Billing** for the charge.",
           "section": "Additional Fields"
         }
       ],

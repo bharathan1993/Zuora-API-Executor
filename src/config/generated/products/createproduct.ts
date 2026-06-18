@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const createproductEndpoint: ApiEndpoint = {
   "id": "createproduct",
   "name": "Create a product with plans and charges",
-  "description": "",
+  "description": "Create a product in the Product Catalog with one or more plans and charges.",
   "method": "POST",
   "path": "/commerce/products",
   "baseUrl": "https://rest.test.zuora.com",
@@ -17,6 +17,7 @@ export const createproductEndpoint: ApiEndpoint = {
       "label": "Name",
       "type": "string",
       "required": true,
+      "description": "Product name.",
       "section": "Account Settings"
     },
     {
@@ -24,6 +25,7 @@ export const createproductEndpoint: ApiEndpoint = {
       "label": "Product Number",
       "type": "string",
       "required": false,
+      "description": "The product number that uniquely identifies the product in the product catalog.",
       "section": "Account Settings"
     },
     {
@@ -31,6 +33,7 @@ export const createproductEndpoint: ApiEndpoint = {
       "label": "Sku",
       "type": "string",
       "required": false,
+      "description": "The stock keeping unit (SKU) associated with the product or invoice item.",
       "section": "Additional Fields"
     },
     {
@@ -38,6 +41,7 @@ export const createproductEndpoint: ApiEndpoint = {
       "label": "Start Date",
       "type": "date",
       "required": true,
+      "description": "Product effective start date (UTC, YYYY-MM-DD).",
       "section": "Additional Fields"
     },
     {
@@ -45,6 +49,7 @@ export const createproductEndpoint: ApiEndpoint = {
       "label": "End Date",
       "type": "date",
       "required": true,
+      "description": "Product effective end date (UTC, YYYY-MM-DD).",
       "section": "Additional Fields"
     },
     {
@@ -52,6 +57,7 @@ export const createproductEndpoint: ApiEndpoint = {
       "label": "Category",
       "type": "string",
       "required": true,
+      "description": "Product category.",
       "enum": [
         "base",
         "add_on",
@@ -64,6 +70,7 @@ export const createproductEndpoint: ApiEndpoint = {
       "label": "Plans",
       "type": "array",
       "required": true,
+      "description": "Product rate plans to create under the product.",
       "itemType": "object",
       "itemFields": [
         {
@@ -71,6 +78,7 @@ export const createproductEndpoint: ApiEndpoint = {
           "label": "Name",
           "type": "string",
           "required": true,
+          "description": "Rate plan name.",
           "section": "Account Settings"
         },
         {
@@ -78,6 +86,7 @@ export const createproductEndpoint: ApiEndpoint = {
           "label": "Start Date",
           "type": "date",
           "required": true,
+          "description": "Rate plan effective start date (UTC, YYYY-MM-DD).",
           "section": "Additional Fields"
         },
         {
@@ -85,6 +94,7 @@ export const createproductEndpoint: ApiEndpoint = {
           "label": "End Date",
           "type": "date",
           "required": true,
+          "description": "Rate plan effective end date (UTC, YYYY-MM-DD).",
           "section": "Additional Fields"
         },
         {
@@ -92,6 +102,7 @@ export const createproductEndpoint: ApiEndpoint = {
           "label": "Active Currencies",
           "type": "array",
           "required": true,
+          "description": "ISO currency codes enabled for this plan.",
           "itemType": "string",
           "section": "Additional Fields"
         },
@@ -100,6 +111,7 @@ export const createproductEndpoint: ApiEndpoint = {
           "label": "Charges",
           "type": "array",
           "required": true,
+          "description": "Charges to create under this rate plan.",
           "itemType": "object",
           "itemFields": [
             {
@@ -107,6 +119,7 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Name",
               "type": "string",
               "required": true,
+              "description": "Charge name.",
               "section": "Account Settings"
             },
             {
@@ -114,6 +127,7 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Charge Type",
               "type": "string",
               "required": true,
+              "description": "Charge type.",
               "enum": [
                 "one_time",
                 "recurring",
@@ -126,6 +140,7 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Charge Model",
               "type": "string",
               "required": true,
+              "description": "Charge model.",
               "enum": [
                 "flat_fee",
                 "per_unit",
@@ -152,6 +167,7 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Unit Of Measure",
               "type": "string",
               "required": false,
+              "description": "Unit of measure for per-unit or usage charges.",
               "section": "Additional Fields"
             },
             {
@@ -159,6 +175,7 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "List Price Base",
               "type": "string",
               "required": false,
+              "description": "List price base for the charge.",
               "enum": [
                 "Per_Billing_Period",
                 "Per_Month",
@@ -174,6 +191,7 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Default Quantity",
               "type": "number",
               "required": false,
+              "description": "Default quantity for this charge on subscriptions created from the plan.",
               "section": "Additional Fields"
             },
             {
@@ -181,6 +199,7 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Min Quantity",
               "type": "number",
               "required": false,
+              "description": "Minimum quantity allowed for this charge. Equivalent to the `MinQuantity` field in the legacy v1 Product Rate Plan Charge.",
               "section": "Additional Fields"
             },
             {
@@ -188,6 +207,7 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Max Quantity",
               "type": "number",
               "required": false,
+              "description": "Maximum quantity allowed for this charge. Equivalent to the `MaxQuantity` field in the legacy v1 Product Rate Plan Charge.",
               "section": "Additional Fields"
             },
             {
@@ -195,12 +215,14 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Pricing",
               "type": "object",
               "required": false,
+              "description": "Default (standard) pricing defined at the charge level. Provide exactly one structure per the charge model.",
               "fields": [
                 {
                   "name": "flat_amounts",
                   "label": "Flat Amounts",
                   "type": "object",
                   "required": true,
+                  "description": "Map of currency to flat amount.",
                   "section": "Additional Fields"
                 },
                 {
@@ -208,6 +230,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Unit Amounts",
                   "type": "object",
                   "required": true,
+                  "description": "Map of currency to per-unit price.",
                   "section": "Additional Fields"
                 },
                 {
@@ -215,6 +238,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Tiers",
                   "type": "array",
                   "required": true,
+                  "description": "Tier definitions (volume or tiered) with optional min/max caps.",
                   "itemType": "object",
                   "itemFields": [
                     {
@@ -222,6 +246,7 @@ export const createproductEndpoint: ApiEndpoint = {
                       "label": "Tier",
                       "type": "string",
                       "required": true,
+                      "description": "Tier identifier (e.g., \"1\", \"2\").",
                       "section": "Additional Fields"
                     },
                     {
@@ -229,6 +254,7 @@ export const createproductEndpoint: ApiEndpoint = {
                       "label": "From",
                       "type": "number",
                       "required": true,
+                      "description": "Lower bound (inclusive).",
                       "section": "Additional Fields"
                     },
                     {
@@ -236,6 +262,7 @@ export const createproductEndpoint: ApiEndpoint = {
                       "label": "Up To",
                       "type": "number",
                       "required": false,
+                      "description": "Upper bound (inclusive). Omit/null for open-ended last tier.",
                       "section": "Additional Fields"
                     },
                     {
@@ -243,6 +270,7 @@ export const createproductEndpoint: ApiEndpoint = {
                       "label": "Price Format",
                       "type": "string",
                       "required": true,
+                      "description": "Price format for the tier.",
                       "enum": [
                         "price_format_flat_fee",
                         "price_format_per_unit"
@@ -254,6 +282,7 @@ export const createproductEndpoint: ApiEndpoint = {
                       "label": "Unit Amounts",
                       "type": "object",
                       "required": false,
+                      "description": "Per-unit price by currency for this tier.",
                       "section": "Additional Fields"
                     },
                     {
@@ -261,6 +290,7 @@ export const createproductEndpoint: ApiEndpoint = {
                       "label": "Flat Amounts",
                       "type": "object",
                       "required": false,
+                      "description": "Flat amount by currency for this tier (if applicable).",
                       "section": "Additional Fields"
                     },
                     {
@@ -268,6 +298,7 @@ export const createproductEndpoint: ApiEndpoint = {
                       "label": "Min Amounts",
                       "type": "object",
                       "required": false,
+                      "description": "Minimum billed amount by currency for this tier.",
                       "section": "Additional Fields"
                     },
                     {
@@ -275,6 +306,7 @@ export const createproductEndpoint: ApiEndpoint = {
                       "label": "Max Amounts",
                       "type": "object",
                       "required": false,
+                      "description": "Maximum billed amount by currency for this tier.",
                       "section": "Additional Fields"
                     }
                   ],
@@ -285,6 +317,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Discount Amounts",
                   "type": "object",
                   "required": true,
+                  "description": "Map of currency to discount amount.",
                   "section": "Additional Fields"
                 },
                 {
@@ -292,6 +325,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Discount Percentage",
                   "type": "number",
                   "required": true,
+                  "description": "Discount percentage (e.g., 15 for 15%).",
                   "section": "Additional Fields"
                 }
               ],
@@ -302,12 +336,14 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Bill Cycle",
               "type": "object",
               "required": true,
+              "description": "Billing configuration of the charge.",
               "fields": [
                 {
                   "name": "type",
                   "label": "Type",
                   "type": "string",
                   "required": true,
+                  "description": "Determines how the billing day is selected for this charge.",
                   "enum": [
                     "default_from_customer",
                     "specific_day_of_month",
@@ -324,6 +360,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Period",
                   "type": "string",
                   "required": true,
+                  "description": "Length of each billing period.",
                   "enum": [
                     "bill_cycle_period_month",
                     "bill_cycle_period_quarter",
@@ -346,6 +383,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Period Alignment",
                   "type": "string",
                   "required": true,
+                  "description": "How the billing period start aligns.",
                   "enum": [
                     "align_to_charge",
                     "align_to_subscription_start",
@@ -359,6 +397,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Timing",
                   "type": "string",
                   "required": false,
+                  "description": "When the charge is billed relative to the service period.",
                   "enum": [
                     "in_advance",
                     "in_arrears"
@@ -370,6 +409,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Day Of Month",
                   "type": "number",
                   "required": false,
+                  "description": "Required if \"type\" is `specific_day_of_month`.",
                   "section": "Additional Fields"
                 },
                 {
@@ -377,6 +417,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Day Of Week",
                   "type": "string",
                   "required": false,
+                  "description": "Used when \"type\" is `specific_day_of_week`.",
                   "enum": [
                     "sunday",
                     "monday",
@@ -393,6 +434,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Specific Period",
                   "type": "string",
                   "required": false,
+                  "description": "Optional specific period value when `period` is `bill_cycle_period_specific_months`, `bill_cycle_period_specific_weeks`, or `bill_cycle_period_specific_days`. Equivalent to `SpecificBillingPeriod` in the legacy v1 API.",
                   "section": "Additional Fields"
                 }
               ],
@@ -403,6 +445,7 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Trigger Event",
               "type": "string",
               "required": true,
+              "description": "Event that triggers the charge.",
               "enum": [
                 "contract_effective",
                 "service_activation",
@@ -416,6 +459,7 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "End Date Condition",
               "type": "string",
               "required": true,
+              "description": "Defines when the charge ends.",
               "enum": [
                 "subscription_end",
                 "end_date_one_time",
@@ -429,6 +473,7 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Up To Periods Type",
               "type": "string",
               "required": false,
+              "description": "Unit of time used when `end_date_condition` = `fixed_period`. Maps to the duration unit (billing periods, days, weeks, months, years).",
               "enum": [
                 "billing_periods",
                 "days",
@@ -443,6 +488,7 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Up To Periods",
               "type": "number",
               "required": false,
+              "description": "Number of periods used when `end_date_condition` = `fixed_period`.",
               "section": "Additional Fields"
             },
             {
@@ -450,12 +496,14 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Overage Options",
               "type": "object",
               "required": false,
+              "description": "Configuration for overage smoothing and period-based overage calculation. Equivalent to `NumberOfPeriod` and related fields in the legacy v1 API.",
               "fields": [
                 {
                   "name": "number_of_periods",
                   "label": "Number Of Periods",
                   "type": "number",
                   "required": false,
+                  "description": "Number of billing periods used for overage smoothing / calculation.",
                   "section": "Account Settings"
                 }
               ],
@@ -466,6 +514,7 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Price Increase Percentage",
               "type": "number",
               "required": false,
+              "description": "Percentage used when `price_change_option` is set to apply a specific percentage price increase. Equivalent to `PriceIncreasePercentage` (v1).",
               "section": "Additional Fields"
             },
             {
@@ -473,6 +522,7 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Price Change Option",
               "type": "string",
               "required": false,
+              "description": "Specifies how price changes are handled for future terms when this product or rate plan is amended. Equivalent to `PriceChangeOption` in the legacy v1 API. Examples include `no_change`, `specific_percentage_value`, or `use_latest_product_catalog_pricing`.",
               "enum": [
                 "no_change",
                 "specific_percentage_value",
@@ -485,6 +535,7 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Use Tenant Default For Price Change",
               "type": "boolean",
               "required": false,
+              "description": "When true, uses the tenant-level default setting for price change behavior instead of the charge-level `price_change_option`. Equivalent to `UseTenantDefaultForPriceChange` in the legacy v1 API.",
               "section": "Additional Fields"
             },
             {
@@ -492,12 +543,14 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Discount Options",
               "type": "object",
               "required": false,
+              "description": "Discount configuration for discount charge models, including \"Apply Discount To\" and related settings.",
               "fields": [
                 {
                   "name": "discount_class",
                   "label": "Discount Class",
                   "type": "string",
                   "required": false,
+                  "description": "Discount class to associate with this discount charge.",
                   "section": "Additional Fields"
                 },
                 {
@@ -505,6 +558,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Stacked Discount",
                   "type": "boolean",
                   "required": false,
+                  "description": "When true, this discount can stack with other discounts.",
                   "section": "Additional Fields"
                 },
                 {
@@ -512,6 +566,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Apply To",
                   "type": "array",
                   "required": false,
+                  "description": "Charge types that this discount applies to. Mirrors the \"One-Time / Recurring / Usage\" checkboxes in the UI.",
                   "itemType": "string",
                   "itemEnum": [
                     "one_time",
@@ -525,6 +580,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Discount Level",
                   "type": "string",
                   "required": false,
+                  "description": "Level at which the discount applies (for example, subscription-level or account-level discounts).",
                   "enum": [
                     "rate_plan",
                     "subscription",
@@ -537,6 +593,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Apply To Billing Period Partially",
                   "type": "boolean",
                   "required": false,
+                  "description": "When true, allows the discount to apply to partial billing periods.",
                   "section": "Invoice & Document Settings"
                 },
                 {
@@ -544,6 +601,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Specific Accounting Codes",
                   "type": "boolean",
                   "required": false,
+                  "description": "When true, uses discount-specific accounting codes instead of inheriting from the discounted charges. Equivalent to `UseDiscountSpecificAccountingCode` in the legacy v1 API.",
                   "section": "Account Settings"
                 },
                 {
@@ -551,6 +609,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Reflect Discount In Net Amount",
                   "type": "boolean",
                   "required": false,
+                  "description": "When true, discount is reflected directly in the net amount (Apply To Charge Net Amount option in the UI).",
                   "section": "Additional Fields"
                 },
                 {
@@ -558,6 +617,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Rollover",
                   "type": "boolean",
                   "required": false,
+                  "description": "Indicates whether unused discount amounts roll over to the next billing period.",
                   "section": "Additional Fields"
                 },
                 {
@@ -565,6 +625,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Apply Details",
                   "type": "array",
                   "required": false,
+                  "description": "Explicit list of product charges that this discount applies to when targeting specific charges.",
                   "itemType": "object",
                   "itemFields": [
                     {
@@ -572,6 +633,7 @@ export const createproductEndpoint: ApiEndpoint = {
                       "label": "Applied Product Rate Plan Id",
                       "type": "string",
                       "required": false,
+                      "description": "ID of the target product rate plan.",
                       "section": "Additional Fields"
                     },
                     {
@@ -579,6 +641,7 @@ export const createproductEndpoint: ApiEndpoint = {
                       "label": "Applied Product Rate Plan Charge Id",
                       "type": "string",
                       "required": false,
+                      "description": "ID of the target product rate plan charge.",
                       "section": "Additional Fields"
                     }
                   ],
@@ -592,12 +655,14 @@ export const createproductEndpoint: ApiEndpoint = {
               "label": "Accounting",
               "type": "object",
               "required": false,
+              "description": "Accounting fields accepted on create/update requests. Field names use snake_case. **Conditional requirement rules** - If **Allow blank Accounting Codes** = **Yes** → Accounting fields are **optional**. - If **Allow blank Accounting Codes** = **No** and the tenant **has Zuora Revenue** → **all Accounting fields except `accounting_code` are required**. - If **Allow blank Accounting Codes** = **No** and the tenant **does NOT have Zuora Revenue** → only `recognized_revenue_account` and `deferred_revenue_account` are required. These rules apply to **all operations that accept `accounting`** in the payload.",
               "fields": [
                 {
                   "name": "accounting_code",
                   "label": "Accounting Code",
                   "type": "string",
                   "required": false,
+                  "description": "An accounting code associated with the charge for reporting/ERP mapping. Typically a short code or identifier, not the GL account name.",
                   "section": "Account Settings"
                 },
                 {
@@ -605,6 +670,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Accounts Receivable Account",
                   "type": "string",
                   "required": false,
+                  "description": "Accounts Receivable (AR) account to book invoices for this charge. Must match an existing account in the tenant's chart of accounts.",
                   "section": "Account Settings"
                 },
                 {
@@ -612,6 +678,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Accounts Receivable Account Type",
                   "type": "string",
                   "required": false,
+                  "description": "The account type associated with `accounts_receivable_account`. Maps to the `accountsReceivableAccountType` field in the accounting object.",
                   "section": "Account Settings"
                 },
                 {
@@ -619,6 +686,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Deferred Revenue Account",
                   "type": "string",
                   "required": false,
+                  "description": "Deferred revenue (liability) account to book revenue before recognition. Must match an existing account in the tenant's chart of accounts.",
                   "section": "Account Settings"
                 },
                 {
@@ -626,6 +694,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Deferred Revenue Accounting Type",
                   "type": "string",
                   "required": false,
+                  "description": "Accounting method/type applied to deferred revenue. Maps to the `deferredRevenueAccountingType` field in the accounting object.",
                   "section": "Account Settings"
                 },
                 {
@@ -633,6 +702,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Recognized Revenue Account",
                   "type": "string",
                   "required": false,
+                  "description": "The name of the account where the Account Type is \"Recognized Revenue\".",
                   "maxLength": 100,
                   "section": "Account Settings"
                 },
@@ -641,6 +711,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Recognized Revenue Account Type",
                   "type": "string",
                   "required": false,
+                  "description": "The account type associated with `recognized_revenue_account`. Maps to the `recognizedRevenueAccountType` field in the accounting object.",
                   "section": "Account Settings"
                 },
                 {
@@ -648,6 +719,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Adjustment Liability Account",
                   "type": "string",
                   "required": false,
+                  "description": "The name of the account where the Account Type is \"Adjustment Liability\".",
                   "maxLength": 100,
                   "section": "Account Settings"
                 },
@@ -656,6 +728,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Adjustment Liability Account Type",
                   "type": "string",
                   "required": false,
+                  "description": "The account type associated with `adjustment_liability_account`. Maps to the `adjustmentLiabilityAccountType` field in the accounting object.",
                   "section": "Account Settings"
                 },
                 {
@@ -663,6 +736,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Adjustment Revenue Account",
                   "type": "string",
                   "required": false,
+                  "description": "The name of the account where the Account Type is \"Adjustment Revenue\".",
                   "maxLength": 100,
                   "section": "Account Settings"
                 },
@@ -671,6 +745,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Adjustment Revenue Account Type",
                   "type": "string",
                   "required": false,
+                  "description": "The account type associated with `adjustment_revenue_account`. Maps to the `adjustmentRevenueAccountType` field in the accounting object.",
                   "section": "Account Settings"
                 },
                 {
@@ -678,6 +753,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Contract Asset Account",
                   "type": "string",
                   "required": false,
+                  "description": "The name of the account where the Account Type is \"Contract Asset\".",
                   "maxLength": 100,
                   "section": "Account Settings"
                 },
@@ -686,6 +762,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Contract Asset Account Type",
                   "type": "string",
                   "required": false,
+                  "description": "The account type associated with `contract_asset_account`. Maps to the `contractAssetAccountType` field in the accounting object.",
                   "section": "Account Settings"
                 },
                 {
@@ -693,6 +770,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Contract Liability Account",
                   "type": "string",
                   "required": false,
+                  "description": "The name of the account where the Account Type is \"Contract Liability\".",
                   "maxLength": 100,
                   "section": "Account Settings"
                 },
@@ -701,6 +779,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Contract Liability Account Type",
                   "type": "string",
                   "required": false,
+                  "description": "The account type associated with `contract_liability_account`. Maps to the `contractLiabilityAccountType` field in the accounting object.",
                   "section": "Account Settings"
                 },
                 {
@@ -708,6 +787,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Contract Recognized Revenue Account",
                   "type": "string",
                   "required": false,
+                  "description": "Recognized revenue account used specifically for contract-based recognition flows. Must match an existing account in the tenant's chart of accounts.",
                   "section": "Account Settings"
                 },
                 {
@@ -715,6 +795,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Contract Recognized Revenue Account Type",
                   "type": "string",
                   "required": false,
+                  "description": "The account type associated with `contract_recognized_revenue_account`. Maps to the `contractRecognizedRevenueAccountType` field in the accounting object.",
                   "section": "Account Settings"
                 },
                 {
@@ -722,6 +803,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Unbilled Receivables Account",
                   "type": "string",
                   "required": false,
+                  "description": "The name of the account where the Account Type is \"Unbilled Receivables\".",
                   "maxLength": 100,
                   "section": "Account Settings"
                 },
@@ -730,6 +812,7 @@ export const createproductEndpoint: ApiEndpoint = {
                   "label": "Unbilled Receivables Account Type",
                   "type": "string",
                   "required": false,
+                  "description": "The account type associated with `unbilled_receivables_account`. Maps to the `unbilledReceivablesAccountType` field in the accounting object.",
                   "section": "Account Settings"
                 }
               ],

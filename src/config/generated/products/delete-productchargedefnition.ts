@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const delete_productchargedefnitionEndpoint: ApiEndpoint = {
   "id": "delete-productchargedefnition",
   "name": "Delete a product charge definition",
-  "description": "",
+  "description": "Deletes a product charge definition.",
   "method": "DELETE",
   "path": "/v1/product-charge-definitions/{product-charge-definition-key}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const delete_productchargedefnitionEndpoint: ApiEndpoint = {
       "name": "product-charge-definition-key",
       "label": "Product Charge Definition Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique number or ID of the product charge definition to be deleted."
     }
   ],
   "bodyFields": [],

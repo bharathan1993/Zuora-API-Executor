@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const create_bulkpdftozipgenerationEndpoint: ApiEndpoint = {
   "id": "create-bulkpdftozipgeneration",
   "name": "Export bulk PDF files",
-  "description": "",
+  "description": "The background job that compresses large number of PDF(s) into ZIP files. For answers to frequently asked questions regarding exporting bulk PDF files, see Export Bulk PDF Files FAQs.",
   "method": "POST",
   "path": "/v1/operations/bulk-pdf",
   "baseUrl": "https://rest.test.zuora.com",
@@ -17,6 +17,7 @@ export const create_bulkpdftozipgenerationEndpoint: ApiEndpoint = {
       "label": "Documents",
       "type": "array",
       "required": true,
+      "description": "An array that contains a collection of objects where each object contains billing document type and their IDs.",
       "itemType": "object",
       "itemFields": [
         {
@@ -24,6 +25,7 @@ export const create_bulkpdftozipgenerationEndpoint: ApiEndpoint = {
           "label": "Doc Type",
           "type": "string",
           "required": false,
+          "description": "The type of billing document.",
           "enum": [
             "Invoice",
             "CreditMemo",
@@ -36,6 +38,7 @@ export const create_bulkpdftozipgenerationEndpoint: ApiEndpoint = {
           "label": "Object Ids",
           "type": "array",
           "required": false,
+          "description": "The collection of billing document IDs.",
           "itemType": "string",
           "section": "Additional Fields"
         }
@@ -47,6 +50,7 @@ export const create_bulkpdftozipgenerationEndpoint: ApiEndpoint = {
       "label": "File Name",
       "type": "string",
       "required": true,
+      "description": "The prefix part of output file name(s). The response will include multiple file URLs. The number of zip files generated corresponds to the number of invoice IDs. Each zip file contains up to 1000 document IDs. Eg: if fileName is \"all-invoices-posted-jan-2024\" then fileURL(s) will start with the file name followed by an underscore and a number. For instance, all-invoices-posted-jan-2024_1.zip, all-invoices-posted-jan-2024_2.zip, and so on.",
       "maxLength": 32,
       "section": "Account Settings"
     },
@@ -55,6 +59,7 @@ export const create_bulkpdftozipgenerationEndpoint: ApiEndpoint = {
       "label": "Name",
       "type": "string",
       "required": false,
+      "description": "The name of the job.",
       "maxLength": 32,
       "section": "Account Settings"
     },
@@ -63,6 +68,7 @@ export const create_bulkpdftozipgenerationEndpoint: ApiEndpoint = {
       "label": "Index File Format",
       "type": "string",
       "required": true,
+      "description": "The format of the index file. It contains the metadata about the files and their contents.",
       "enum": [
         "JSON",
         "CSV"
@@ -74,6 +80,7 @@ export const create_bulkpdftozipgenerationEndpoint: ApiEndpoint = {
       "label": "Generate Missing P D F",
       "type": "boolean",
       "required": false,
+      "description": "This flag controls the behavior of whether to generate PDF(s) for billing documents that do not already have one. - setting it to true indicates service would go through the provided document ID list, find the billing documents that do not have a generated PDF, generate them all at once, and then proceed to the zipping process. - setting it to false indicates service would go through the provided document ID list, find the billing documents that do not have a generated PDF, mark them as Invalid, and skip them from the zipping process. IDs marked as invalid will be included in the response. The default value is false.",
       "section": "Additional Fields"
     },
     {
@@ -81,6 +88,7 @@ export const create_bulkpdftozipgenerationEndpoint: ApiEndpoint = {
       "label": "Ignore Archived Files",
       "type": "boolean",
       "required": false,
+      "description": "Ignores archived PDF files during export without causing the entire job request to fail when enabled.",
       "section": "Additional Fields"
     },
     {
@@ -88,6 +96,7 @@ export const create_bulkpdftozipgenerationEndpoint: ApiEndpoint = {
       "label": "Persist Index File",
       "type": "boolean",
       "required": false,
+      "description": "Controls the generation of the index file, allowing you to efficiently handle high volumes of requests. By default, this field is set to `true`. - When set to `true`, the index file is generated and included in the zip file. - When set to `false`, the index file is not generated and consequently not included in the zip file.",
       "section": "Additional Fields"
     }
   ],

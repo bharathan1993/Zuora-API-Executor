@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_accountsummaryEndpoint: ApiEndpoint = {
   "id": "get-accountsummary",
   "name": "Retrieve an account summary",
-  "description": "",
+  "description": "Retrieves detailed information about the specified customer account.",
   "method": "GET",
   "path": "/v1/accounts/{account-key}/summary",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_accountsummaryEndpoint: ApiEndpoint = {
       "name": "account-key",
       "label": "Account Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Account number or account ID."
     }
   ],
   "queryParams": [
@@ -24,7 +25,8 @@ export const get_accountsummaryEndpoint: ApiEndpoint = {
       "name": "excludeUsage",
       "label": "Exclude Usage",
       "type": "boolean",
-      "required": false
+      "required": false,
+      "description": "Indicate whether to exclude usage information in the response. The default value is `false`."
     }
   ],
   "bodyFields": [],

@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const post_createcataloggroupEndpoint: ApiEndpoint = {
   "id": "post-createcataloggroup",
   "name": "Create a catalog group",
-  "description": "",
+  "description": "**Note**: This operation is in the Early Adopter phase. We are actively soliciting feedback from a small set of early adopters before releasing it as generally available. If you want to join this early adopter program, submit a request at [Zuora Global Support](http://support.zuora.com/).",
   "method": "POST",
   "path": "/v1/catalog-groups",
   "baseUrl": "https://rest.test.zuora.com",
@@ -17,6 +17,7 @@ export const post_createcataloggroupEndpoint: ApiEndpoint = {
       "label": "Name",
       "type": "string",
       "required": false,
+      "description": "The unique name of the catalog group.",
       "section": "Account Settings"
     },
     {
@@ -24,6 +25,7 @@ export const post_createcataloggroupEndpoint: ApiEndpoint = {
       "label": "Product Rate Plans",
       "type": "array",
       "required": false,
+      "description": "The list of product rate plans to be added to the catalog group.",
       "itemType": "object",
       "itemFields": [
         {
@@ -31,6 +33,7 @@ export const post_createcataloggroupEndpoint: ApiEndpoint = {
           "label": "Grade",
           "type": "number",
           "required": false,
+          "description": "The grade that is assigned for the product rate plan. The value of this field must be a positive integer. The greater the value, the higher the grade. A product rate plan to be added to a Grading catalog group must have one grade. You can specify a grade for a product rate plan in this request or update the product rate plan individually.",
           "section": "Additional Fields"
         },
         {
@@ -38,6 +41,7 @@ export const post_createcataloggroupEndpoint: ApiEndpoint = {
           "label": "Id",
           "type": "string",
           "required": false,
+          "description": "The unique ID of the product rate plan.",
           "section": "Additional Fields"
         }
       ],
@@ -48,6 +52,7 @@ export const post_createcataloggroupEndpoint: ApiEndpoint = {
       "label": "Type",
       "type": "string",
       "required": false,
+      "description": "The type of the catalog group.",
       "defaultValue": "Grading",
       "enum": [
         "Grading",

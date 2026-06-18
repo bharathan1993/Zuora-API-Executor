@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const delete_paymentmethodsEndpoint: ApiEndpoint = {
   "id": "delete-paymentmethods",
   "name": "Delete a payment method",
-  "description": "",
+  "description": "Deletes a credit card payment method.",
   "method": "DELETE",
   "path": "/v1/payment-methods/{payment-method-id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const delete_paymentmethodsEndpoint: ApiEndpoint = {
       "name": "payment-method-id",
       "label": "Payment Method Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Unique identifier of a payment method. (Since this ID is unique, and linked to a customer account in the system, no customer identifier is needed.)"
     }
   ],
   "bodyFields": [],

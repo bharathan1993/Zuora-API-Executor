@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const delete_contactEndpoint: ApiEndpoint = {
   "id": "delete-contact",
   "name": "Delete a contact",
-  "description": "",
+  "description": "Deletes a contact.",
   "method": "DELETE",
   "path": "/v1/contacts/{contactId}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const delete_contactEndpoint: ApiEndpoint = {
       "name": "contactId",
       "label": "Contact Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The ID of the contact that you want to delete."
     }
   ],
   "bodyFields": [],

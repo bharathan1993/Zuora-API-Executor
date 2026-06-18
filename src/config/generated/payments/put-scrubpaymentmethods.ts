@@ -16,7 +16,8 @@ export const put_scrubpaymentmethodsEndpoint: ApiEndpoint = {
       "name": "payment-method-id",
       "label": "Payment Method Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The ID of the payment method where you want to scrub the sensitive data."
     }
   ],
   "bodyFields": [],

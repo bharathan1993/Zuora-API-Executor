@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const post_emailinvoiceEndpoint: ApiEndpoint = {
   "id": "post-emailinvoice",
   "name": "Email an invoice",
-  "description": "",
+  "description": "Sends a posted invoice to the specified email addresses manually.",
   "method": "POST",
   "path": "/v1/invoices/{invoiceKey}/emails",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const post_emailinvoiceEndpoint: ApiEndpoint = {
       "name": "invoiceKey",
       "label": "Invoice Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The ID or number of the invoice. For example, 2c92c8955bd63cc1015bd7c151af02ab or INV-0000001."
     }
   ],
   "bodyFields": [
@@ -25,6 +26,7 @@ export const post_emailinvoiceEndpoint: ApiEndpoint = {
       "label": "Email Addresses",
       "type": "string",
       "required": false,
+      "description": "The valid email addresses you want to email an invoice to. Use commas to separate email addresses. **Note:** This field is only applicable if you set the `useEmailTemplateSetting` field to `false`.",
       "section": "Communication Settings"
     },
     {
@@ -32,6 +34,7 @@ export const post_emailinvoiceEndpoint: ApiEndpoint = {
       "label": "Include Additional Email Addresses",
       "type": "boolean",
       "required": false,
+      "description": "Whether to send an invoice to the additional email addresses of the invoice account. You can set the additional email addresses in the **Additional Email Addresses** field on the account detail page from the Zuora UI. See [Create a Customer Account](https://knowledgecenter.zuora.com/BC_Subscription_Management/Customer_Accounts/B_Create_a_Customer_Account#section_2) for more information.",
       "defaultValue": false,
       "enum": [
         "true",
@@ -44,6 +47,7 @@ export const post_emailinvoiceEndpoint: ApiEndpoint = {
       "label": "Use Email Template Setting",
       "type": "boolean",
       "required": false,
+      "description": "Indicates whether to email an invoice based on the email template setting. If you set this field to `true`, the invoice is sent to the email addresses specified in the **To Email** field of the email template. The email template is the one you set in the **Delivery Options** panel of the **Edit notification** dialog from the Zuora UI. See [Edit Email Templates](https://knowledgecenter.zuora.com/CF_Users_and_Administrators/Notifications/Create_Email_Templates) for more information about how to edit the **To Email** field in the email template.",
       "defaultValue": false,
       "enum": [
         "true",

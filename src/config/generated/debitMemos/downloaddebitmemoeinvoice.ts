@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const downloaddebitmemoeinvoiceEndpoint: ApiEndpoint = {
   "id": "downloaddebitmemoeinvoice",
   "name": "Download a debit memo in the specified file format",
-  "description": "",
+  "description": "Downloads the debit memo based on the specified file format.",
   "method": "GET",
   "path": "/v1/debit-memos/{debitMemoKey}/e-invoice/download",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const downloaddebitmemoeinvoiceEndpoint: ApiEndpoint = {
       "name": "debitMemoKey",
       "label": "Debit Memo Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique number or ID of Debit Memo."
     }
   ],
   "queryParams": [
@@ -25,6 +26,7 @@ export const downloaddebitmemoeinvoiceEndpoint: ApiEndpoint = {
       "label": "File Format",
       "type": "string",
       "required": false,
+      "description": "This parameter is exclusively accessible for documents submitted via the Avalara E-Invoice integration. When an invoice is processed through Sovos or PEPPOL, this parameter cannot be specified, and the document can only be downloaded in its default file format. Following mapping will be used for user representation of file formats: - XML: `application/xml` - PDF: `application/pdf` - ZIP: `application/zip` - OASIS_Universal_Business_Language_XML: `application/vnd.oasis.ubl+xml`",
       "enum": [
         "XML",
         "PDF",

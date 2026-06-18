@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_massupdaterEndpoint: ApiEndpoint = {
   "id": "get-massupdater",
   "name": "List all results of a mass action",
-  "description": "",
+  "description": "Describes how to get information about the result of a mass action through the REST API.",
   "method": "GET",
   "path": "/v1/bulk/{bulk-key}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_massupdaterEndpoint: ApiEndpoint = {
       "name": "bulk-key",
       "label": "Bulk Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "String of 32 characters that identifies a mass action. You get the bulk-key after performing a mass action through the REST API."
     }
   ],
   "bodyFields": [],

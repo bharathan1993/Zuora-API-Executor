@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_retrievecataloggroupEndpoint: ApiEndpoint = {
   "id": "get-retrievecataloggroup",
   "name": "Retrieve a catalog group",
-  "description": "",
+  "description": "**Note**: This operation is in the Early Adopter phase. We are actively soliciting feedback from a small set of early adopters before releasing it as generally available. If you want to join this early adopter program, submit a request at [Zuora Global Support](http://support.zuora.com/).",
   "method": "GET",
   "path": "/v1/catalog-groups/{catalog-group-key}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_retrievecataloggroupEndpoint: ApiEndpoint = {
       "name": "catalog-group-key",
       "label": "Catalog Group Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique number or ID of the catalog group to be retrieved."
     }
   ],
   "bodyFields": [],

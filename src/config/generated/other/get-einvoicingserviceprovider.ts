@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_einvoicingserviceproviderEndpoint: ApiEndpoint = {
   "id": "get-einvoicingserviceprovider",
   "name": "Retrieve an e-invoicing service provider",
-  "description": "",
+  "description": "Retrieves information about an e-invoicing service privider.",
   "method": "GET",
   "path": "/v1/einvoice/service-providers/{key}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_einvoicingserviceproviderEndpoint: ApiEndpoint = {
       "name": "key",
       "label": "Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique ID or number of the e-invoicing service provider that you want to retrieve information about."
     }
   ],
   "bodyFields": [],

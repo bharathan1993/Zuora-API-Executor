@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_ordercancelEndpoint: ApiEndpoint = {
   "id": "put-ordercancel",
   "name": "Cancel an order",
-  "description": "",
+  "description": "**Note:** This operation is only available if you have the [Orders](https://knowledgecenter.zuora.com/BC_Subscription_Management/Orders/AA_Overview_of_Orders#Orders) feature enabled. If you are an existing Zuora Subscribe and Amend customer, we recommend you enable Orders Harmonization to access the Orders feature. With Orders, you can access both existing functions for subscription and billing management and the new features on Zuora Billing.",
   "method": "PUT",
   "path": "/v1/orders/{orderNumber}/cancel",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_ordercancelEndpoint: ApiEndpoint = {
       "name": "orderNumber",
       "label": "Order Number",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The order number of the draft order you wish to cancel."
     }
   ],
   "bodyFields": [
@@ -25,6 +26,7 @@ export const put_ordercancelEndpoint: ApiEndpoint = {
       "label": "Cancel Reason",
       "type": "string",
       "required": false,
+      "description": "The reason for cancelling the order.",
       "section": "Additional Fields"
     }
   ],

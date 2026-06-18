@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const querycommerceproductrateplansEndpoint: ApiEndpoint = {
   "id": "querycommerceproductrateplans",
   "name": "Query product rate plan details",
-  "description": "",
+  "description": "Retrieve details of a **single** product rate plan (PRP) from the Product Catalog. You can expand associated product rate plan charges for each plan.",
   "method": "POST",
   "path": "/commerce/plans/query",
   "baseUrl": "https://rest.test.zuora.com",
@@ -17,6 +17,7 @@ export const querycommerceproductrateplansEndpoint: ApiEndpoint = {
       "label": "Product Rate Plan Key",
       "type": "string",
       "required": false,
+      "description": "Unique identifier (key) of the Product Rate Plan (PRP) to query. This can be the PRP ID or the PRP number configured in your system.",
       "section": "Additional Fields"
     },
     {
@@ -24,12 +25,14 @@ export const querycommerceproductrateplansEndpoint: ApiEndpoint = {
       "label": "Expand",
       "type": "object",
       "required": false,
+      "description": "Optional flags to expand related resources in the response.",
       "fields": [
         {
           "name": "product_rate_plan_charges",
           "label": "Product Rate Plan Charges",
           "type": "boolean",
           "required": false,
+          "description": "Whether to include Product Rate Plan Charges (PRPCs) in the response.",
           "section": "Additional Fields"
         }
       ],
@@ -40,6 +43,7 @@ export const querycommerceproductrateplansEndpoint: ApiEndpoint = {
       "label": "Attributes",
       "type": "array",
       "required": false,
+      "description": "Optional attribute values to use when evaluating Dynamic Pricing for the PRP or its charges. All required attributes must be supplied if the PRP or PRPC is configured to require them.",
       "itemType": "object",
       "itemFields": [
         {
@@ -47,6 +51,7 @@ export const querycommerceproductrateplansEndpoint: ApiEndpoint = {
           "label": "Name",
           "type": "string",
           "required": true,
+          "description": "Attribute name, for example, Age, Region, EffectiveDate, AccountContext.",
           "section": "Account Settings"
         },
         {
@@ -54,6 +59,7 @@ export const querycommerceproductrateplansEndpoint: ApiEndpoint = {
           "label": "Value",
           "type": "string",
           "required": false,
+          "description": "Attribute value used for price evaluation. The value can be a string, number, or boolean, depending on the attribute type. - Enclose the value in quotation marks (\"\") if it is a **string**, for example, \"Liquidity Provider\", \"Y\", \"External\". - Do **not** use quotation marks for **numeric** or **boolean** values, for example, 98, 5, true, false.",
           "section": "Additional Fields"
         }
       ],
@@ -64,6 +70,7 @@ export const querycommerceproductrateplansEndpoint: ApiEndpoint = {
       "label": "Evaluation Level",
       "type": "string",
       "required": false,
+      "description": "Controls how pricing is evaluated for the charge. Supported values: - `LIST_PRICE`: evaluate pricing at the list-price level. - `EXTENDED_PRICE`: evaluate pricing at the extended-price level. If not specified, the default is `LIST_PRICE`.",
       "enum": [
         "LIST_PRICE",
         "EXTENDED_PRICE"

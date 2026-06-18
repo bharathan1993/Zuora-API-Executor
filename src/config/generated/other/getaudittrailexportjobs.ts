@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const getaudittrailexportjobsEndpoint: ApiEndpoint = {
   "id": "getaudittrailexportjobs",
   "name": "Retrieve the list of export jobs for a meter",
-  "description": "",
+  "description": "Retrieves the list of previously initiated export jobs for a specific meter in Zuora Mediation.",
   "method": "GET",
   "path": "/meters/{meterId}/auditTrail/export",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const getaudittrailexportjobsEndpoint: ApiEndpoint = {
       "name": "meterId",
       "label": "Meter Id",
       "type": "number",
-      "required": true
+      "required": true,
+      "description": "ID of the meter."
     }
   ],
   "queryParams": [
@@ -25,6 +26,7 @@ export const getaudittrailexportjobsEndpoint: ApiEndpoint = {
       "label": "Export Type",
       "type": "string",
       "required": false,
+      "description": "Type of the export. `SAMPLE` indicates an export of success records, `ERROR` indicates an export of error records.",
       "enum": [
         "SAMPLE",
         "ERROR"
@@ -35,6 +37,7 @@ export const getaudittrailexportjobsEndpoint: ApiEndpoint = {
       "label": "Session Ids",
       "type": "array",
       "required": false,
+      "description": "The session IDs of the meter run. For example, `R-000001, R-000002`.",
       "itemType": "string"
     },
     {
@@ -42,6 +45,7 @@ export const getaudittrailexportjobsEndpoint: ApiEndpoint = {
       "label": "Page Size",
       "type": "number",
       "required": false,
+      "description": "Page size for pagination.",
       "defaultValue": 30
     },
     {
@@ -49,6 +53,7 @@ export const getaudittrailexportjobsEndpoint: ApiEndpoint = {
       "label": "Page",
       "type": "number",
       "required": false,
+      "description": "The page number.",
       "defaultValue": 1
     }
   ],

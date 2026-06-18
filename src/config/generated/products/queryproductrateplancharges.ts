@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const queryproductrateplanchargesEndpoint: ApiEndpoint = {
   "id": "queryproductrateplancharges",
   "name": "List product rate plan charges",
-  "description": "",
+  "description": "Lists Product Rate Plan Charge objects. You can use the query parameters to filter, expand, and sort the returned results.",
   "method": "GET",
   "path": "/object-query/product-rate-plan-charges",
   "baseUrl": "https://rest.test.zuora.com",
@@ -17,19 +17,22 @@ export const queryproductrateplanchargesEndpoint: ApiEndpoint = {
       "label": "Page Size",
       "type": "number",
       "required": false,
+      "description": "The maximum number of results to return in a single page. If the specified `pageSize` is less than 1 or greater than 99, Zuora will return a 400 error.",
       "defaultValue": 10
     },
     {
       "name": "cursor",
       "label": "Cursor",
       "type": "string",
-      "required": false
+      "required": false,
+      "description": "A cursor for use in pagination. A cursor defines the starting place in a list. For instance, if you make a list request and receive 100 objects, ending with `next_page=W3sib3JkZXJ=`, your subsequent call can include `cursor=W3sib3JkZXJ=` in order to fetch the next page of the list."
     },
     {
       "name": "sort[]",
       "label": "Sort[]",
       "type": "array",
       "required": false,
+      "description": "A case-insensitive query parameter that specifies the sort order of the list, which can be either ascending (e.g. `accountnumber.ASC`) or descending (e.g. `accountnumber.DESC`). You cannot sort on properties in arrays. If the array-type properties are specified for the `sort[]` parameter, they are ignored. Supported sortable fields: - id - updateddate - billcycleday - chargemodel - productrateplanchargenumber - productrateplanid",
       "itemType": "string"
     },
     {
@@ -37,6 +40,7 @@ export const queryproductrateplanchargesEndpoint: ApiEndpoint = {
       "label": "Expand[]",
       "type": "array",
       "required": false,
+      "description": "Allows you to expand responses by including related object information in a single call.",
       "itemType": "string",
       "itemEnum": [
         "productrateplan",
@@ -48,6 +52,7 @@ export const queryproductrateplanchargesEndpoint: ApiEndpoint = {
       "label": "Filter[]",
       "type": "array",
       "required": false,
+      "description": "A case-insensitive filter on the list. Supported filterable fields: - id - updateddate - billcycleday - chargemodel - chargetype - isprepaid - productrateplanchargenumber - productrateplanid - {indexedcustomfield}: Use the format like `customField__c` to filter on custom fields.",
       "itemType": "string"
     },
     {
@@ -55,6 +60,7 @@ export const queryproductrateplanchargesEndpoint: ApiEndpoint = {
       "label": "Fields[]",
       "type": "array",
       "required": false,
+      "description": "A case-insensitive query parameter that allows you to specify which fields are returned in the response.",
       "itemType": "string"
     },
     {
@@ -62,6 +68,7 @@ export const queryproductrateplanchargesEndpoint: ApiEndpoint = {
       "label": "Include Null Fields",
       "type": "boolean",
       "required": false,
+      "description": "Specifies whether to include fields with the `null` value in the response. - If set to `true`, all fields will be returned in the response, including those with the `null` value. - If set to `false`, only fields with non-null values will be returned.",
       "defaultValue": false
     }
   ],

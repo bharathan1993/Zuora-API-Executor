@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_runtrialbalanceEndpoint: ApiEndpoint = {
   "id": "put-runtrialbalance",
   "name": "Run trial balance",
-  "description": "",
+  "description": "Runs the trial balance for an accounting period.",
   "method": "PUT",
   "path": "/v1/accounting-periods/{ap-id}/run-trial-balance",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_runtrialbalanceEndpoint: ApiEndpoint = {
       "name": "ap-id",
       "label": "Ap Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "ID of the accounting period for which you want to run a trial balance."
     }
   ],
   "bodyFields": [],

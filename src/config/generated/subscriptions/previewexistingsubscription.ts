@@ -16,7 +16,8 @@ export const previewexistingsubscriptionEndpoint: ApiEndpoint = {
       "name": "subscription-key",
       "label": "Subscription Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Subscription number or ID"
     }
   ],
   "bodyFields": [
@@ -25,12 +26,14 @@ export const previewexistingsubscriptionEndpoint: ApiEndpoint = {
       "label": "Preview Start Date",
       "type": "object",
       "required": false,
+      "description": "The start date of the preview.",
       "fields": [
         {
           "name": "previewStartDatePolicy",
           "label": "Preview Start Date Policy",
           "type": "string",
           "required": false,
+          "description": "The options on how the preview start date is calculated. - If you set this field to `startOfTerm`, the preview start date is the start date of the subscription term. - If you set this field to `today`, the preview start date is today. - If you set this field to `specificDate`, you must specify a specific date in the `specificDate` field. The date must be in the format `yyyy-mm-dd`.",
           "enum": [
             "startOfTerm",
             "today",
@@ -43,6 +46,7 @@ export const previewexistingsubscriptionEndpoint: ApiEndpoint = {
           "label": "Specific Date",
           "type": "string",
           "required": false,
+          "description": "The specific date for the preview start date. Required if `previewStartDatePolicy` is `specificDate`.",
           "section": "Additional Fields"
         }
       ],
@@ -53,12 +57,14 @@ export const previewexistingsubscriptionEndpoint: ApiEndpoint = {
       "label": "Preview Through Date",
       "type": "object",
       "required": false,
+      "description": "The preview through date.",
       "fields": [
         {
           "name": "previewThruDatePolicy",
           "label": "Preview Thru Date Policy",
           "type": "string",
           "required": false,
+          "description": "The options on how the preview through date is calculated. - If you set this field to `nextBillingPeriods`, you must specify the number of billing periods to preview in the `nextBillingPeriods` field. - If you set this field to `endOfTerm`, the preview through date is the end date of the subscription term. - If you set this field to `specificDate`, you must specify a specific date in the `specificDate` field. The date must be in the format `yyyy-mm-dd`.",
           "enum": [
             "nextBillingPeriods",
             "endOfTerm",
@@ -71,6 +77,7 @@ export const previewexistingsubscriptionEndpoint: ApiEndpoint = {
           "label": "Next Billing Periods",
           "type": "number",
           "required": false,
+          "description": "The number of billing periods to preview. Required if `previewThruDatePolicy` is `nextBillingPeriods`.",
           "section": "Invoice & Document Settings"
         },
         {
@@ -78,6 +85,7 @@ export const previewexistingsubscriptionEndpoint: ApiEndpoint = {
           "label": "Specific Date",
           "type": "string",
           "required": false,
+          "description": "The specific date for the preview start date. Required if `previewThruDatePolicy` is `specificDate`.",
           "section": "Additional Fields"
         }
       ],
@@ -88,6 +96,7 @@ export const previewexistingsubscriptionEndpoint: ApiEndpoint = {
       "label": "Quantity For Usage Charges",
       "type": "array",
       "required": false,
+      "description": "Container for usage charges.",
       "itemType": "object",
       "itemFields": [
         {
@@ -95,6 +104,7 @@ export const previewexistingsubscriptionEndpoint: ApiEndpoint = {
           "label": "Charge Id",
           "type": "string",
           "required": false,
+          "description": "The ID of the subscription charge.",
           "section": "Additional Fields"
         },
         {
@@ -102,6 +112,7 @@ export const previewexistingsubscriptionEndpoint: ApiEndpoint = {
           "label": "Quantity",
           "type": "number",
           "required": false,
+          "description": "The quantity of the subscription charge.",
           "section": "Additional Fields"
         }
       ],
@@ -112,6 +123,7 @@ export const previewexistingsubscriptionEndpoint: ApiEndpoint = {
       "label": "Skip Tax",
       "type": "boolean",
       "required": false,
+      "description": "If set to `true`, the system will bypass the tax calculation during subscription preview.",
       "section": "Tax Settings"
     }
   ],

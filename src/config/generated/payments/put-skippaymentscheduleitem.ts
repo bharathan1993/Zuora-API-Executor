@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_skippaymentscheduleitemEndpoint: ApiEndpoint = {
   "id": "put-skippaymentscheduleitem",
   "name": "Skip a payment schedule item",
-  "description": "",
+  "description": "Skips a payment schedule item by ID. The skipped payment schedule item will turn to the `canceled` status, and a new item will be scheduled on the next recurring date after the last existing scheduled date.",
   "method": "PUT",
   "path": "/v1/payment-schedule-items/{item-id}/skip",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_skippaymentscheduleitemEndpoint: ApiEndpoint = {
       "name": "item-id",
       "label": "Item Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique ID of a payment schedule item."
     }
   ],
   "bodyFields": [],

@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const getrunstatusofspecificmeterversionEndpoint: ApiEndpoint = {
   "id": "getrunstatusofspecificmeterversion",
   "name": "Retrieve the run status of a specific meter version",
-  "description": "",
+  "description": "Retrieves the current run status of a specific meter version in Zuora Mediation. It returns an integer code indicating the status, such as `RUNNING`, `COMPLETED`, or `FAILED`, which helps monitor the meter's execution state.",
   "method": "GET",
   "path": "/meters/{meterId}/{version}/runStatus",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,13 +16,15 @@ export const getrunstatusofspecificmeterversionEndpoint: ApiEndpoint = {
       "name": "meterId",
       "label": "Meter Id",
       "type": "number",
-      "required": true
+      "required": true,
+      "description": "ID of the meter."
     },
     {
       "name": "version",
       "label": "Version",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Version of the meter."
     }
   ],
   "bodyFields": [],

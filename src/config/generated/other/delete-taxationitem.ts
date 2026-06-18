@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const delete_taxationitemEndpoint: ApiEndpoint = {
   "id": "delete-taxationitem",
   "name": "Delete a taxation item",
-  "description": "",
+  "description": "Deletes a specific taxation item by ID.",
   "method": "DELETE",
   "path": "/v1/taxation-items/{id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const delete_taxationitemEndpoint: ApiEndpoint = {
       "name": "id",
       "label": "Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique ID of a taxation item."
     }
   ],
   "bodyFields": [],

@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const object_getpaymentmethodsnapshotEndpoint: ApiEndpoint = {
   "id": "object-getpaymentmethodsnapshot",
   "name": "CRUD: Retrieve a payment method snapshot",
-  "description": "",
+  "description": "This REST API reference describes how to retrieve a Payment Method Snapshot.",
   "method": "GET",
   "path": "/v1/object/payment-method-snapshot/{id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const object_getpaymentmethodsnapshotEndpoint: ApiEndpoint = {
       "name": "id",
       "label": "Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Object id"
     }
   ],
   "queryParams": [
@@ -24,7 +25,8 @@ export const object_getpaymentmethodsnapshotEndpoint: ApiEndpoint = {
       "name": "fields",
       "label": "Fields",
       "type": "string",
-      "required": false
+      "required": false,
+      "description": "Object fields to return"
     }
   ],
   "bodyFields": [],

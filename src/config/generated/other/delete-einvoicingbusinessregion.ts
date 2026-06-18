@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const delete_einvoicingbusinessregionEndpoint: ApiEndpoint = {
   "id": "delete-einvoicingbusinessregion",
   "name": "Delete an e-invoicing business region",
-  "description": "",
+  "description": "Deletes an e-invoicing business region by key. The key can be the unique ID or number of an e-invoicing business region.",
   "method": "DELETE",
   "path": "/v1/einvoice/business-regions/{key}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const delete_einvoicingbusinessregionEndpoint: ApiEndpoint = {
       "name": "key",
       "label": "Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unqiue ID or number of the e-invoicing business region that you want to delete."
     }
   ],
   "bodyFields": [],

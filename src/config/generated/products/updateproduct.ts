@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const updateproductEndpoint: ApiEndpoint = {
   "id": "updateproduct",
   "name": "Update a product",
-  "description": "",
+  "description": "Updates an existing product in the Product Catalog. Use this API to update core product fields",
   "method": "PUT",
   "path": "/commerce/products",
   "baseUrl": "https://rest.test.zuora.com",
@@ -17,6 +17,7 @@ export const updateproductEndpoint: ApiEndpoint = {
       "label": "Id",
       "type": "string",
       "required": true,
+      "description": "Unique identifier of the product to update.",
       "section": "Additional Fields"
     },
     {
@@ -24,6 +25,7 @@ export const updateproductEndpoint: ApiEndpoint = {
       "label": "Category",
       "type": "string",
       "required": false,
+      "description": "Product category label, for example, base, add-on.",
       "section": "Additional Fields"
     },
     {
@@ -31,6 +33,7 @@ export const updateproductEndpoint: ApiEndpoint = {
       "label": "Custom Fields",
       "type": "object",
       "required": false,
+      "description": "Custom fields to set on the product. Keys must match configured custom field API names. Values may be strings, numbers, booleans, or arrays depending on field definition.",
       "section": "Additional Fields"
     },
     {
@@ -38,6 +41,7 @@ export const updateproductEndpoint: ApiEndpoint = {
       "label": "Start Date",
       "type": "date",
       "required": false,
+      "description": "Product effective start date (UTC, YYYY-MM-DD).",
       "section": "Additional Fields"
     },
     {
@@ -45,6 +49,7 @@ export const updateproductEndpoint: ApiEndpoint = {
       "label": "End Date",
       "type": "date",
       "required": false,
+      "description": "Product effective end date (UTC, YYYY-MM-DD).",
       "section": "Additional Fields"
     },
     {
@@ -52,6 +57,7 @@ export const updateproductEndpoint: ApiEndpoint = {
       "label": "Name",
       "type": "string",
       "required": false,
+      "description": "Product name.",
       "section": "Account Settings"
     }
   ],

@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const deleteorderasynchronouslyEndpoint: ApiEndpoint = {
   "id": "deleteorderasynchronously",
   "name": "Delete an order asynchronously",
-  "description": "",
+  "description": "**Note:** This operation is only available if you have the <a href= \"https://knowledgecenter.zuora.com/Zuora_Billing/Manage_subscription_transactions/Orders/AA_Overview_of_Orders/A_Overview_of_Orders\"",
   "method": "DELETE",
   "path": "/v1/async/orders/{orderNumber}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const deleteorderasynchronouslyEndpoint: ApiEndpoint = {
       "name": "orderNumber",
       "label": "Order Number",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The number of the order to be deleted."
     }
   ],
   "bodyFields": [],

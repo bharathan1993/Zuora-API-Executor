@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_operationjobEndpoint: ApiEndpoint = {
   "id": "get-operationjob",
   "name": "Retrieve an operation job",
-  "description": "",
+  "description": "Retrieves information about a specific operation job.",
   "method": "GET",
   "path": "/v1/operations/jobs/{jobId}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_operationjobEndpoint: ApiEndpoint = {
       "name": "jobId",
       "label": "Job Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The ID of the operation job to retrieve information about. For example, 2c92c8955bd63cc1015bd7c151af02ab."
     }
   ],
   "bodyFields": [],

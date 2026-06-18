@@ -16,7 +16,8 @@ export const get_allsummaryjournalentriesEndpoint: ApiEndpoint = {
       "name": "jr-number",
       "label": "Jr Number",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Journal run number."
     }
   ],
   "queryParams": [
@@ -25,6 +26,7 @@ export const get_allsummaryjournalentriesEndpoint: ApiEndpoint = {
       "label": "Page",
       "type": "number",
       "required": false,
+      "description": "The index number of the page that you want to retrieve. This parameter is dependent on `pageSize`. You must set `pageSize` before specifying `page`. For example, if you set `pageSize` to `20` and `page` to `2`, the 21st to 40th records are returned in the response.",
       "defaultValue": 1
     },
     {
@@ -32,6 +34,7 @@ export const get_allsummaryjournalentriesEndpoint: ApiEndpoint = {
       "label": "Page Size",
       "type": "number",
       "required": false,
+      "description": "The number of records returned per page in the response.",
       "defaultValue": 8
     }
   ],

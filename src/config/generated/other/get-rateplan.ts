@@ -16,7 +16,8 @@ export const get_rateplanEndpoint: ApiEndpoint = {
       "name": "ratePlanId",
       "label": "Rate Plan Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The ID of the subscription rate plan to be retrieved."
     }
   ],
   "bodyFields": [],

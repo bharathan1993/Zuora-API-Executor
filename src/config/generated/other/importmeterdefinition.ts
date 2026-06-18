@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const importmeterdefinitionEndpoint: ApiEndpoint = {
   "id": "importmeterdefinition",
   "name": "Import a meter definition",
-  "description": "",
+  "description": "Import a meter definition into Zuora Mediation using a file exported from the Export Meter API.",
   "method": "POST",
   "path": "/meters/import",
   "baseUrl": "https://rest.test.zuora.com",

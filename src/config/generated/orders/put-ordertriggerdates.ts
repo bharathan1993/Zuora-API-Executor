@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_ordertriggerdatesEndpoint: ApiEndpoint = {
   "id": "put-ordertriggerdates",
   "name": "Update order action trigger dates",
-  "description": "",
+  "description": "**Note:** This operation is only available if you have the [Orders](https://knowledgecenter.zuora.com/BC_Subscription_Management/Orders/AA_Overview_of_Orders#Orders) feature enabled. If you are an existing Zuora Subscribe and Amend customer, we recommend you enable Orders Harmonization to access the Orders feature. With Orders, you can access both existing functions for subscription and billing management and the new features on Zuora Billing.",
   "method": "PUT",
   "path": "/v1/orders/{orderNumber}/triggerDates",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_ordertriggerdatesEndpoint: ApiEndpoint = {
       "name": "orderNumber",
       "label": "Order Number",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Order number of a pending order in which you are to update an order action's triggering dates."
     }
   ],
   "bodyFields": [
@@ -46,6 +47,7 @@ export const put_ordertriggerdatesEndpoint: ApiEndpoint = {
                   "label": "Charge Number",
                   "type": "string",
                   "required": false,
+                  "description": "Charge number of the charge which needs the triggering date to be provided. The charge's `triggerEvent` must have been set as `SpecificDate`.",
                   "section": "Account Settings"
                 },
                 {
@@ -53,6 +55,7 @@ export const put_ordertriggerdatesEndpoint: ApiEndpoint = {
                   "label": "Specific Trigger Date",
                   "type": "date",
                   "required": false,
+                  "description": "Date in YYYY-MM-DD format. The specific trigger date you are to set for the charge.",
                   "section": "Additional Fields"
                 }
               ],
@@ -63,6 +66,7 @@ export const put_ordertriggerdatesEndpoint: ApiEndpoint = {
               "label": "Sequence",
               "type": "number",
               "required": true,
+              "description": "Identifies which order action will have its triggering dates updated.",
               "section": "Additional Fields"
             },
             {
@@ -70,6 +74,7 @@ export const put_ordertriggerdatesEndpoint: ApiEndpoint = {
               "label": "Trigger Dates",
               "type": "array",
               "required": false,
+              "description": "Container for the service activation and customer acceptance dates of the order action.",
               "itemType": "object",
               "itemFields": [
                 {
@@ -77,6 +82,7 @@ export const put_ordertriggerdatesEndpoint: ApiEndpoint = {
                   "label": "Name",
                   "type": "string",
                   "required": false,
+                  "description": "Name of the trigger date of the order action.",
                   "enum": [
                     "ServiceActivation",
                     "CustomerAcceptance"
@@ -88,6 +94,7 @@ export const put_ordertriggerdatesEndpoint: ApiEndpoint = {
                   "label": "Trigger Date",
                   "type": "date",
                   "required": false,
+                  "description": "Trigger date in YYYY-MM-DD format. The date you are to set as the service activation date or the customer acceptance date.",
                   "section": "Additional Fields"
                 }
               ],
@@ -101,6 +108,7 @@ export const put_ordertriggerdatesEndpoint: ApiEndpoint = {
           "label": "Subscription Number",
           "type": "string",
           "required": true,
+          "description": "Subscription number of a subscription in the `Pending` order for which you are to update the triggering dates. For example, A-S00000001.",
           "maxLength": 100,
           "section": "Account Settings"
         }

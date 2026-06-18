@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const post_accountingcodeEndpoint: ApiEndpoint = {
   "id": "post-accountingcode",
   "name": "Create an accounting code",
-  "description": "",
+  "description": "This reference describes how to create a new accounting code through the REST API.",
   "method": "POST",
   "path": "/v1/accounting-codes",
   "baseUrl": "https://rest.test.zuora.com",
@@ -17,6 +17,7 @@ export const post_accountingcodeEndpoint: ApiEndpoint = {
       "label": "Gl Account Name",
       "type": "string",
       "required": false,
+      "description": "Name of the account in your general ledger. Field only available if you have Zuora Finance enabled. Maximum of 255 characters.",
       "section": "Account Settings"
     },
     {
@@ -24,6 +25,7 @@ export const post_accountingcodeEndpoint: ApiEndpoint = {
       "label": "Gl Account Number",
       "type": "string",
       "required": false,
+      "description": "Account number in your general ledger. Field only available if you have Zuora Finance enabled. Maximum of 255 characters.",
       "section": "Account Settings"
     },
     {
@@ -31,6 +33,7 @@ export const post_accountingcodeEndpoint: ApiEndpoint = {
       "label": "Name",
       "type": "string",
       "required": true,
+      "description": "Name of the accounting code. Accounting code name must be unique. Maximum of 100 characters.",
       "section": "Account Settings"
     },
     {
@@ -38,6 +41,7 @@ export const post_accountingcodeEndpoint: ApiEndpoint = {
       "label": "Notes",
       "type": "string",
       "required": false,
+      "description": "Maximum of 2,000 characters.",
       "section": "Additional Fields"
     },
     {
@@ -45,6 +49,7 @@ export const post_accountingcodeEndpoint: ApiEndpoint = {
       "label": "Type",
       "type": "string",
       "required": true,
+      "description": "If you want to create multiple accounting codes of the type `AccountsReceivable`, you need to have [Invoice Item Settlement](https://knowledgecenter.zuora.com/Billing/Billing_and_Payments/Invoice_Settlement/C_Invoice_Item_Settlement) enabled and contact [Zuora Global Support](http://support.zuora.com) to access the Multiple AR Accounting Codes feature. Note that `OnAccountReceivable` is only available if you enable the Invoice Settlement feature.",
       "enum": [
         "AccountsReceivable",
         "On-Account Receivable",
@@ -68,6 +73,7 @@ export const post_accountingcodeEndpoint: ApiEndpoint = {
       "label": "Segment Constant Values",
       "type": "object",
       "required": false,
+      "description": "Segment constant values. The field is available only if you have GL Segmentation 2.0 enabled. This field is additional property.",
       "section": "Additional Fields"
     }
   ],

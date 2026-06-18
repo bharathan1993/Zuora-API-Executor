@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_productrateplansbyexternalidEndpoint: ApiEndpoint = {
   "id": "get-productrateplansbyexternalid",
   "name": "List product rate plans by external ID",
-  "description": "",
+  "description": "Retrieves information about one or multiple product rate plans by external ID.",
   "method": "GET",
   "path": "/v1/product-rate-plans/external-id/{id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_productrateplansbyexternalidEndpoint: ApiEndpoint = {
       "name": "id",
       "label": "Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The external ID of the product rate plan to be retrieved. For example, `Apple0001`."
     }
   ],
   "bodyFields": [],

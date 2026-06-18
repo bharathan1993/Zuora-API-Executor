@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const getactiveinvoicecycleEndpoint: ApiEndpoint = {
   "id": "getactiveinvoicecycle",
   "name": "List the active retry cycles for an invoice",
-  "description": "",
+  "description": "Gets information of active retry cycles that have not been completed for an invoice in Configurable Payment Retry.",
   "method": "GET",
   "path": "/api/v1/payments/active_invoice_cycle_information/{invoice_id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const getactiveinvoicecycleEndpoint: ApiEndpoint = {
       "name": "invoice_id",
       "label": "Invoice Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "ID of an invoice."
     }
   ],
   "bodyFields": [],

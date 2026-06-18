@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const queryordersEndpoint: ApiEndpoint = {
   "id": "queryorders",
   "name": "List orders",
-  "description": "",
+  "description": "Lists orders. You can use the query parameters to filter, expand, and sort the returned results.",
   "method": "GET",
   "path": "/object-query/orders",
   "baseUrl": "https://rest.test.zuora.com",
@@ -17,19 +17,22 @@ export const queryordersEndpoint: ApiEndpoint = {
       "label": "Page Size",
       "type": "number",
       "required": false,
+      "description": "The maximum number of results to return in a single page. If the specified `pageSize` is less than 1 or greater than 99, Zuora will return a 400 error.",
       "defaultValue": 10
     },
     {
       "name": "cursor",
       "label": "Cursor",
       "type": "string",
-      "required": false
+      "required": false,
+      "description": "A cursor for use in pagination. A cursor defines the starting place in a list. For instance, if you make a list request and receive 100 objects, ending with `next_page=W3sib3JkZXJ=`, your subsequent call can include `cursor=W3sib3JkZXJ=` in order to fetch the next page of the list."
     },
     {
       "name": "sort[]",
       "label": "Sort[]",
       "type": "array",
       "required": false,
+      "description": "A case-insensitive query parameter that specifies the sort order of the list, which can be either ascending (e.g. `accountnumber.ASC`) or descending (e.g. `accountnumber.DESC`). You cannot sort on properties in arrays. If the array-type properties are specified for the `sort[]` parameter, they are ignored. Supported sortable fields: - id - updateddate - orderdate - ordernumber - accountid - status - invoicescheduleid",
       "itemType": "string"
     },
     {
@@ -37,6 +40,7 @@ export const queryordersEndpoint: ApiEndpoint = {
       "label": "Expand[]",
       "type": "array",
       "required": false,
+      "description": "Allows you to expand responses by including related object information in a single call. **Note**: For draft and scheduled orders, information on the subscription, rate plan, and rate plan charges is not available nor displayed until the following conditions are met: - A scheduled order is executed and its status is changed to `completed`. - A draft order is activated and its status is changed to `pending` or `completed`. For example, if an order is in the `scheduled` or `draft` status, information on the subscription, rate plan, and rate plan charges is not displayed.",
       "itemType": "string",
       "itemEnum": [
         "account",
@@ -53,6 +57,7 @@ export const queryordersEndpoint: ApiEndpoint = {
       "label": "Filter[]",
       "type": "array",
       "required": false,
+      "description": "A case-insensitive filter on the list. Supported filterable fields: - id - updateddate - orderdate - ordernumber - accountid - status - invoicescheduleid - {indexedcustomfield}: Use the format like `customField__c` to filter on custom fields.",
       "itemType": "string"
     },
     {
@@ -60,6 +65,7 @@ export const queryordersEndpoint: ApiEndpoint = {
       "label": "Fields[]",
       "type": "array",
       "required": false,
+      "description": "A case-insensitive query parameter that allows you to specify which fields are returned in the response.",
       "itemType": "string"
     },
     {
@@ -67,6 +73,7 @@ export const queryordersEndpoint: ApiEndpoint = {
       "label": "Include Null Fields",
       "type": "boolean",
       "required": false,
+      "description": "Specifies whether to include fields with the `null` value in the response. - If set to `true`, all fields will be returned in the response, including those with the `null` value. - If set to `false`, only fields with non-null values will be returned.",
       "defaultValue": false
     }
   ],

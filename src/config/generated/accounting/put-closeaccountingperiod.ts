@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_closeaccountingperiodEndpoint: ApiEndpoint = {
   "id": "put-closeaccountingperiod",
   "name": "Close an accounting period",
-  "description": "",
+  "description": "Close an accounting period by accounting period ID.",
   "method": "PUT",
   "path": "/v1/accounting-periods/{ap-id}/close",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_closeaccountingperiodEndpoint: ApiEndpoint = {
       "name": "ap-id",
       "label": "Ap Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "ID of the accounting period you want to close."
     }
   ],
   "bodyFields": [],

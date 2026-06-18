@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const object_putproductEndpoint: ApiEndpoint = {
   "id": "object-putproduct",
   "name": "CRUD: Update a product",
-  "description": "",
+  "description": "Updates a Product object.",
   "method": "PUT",
   "path": "/v1/object/product/{id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const object_putproductEndpoint: ApiEndpoint = {
       "name": "id",
       "label": "Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Object id"
     }
   ],
   "queryParams": [
@@ -25,6 +26,7 @@ export const object_putproductEndpoint: ApiEndpoint = {
       "label": "Reject Unknown Fields",
       "type": "boolean",
       "required": false,
+      "description": "Specifies whether the call fails if the request body contains unknown fields. With `rejectUnknownFields` set to `true`, Zuora returns a 400 response if the request body contains unknown fields. The body of the 400 response is: ```json { \"message\": \"Error - unrecognised fields\" } ``` By default, Zuora ignores unknown fields in the request body.",
       "defaultValue": false
     }
   ],
@@ -34,6 +36,7 @@ export const object_putproductEndpoint: ApiEndpoint = {
       "label": "Allow Feature Changes",
       "type": "boolean",
       "required": false,
+      "description": "Controls whether to allow your users to add or remove features while creating or amending a subscription. **Values**: true, false (default)",
       "section": "Additional Fields"
     },
     {
@@ -41,6 +44,7 @@ export const object_putproductEndpoint: ApiEndpoint = {
       "label": "Category",
       "type": "string",
       "required": false,
+      "description": "Category of the product. Used by Zuora Quotes Guided Product Selector. **Values**: - Base Products - Add On Services - Miscellaneous Products",
       "maxLength": 100,
       "section": "Additional Fields"
     },
@@ -49,6 +53,7 @@ export const object_putproductEndpoint: ApiEndpoint = {
       "label": "Description",
       "type": "string",
       "required": false,
+      "description": "A description of the product.",
       "maxLength": 500,
       "section": "Additional Fields"
     },
@@ -57,6 +62,7 @@ export const object_putproductEndpoint: ApiEndpoint = {
       "label": "Effective End Date",
       "type": "date",
       "required": false,
+      "description": "The date when the product expires and can't be subscribed to anymore, in `yyyy-mm-dd` format.",
       "section": "Additional Fields"
     },
     {
@@ -64,6 +70,7 @@ export const object_putproductEndpoint: ApiEndpoint = {
       "label": "Effective Start Date",
       "type": "date",
       "required": false,
+      "description": "The date when the product becomes available and can be subscribed to, in `yyyy-mm-dd` format.",
       "section": "Additional Fields"
     },
     {
@@ -71,6 +78,7 @@ export const object_putproductEndpoint: ApiEndpoint = {
       "label": "S K U",
       "type": "string",
       "required": false,
+      "description": "The unique SKU for the product.",
       "maxLength": 50,
       "section": "Additional Fields"
     },
@@ -79,6 +87,7 @@ export const object_putproductEndpoint: ApiEndpoint = {
       "label": "Integration Id N S",
       "type": "string",
       "required": false,
+      "description": "ID of the corresponding object in NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -87,6 +96,7 @@ export const object_putproductEndpoint: ApiEndpoint = {
       "label": "Integration Status N S",
       "type": "string",
       "required": false,
+      "description": "Status of the product's synchronization with NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -95,6 +105,7 @@ export const object_putproductEndpoint: ApiEndpoint = {
       "label": "Item Type N S",
       "type": "string",
       "required": false,
+      "description": "Type of item that is created in NetSuite for the product. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "enum": [
         "Inventory",
         "Non Inventory",
@@ -107,6 +118,7 @@ export const object_putproductEndpoint: ApiEndpoint = {
       "label": "Sync Date N S",
       "type": "string",
       "required": false,
+      "description": "Date when the product was synchronized with NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -115,6 +127,7 @@ export const object_putproductEndpoint: ApiEndpoint = {
       "label": "Name",
       "type": "string",
       "required": false,
+      "description": "The name of the product. This information is displayed in the product catalog pages in the web-based UI.",
       "maxLength": 100,
       "section": "Account Settings"
     },
@@ -123,6 +136,7 @@ export const object_putproductEndpoint: ApiEndpoint = {
       "label": "Product Number",
       "type": "string",
       "required": false,
+      "description": "The natural key of the product. For existing Product objects that are created before this field is introduced, this field will be null. Use this field to specify a value for only these objects. Zuora also provides a tool to help you automatically backfill this field with tenant ID for your existing product catalog. If you want to use this backfill tool, contact [Zuora Global Support](https://support.zuora.com/). **Note**: This field is only available if you set the `X-Zuora-WSDL-Version` request header to `133` or later.",
       "maxLength": 100,
       "section": "Account Settings"
     }

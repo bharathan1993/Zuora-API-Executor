@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const post_paymentmethodsEndpoint: ApiEndpoint = {
   "id": "post-paymentmethods",
   "name": "Create a payment method",
-  "description": "",
+  "description": "You can use this operation to create either a payment method associated",
   "method": "POST",
   "path": "/v1/payment-methods",
   "baseUrl": "https://rest.test.zuora.com",

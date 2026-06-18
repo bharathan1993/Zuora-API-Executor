@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const post_uploadfileforinvoiceEndpoint: ApiEndpoint = {
   "id": "post-uploadfileforinvoice",
   "name": "Upload a file for an invoice",
-  "description": "",
+  "description": "Uploads an externally generated invoice PDF file for an invoice that is in Draft or Posted status.",
   "method": "POST",
   "path": "/v1/invoices/{invoiceKey}/files",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const post_uploadfileforinvoiceEndpoint: ApiEndpoint = {
       "name": "invoiceKey",
       "label": "Invoice Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The ID or number of the invoice that you want to upload a PDF file for. For example, 2c92c8955bd63cc1015bd7c151af02ab or INV00000001."
     }
   ],
   "bodyFields": [],

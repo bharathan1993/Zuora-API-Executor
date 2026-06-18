@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const upsertpaymentprofilesEndpoint: ApiEndpoint = {
   "id": "upsertpaymentprofiles",
   "name": "Create or update payment profiles in bulk",
-  "description": "",
+  "description": "Bulk creates payment profiles or updates payment profiles if they already exist.",
   "method": "PUT",
   "path": "/v1/payment-profile",
   "baseUrl": "https://rest.test.zuora.com",
@@ -17,6 +17,7 @@ export const upsertpaymentprofilesEndpoint: ApiEndpoint = {
       "label": "Bulk Payment Option Items",
       "type": "array",
       "required": false,
+      "description": "An array of payment profiles you want to create or update.",
       "itemType": "object",
       "itemFields": [
         {
@@ -24,6 +25,7 @@ export const upsertpaymentprofilesEndpoint: ApiEndpoint = {
           "label": "Subscription Id",
           "type": "string",
           "required": false,
+          "description": "The ID of the subscription associated with the payment profile fields.",
           "section": "Subscription Settings"
         },
         {
@@ -31,6 +33,7 @@ export const upsertpaymentprofilesEndpoint: ApiEndpoint = {
           "label": "Payment Method Id",
           "type": "string",
           "required": false,
+          "description": "The ID of the payment method that processes the payment.",
           "section": "Payment Settings"
         },
         {
@@ -38,6 +41,7 @@ export const upsertpaymentprofilesEndpoint: ApiEndpoint = {
           "label": "Payment Gateway Id",
           "type": "string",
           "required": false,
+          "description": "The ID of the gateway instance that processes the payment.",
           "section": "Payment Settings"
         }
       ],

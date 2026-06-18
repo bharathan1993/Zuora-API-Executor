@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const object_getproductrateplanchargetierEndpoint: ApiEndpoint = {
   "id": "object-getproductrateplanchargetier",
   "name": "CRUD: Retrieve a product rate plan charge tier",
-  "description": "",
+  "description": "Retrieves a specific product rate plan charge tier.",
   "method": "GET",
   "path": "/v1/object/product-rate-plan-charge-tier/{id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const object_getproductrateplanchargetierEndpoint: ApiEndpoint = {
       "name": "id",
       "label": "Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Object id"
     }
   ],
   "queryParams": [
@@ -24,7 +25,8 @@ export const object_getproductrateplanchargetierEndpoint: ApiEndpoint = {
       "name": "fields",
       "label": "Fields",
       "type": "string",
-      "required": false
+      "required": false,
+      "description": "Object fields to return"
     }
   ],
   "bodyFields": [],

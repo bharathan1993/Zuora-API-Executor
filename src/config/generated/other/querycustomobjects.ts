@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const querycustomobjectsEndpoint: ApiEndpoint = {
   "id": "querycustomobjects",
   "name": "List custom object records",
-  "description": "",
+  "description": "Lists custom object records. You can use the query parameters to filter, expand, and sort the returned results.",
   "method": "GET",
   "path": "/object-query/{custom-object-name}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const querycustomobjectsEndpoint: ApiEndpoint = {
       "name": "custom-object-name",
       "label": "Custom Object Name",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Custom Object Name with NameSpace, e.g. default__cars"
     }
   ],
   "queryParams": [
@@ -25,19 +26,22 @@ export const querycustomobjectsEndpoint: ApiEndpoint = {
       "label": "Page Size",
       "type": "number",
       "required": false,
+      "description": "The maximum number of results to return in a single page. If the specified `pageSize` is less than 1 or greater than 99, Zuora will return a 400 error.",
       "defaultValue": 10
     },
     {
       "name": "cursor",
       "label": "Cursor",
       "type": "string",
-      "required": false
+      "required": false,
+      "description": "A cursor for use in pagination. A cursor defines the starting place in a list. For instance, if you make a list request and receive 100 objects, ending with `next_page=W3sib3JkZXJ=`, your subsequent call can include `cursor=W3sib3JkZXJ=` in order to fetch the next page of the list."
     },
     {
       "name": "expand[]",
       "label": "Expand[]",
       "type": "array",
       "required": false,
+      "description": "Allows you to expand responses by including related object information in a single call.",
       "itemType": "string"
     },
     {
@@ -45,6 +49,7 @@ export const querycustomobjectsEndpoint: ApiEndpoint = {
       "label": "Filter[]",
       "type": "array",
       "required": false,
+      "description": "A case-insensitive filter on the list.",
       "itemType": "string"
     },
     {
@@ -52,6 +57,7 @@ export const querycustomobjectsEndpoint: ApiEndpoint = {
       "label": "Fields[]",
       "type": "array",
       "required": false,
+      "description": "A case-insensitive query parameter that allows you to specify which fields are returned in the response.",
       "itemType": "string"
     },
     {
@@ -59,6 +65,7 @@ export const querycustomobjectsEndpoint: ApiEndpoint = {
       "label": "Include Null Fields",
       "type": "boolean",
       "required": false,
+      "description": "Specifies whether to include fields with the `null` value in the response. - If set to `true`, all fields will be returned in the response, including those with the `null` value. - If set to `false`, only fields with non-null values will be returned.",
       "defaultValue": false
     }
   ],

@@ -16,7 +16,8 @@ export const put_basicsummaryjournalentryEndpoint: ApiEndpoint = {
       "name": "je-number",
       "label": "Je Number",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Journal entry number in the format JE-00000001."
     }
   ],
   "bodyFields": [
@@ -25,6 +26,7 @@ export const put_basicsummaryjournalentryEndpoint: ApiEndpoint = {
       "label": "Journal Entry Items",
       "type": "array",
       "required": false,
+      "description": "Key name that represents the list of journal entry items.",
       "itemType": "object",
       "itemFields": [
         {
@@ -32,6 +34,7 @@ export const put_basicsummaryjournalentryEndpoint: ApiEndpoint = {
           "label": "Accounting Code Name",
           "type": "string",
           "required": true,
+          "description": "Name of the accounting code. If the Journal Entry Item has a blank accounting code, enter the empty string.",
           "section": "Account Settings"
         },
         {
@@ -39,6 +42,7 @@ export const put_basicsummaryjournalentryEndpoint: ApiEndpoint = {
           "label": "Accounting Code Type",
           "type": "string",
           "required": false,
+          "description": "Accounting code type. Note that `On-Account Receivable` is only available if you enable the Invoice Settlement feature.",
           "enum": [
             "AccountsReceivable",
             "On-Account Receivable",
@@ -62,6 +66,7 @@ export const put_basicsummaryjournalentryEndpoint: ApiEndpoint = {
           "label": "Type",
           "type": "string",
           "required": true,
+          "description": "Type of journal entry item.",
           "enum": [
             "Credit",
             "Debit"
@@ -76,6 +81,7 @@ export const put_basicsummaryjournalentryEndpoint: ApiEndpoint = {
       "label": "Notes",
       "type": "string",
       "required": false,
+      "description": "Additional information about this record. ***Character limit:*** 2,000",
       "section": "Additional Fields"
     },
     {
@@ -83,6 +89,7 @@ export const put_basicsummaryjournalentryEndpoint: ApiEndpoint = {
       "label": "Transferred To Accounting",
       "type": "string",
       "required": false,
+      "description": "Status shows whether the journal entry has been transferred to an accounting system. This field cannot be changed after the summary journal entry has been canceled. **Note:** The Zuora Finance ***Override Transferred to Accounting*** permission is required to change `transferredToAccounting` from `Yes` to any other value.",
       "enum": [
         "No",
         "Processing",

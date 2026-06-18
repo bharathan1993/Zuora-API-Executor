@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_einvoicefiletemplateEndpoint: ApiEndpoint = {
   "id": "put-einvoicefiletemplate",
   "name": "Update an e-invoice file template",
-  "description": "",
+  "description": "Updates information about an e-invoice file template.",
   "method": "PUT",
   "path": "/v1/einvoice/templates/{key}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_einvoicefiletemplateEndpoint: ApiEndpoint = {
       "name": "key",
       "label": "Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique number or ID of the e-invoice file template that you want to update."
     }
   ],
   "bodyFields": [
@@ -25,6 +26,7 @@ export const put_einvoicefiletemplateEndpoint: ApiEndpoint = {
       "label": "Content",
       "type": "string",
       "required": false,
+      "description": "The content of the e-invoice file template, which must be encoded in Base64 format.",
       "section": "Additional Fields"
     },
     {
@@ -32,6 +34,7 @@ export const put_einvoicefiletemplateEndpoint: ApiEndpoint = {
       "label": "Country",
       "type": "string",
       "required": false,
+      "description": "The short name of a country or region where you must comply with e-invoicing requirements. For example, `IN` for India. For the full list of country names and codes, see View countries or regions.",
       "section": "Additional Fields"
     },
     {
@@ -39,6 +42,7 @@ export const put_einvoicefiletemplateEndpoint: ApiEndpoint = {
       "label": "Provider",
       "type": "string",
       "required": false,
+      "description": "The name of an e-invoicing service provider that assists in generating e-invoice files.",
       "enum": [
         "Sovos"
       ],
@@ -49,6 +53,7 @@ export const put_einvoicefiletemplateEndpoint: ApiEndpoint = {
       "label": "Document Type",
       "type": "string",
       "required": false,
+      "description": "The type of billing documents, which the e-invoice file template is intended for.",
       "enum": [
         "Invoice",
         "CreditMemo",
@@ -61,6 +66,7 @@ export const put_einvoicefiletemplateEndpoint: ApiEndpoint = {
       "label": "Name",
       "type": "string",
       "required": false,
+      "description": "The name of the e-invoice file template.",
       "maxLength": 255,
       "section": "Account Settings"
     }

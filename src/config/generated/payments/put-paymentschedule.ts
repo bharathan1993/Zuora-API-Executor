@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_paymentscheduleEndpoint: ApiEndpoint = {
   "id": "put-paymentschedule",
   "name": "Update a payment schedule",
-  "description": "",
+  "description": "Updates a payment schedule. For custom payment schedules, only the custom fields on the payment schedules can be udpated. Use the [Update a payment schedule item](https://developer.zuora.com/api-references/api/operation/PUT_PaymentScheduleItem/) operation to update payment schedule items of custom payment schedule.",
   "method": "PUT",
   "path": "/v1/payment-schedules/{paymentScheduleKey}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_paymentscheduleEndpoint: ApiEndpoint = {
       "name": "paymentScheduleKey",
       "label": "Payment Schedule Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique ID or number of a payment schedule. For example, `8a90857b822459cd018224dcb9eb13be`, or `PS-00000007`."
     }
   ],
   "bodyFields": [
@@ -25,6 +26,7 @@ export const put_paymentscheduleEndpoint: ApiEndpoint = {
       "label": "Amount",
       "type": "number",
       "required": false,
+      "description": "Indicates the updated amount of the pending payment schedule items.",
       "section": "Additional Fields"
     },
     {
@@ -32,6 +34,7 @@ export const put_paymentscheduleEndpoint: ApiEndpoint = {
       "label": "Currency",
       "type": "string",
       "required": false,
+      "description": "Indicates the updated currency of the pending payment schedule items. **Note:** - For custom payments, if Multi-currency is enabled, the payment currency can be different from the account currency for custom payment. - For recurring payments, if Multi-currency is enabled, the payment currency can be different from the account currency but should be the same as billing currency for a recurring payment.",
       "section": "Additional Fields"
     },
     {
@@ -39,6 +42,7 @@ export const put_paymentscheduleEndpoint: ApiEndpoint = {
       "label": "Occurrences",
       "type": "number",
       "required": false,
+      "description": "Indicates the updated number of payment schedule items that are created by the payment schedule. **Note:** - If \"updated `occurrences` > existing `occurrences`\", the following number of pending payment schedule item will be added to the payment schedule: “updated `occurrences` - existing `occurrences`”. - If \"existing `occurrences` > updated `occurrences` >= the number of `processed`/`errored`/`canceled` payment schedule items\", the following number of pending items will be removed by descending order of the schedule dates: \"existing `occurrences` - updated `occurrences`\". - If \"updated `occurrences` < the number of `processed`/`erroed`/`canceled` payment schedule items\", a validation error will be returned.",
       "section": "Additional Fields"
     },
     {
@@ -46,6 +50,7 @@ export const put_paymentscheduleEndpoint: ApiEndpoint = {
       "label": "Period",
       "type": "string",
       "required": false,
+      "description": "Indicates the updated period of the pending payment schedule items.",
       "enum": [
         "Monthly",
         "Weekly",
@@ -58,6 +63,7 @@ export const put_paymentscheduleEndpoint: ApiEndpoint = {
       "label": "Period Start Date",
       "type": "date",
       "required": false,
+      "description": "Indicates the updated collection date for the next pending payment schedule item.",
       "section": "Additional Fields"
     },
     {
@@ -65,6 +71,7 @@ export const put_paymentscheduleEndpoint: ApiEndpoint = {
       "label": "Run Hour",
       "type": "number",
       "required": false,
+      "description": "Specifies at which hour of the day in the tenant’s time zone this payment will be collected. Available values: `[0,1,2,~,22,23]`. If the time difference between your tenant’s timezone and the timezone where Zuora servers are is not in full hours, for example, 2.5 hours, the payment schedule items will be triggered half hour later than your scheduled time. If the payment `runHour` and `scheduledDate` are backdated, the system will collect the payment when the next runHour occurs.",
       "section": "Additional Fields"
     },
     {
@@ -72,6 +79,7 @@ export const put_paymentscheduleEndpoint: ApiEndpoint = {
       "label": "Payment Gateway Id",
       "type": "string",
       "required": false,
+      "description": "Indicates the updated payment gateway ID of the pending payment schedule items.",
       "section": "Payment Settings"
     },
     {
@@ -79,6 +87,7 @@ export const put_paymentscheduleEndpoint: ApiEndpoint = {
       "label": "Payment Method Id",
       "type": "string",
       "required": false,
+      "description": "Indicates the updated payment method ID of the pending payment schedule items.",
       "section": "Payment Settings"
     },
     {
@@ -86,6 +95,7 @@ export const put_paymentscheduleEndpoint: ApiEndpoint = {
       "label": "Payment Option",
       "type": "array",
       "required": false,
+      "description": "Container for the paymentOption items, which describe the transactional level rules for processing payments. Currently, only the Gateway Options type is supported. Here is an example: ``` \"paymentOption\": [ { \"type\": \"GatewayOptions\", \"detail\": { \"SecCode\":\"WEB\" } } ] ``` `paymentOption` of the payment schedule takes precedence over `paymentOption` of the payment schedule item. **Note:** To enable this field, submit a request at [Zuora Global Support](https://support.zuora.com/).",
       "itemType": "object",
       "itemFields": [
         {
@@ -93,12 +103,14 @@ export const put_paymentscheduleEndpoint: ApiEndpoint = {
           "label": "Detail",
           "type": "object",
           "required": false,
+          "description": "The field used to pass the transactional payment data to the gateway side in the key-value format.",
           "fields": [
             {
               "name": "key",
               "label": "Key",
               "type": "string",
               "required": false,
+              "description": "The name of the field.",
               "section": "Additional Fields"
             },
             {
@@ -106,6 +118,7 @@ export const put_paymentscheduleEndpoint: ApiEndpoint = {
               "label": "Value",
               "type": "string",
               "required": false,
+              "description": "The value of the field.",
               "section": "Additional Fields"
             }
           ],
@@ -116,6 +129,7 @@ export const put_paymentscheduleEndpoint: ApiEndpoint = {
           "label": "Type",
           "type": "string",
           "required": false,
+          "description": "The type of the payment option. Currently, only `GatewayOptions` is supported for specifying Gateway Options fields supported by a payment gateway.",
           "section": "Additional Fields"
         }
       ],

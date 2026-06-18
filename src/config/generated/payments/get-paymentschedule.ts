@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_paymentscheduleEndpoint: ApiEndpoint = {
   "id": "get-paymentschedule",
   "name": "Retrieve a payment schedule",
-  "description": "",
+  "description": "Retrieves a payment schedule by payment schedule key.",
   "method": "GET",
   "path": "/v1/payment-schedules/{paymentScheduleKey}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_paymentscheduleEndpoint: ApiEndpoint = {
       "name": "paymentScheduleKey",
       "label": "Payment Schedule Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique ID or number of a payment schedule. For example, `8a90857b822459cd018224dcb9eb13be`, or `PS-00000007`."
     }
   ],
   "queryParams": [
@@ -24,13 +25,15 @@ export const get_paymentscheduleEndpoint: ApiEndpoint = {
       "name": "nextPendingItems",
       "label": "Next Pending Items",
       "type": "number",
-      "required": false
+      "required": false,
+      "description": "Number of next pending payment schedule items displayed in the response body."
     },
     {
       "name": "lastProcessedItems",
       "label": "Last Processed Items",
       "type": "number",
-      "required": false
+      "required": false,
+      "description": "Number of the most recent processed payment schedule items dispalyed in the response body."
     }
   ],
   "bodyFields": [],

@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_adjustmentEndpoint: ApiEndpoint = {
   "id": "get-adjustment",
   "name": "Retrieve a delivery adjustment",
-  "description": "",
+  "description": "Describes how to retrieve detailed information about a delivery adjustment.",
   "method": "GET",
   "path": "/v1/adjustments/{adjustment-key}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_adjustmentEndpoint: ApiEndpoint = {
       "name": "adjustment-key",
       "label": "Adjustment Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The delivery adjustment ID or number to retrieve."
     }
   ],
   "bodyFields": [],

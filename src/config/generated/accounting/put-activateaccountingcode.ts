@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_activateaccountingcodeEndpoint: ApiEndpoint = {
   "id": "put-activateaccountingcode",
   "name": "Activate an accounting code",
-  "description": "",
+  "description": "This reference describes how to activate an accounting code through the REST API.",
   "method": "PUT",
   "path": "/v1/accounting-codes/{ac-id}/activate",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_activateaccountingcodeEndpoint: ApiEndpoint = {
       "name": "ac-id",
       "label": "Ac Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "ID of the accounting code you want to activate."
     }
   ],
   "bodyFields": [],

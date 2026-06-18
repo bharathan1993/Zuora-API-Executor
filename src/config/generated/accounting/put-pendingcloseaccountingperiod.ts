@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_pendingcloseaccountingperiodEndpoint: ApiEndpoint = {
   "id": "put-pendingcloseaccountingperiod",
   "name": "Set an accounting period to pending close",
-  "description": "",
+  "description": "Sets an accounting period to pending close.",
   "method": "PUT",
   "path": "/v1/accounting-periods/{ap-id}/pending-close",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_pendingcloseaccountingperiodEndpoint: ApiEndpoint = {
       "name": "ap-id",
       "label": "Ap Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "ID of the accounting period you want to set to pending close."
     }
   ],
   "bodyFields": [],

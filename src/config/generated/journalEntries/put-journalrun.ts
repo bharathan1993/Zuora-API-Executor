@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_journalrunEndpoint: ApiEndpoint = {
   "id": "put-journalrun",
   "name": "Cancel a journal run",
-  "description": "",
+  "description": "This reference describes how to cancel a journal run using the REST API.",
   "method": "PUT",
   "path": "/v1/journal-runs/{jr-number}/cancel",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_journalrunEndpoint: ApiEndpoint = {
       "name": "jr-number",
       "label": "Jr Number",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Journal run number. Must be a valid journal run number in the format JR-00000001. You can only cancel a journal run whose status is \"Pending\", \"Error\", or \"Completed\"."
     }
   ],
   "bodyFields": [],

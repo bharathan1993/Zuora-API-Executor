@@ -6,8 +6,8 @@ A browser-based API client for Zuora that converts the official OpenAPI specific
 
 ## Features
 
-- **713 endpoints** auto-generated from the Zuora 2026-05-01 OpenAPI spec
-- **22 sidebar categories** covering every major Zuora domain
+- **715 endpoints** available at runtime: 713 auto-generated from the Zuora 2026-05-01 OpenAPI spec plus 2 Metadata APIs from the current v1 docs
+- **23 sidebar categories** covering every major Zuora domain
 - **Full query parameter support** — every GET/LIST endpoint exposes its filters, pagination, and options as form fields
 - **Standard Zuora headers** on all endpoints: `Zuora-Track-Id`, `Zuora-Entity-Ids`, `Zuora-Org-Ids`, `Zuora-Version`
 - **Schema-driven forms** with nested objects, arrays, enums, dates, and booleans
@@ -44,7 +44,7 @@ npm run dev
 
 ## API Coverage
 
-### Sidebar Categories (22)
+### Sidebar Categories (23)
 
 | Category | Endpoints | Description |
 |---|---|---|
@@ -63,6 +63,7 @@ npm run dev
 | Accounting | 16 | Accounting codes and periods |
 | Journal Entries | 10 | Summary journal entries and journal runs |
 | Revenue | 1 | Zuora Revenue integration endpoints |
+| General-Purpose Operations | 21 | Actions, settings, files, imports, custom exchange rates, attachments, metadata, and describe APIs |
 | Workflows | 17 | Workflow definitions, triggers, and runs |
 | Data Queries | 8 | Aggregate queries and data query jobs |
 | Custom Objects | 10 | Custom object definitions and records |
@@ -71,7 +72,7 @@ npm run dev
 | Notifications | 39 | Email templates, callouts, and event triggers |
 | Settings | 7 | Tenant settings and sequence sets |
 
-An additional **230 specialised endpoints** are available in the `other` category (actions, e-invoicing, meters, deployment manager, SCIM, ramps, taxation items, etc.) and are loaded in the runtime even when not shown in the sidebar.
+An additional **218 specialised endpoints** are available in the `other` category (e-invoicing, meters, deployment manager, SCIM, ramps, taxation items, etc.) and are loaded in the runtime even when not shown in the sidebar.
 
 ---
 
@@ -91,21 +92,25 @@ npm run generate-endpoints  # Regenerate all endpoint configs from spec
 All endpoint definitions are auto-generated from the Zuora OpenAPI specification. To regenerate from the latest spec:
 
 ```bash
-# Download the latest Zuora public spec (full compact)
+# Download the latest Zuora public specs
 python3 -c "
 import urllib.request
 urllib.request.urlretrieve(
     'https://developer.zuora.com/yaml/apis/zuora-openapi-full-compact.yaml',
     'zuora_openapi.yaml'
 )
-print('Downloaded')
+urllib.request.urlretrieve(
+    'https://developer.zuora.com/yaml/apis/zuora-openapi-for-otc.yaml',
+    'zuora_openapi_otc.yaml'
+)
+print('Downloaded compact + OTC detailed specs')
 "
 
-# Regenerate all 700+ endpoint files
+# Regenerate all 700+ endpoint files (descriptions merged from OTC detailed spec)
 npm run generate-endpoints
 ```
 
-> The Zuora full compact spec is published at `https://developer.zuora.com/yaml/apis/zuora-openapi-full-compact.yaml` (version 2026-05-01 as of this writing). For a spec with full descriptions and examples, Zuora Support can provide the non-compact version.
+> The Zuora **full compact** spec (`zuora-openapi-full-compact.yaml`) covers all APIs but strips field descriptions. The **OTC detailed** spec (`zuora-openapi-for-otc.yaml`) includes full parameter descriptions for Order-to-Cash APIs such as Create Account. The generator merges those descriptions into the compact endpoint configs automatically when `zuora_openapi_otc.yaml` is present.
 
 ---
 

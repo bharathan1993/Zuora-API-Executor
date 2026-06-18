@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const object_putproductrateplanEndpoint: ApiEndpoint = {
   "id": "object-putproductrateplan",
   "name": "CRUD: Update a product rate plan",
-  "description": "",
+  "description": "Updates a product rate plan.",
   "method": "PUT",
   "path": "/v1/object/product-rate-plan/{id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "name": "id",
       "label": "Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Object id"
     }
   ],
   "queryParams": [
@@ -25,6 +26,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Reject Unknown Fields",
       "type": "boolean",
       "required": false,
+      "description": "Specifies whether the call fails if the request body contains unknown fields. With `rejectUnknownFields` set to `true`, Zuora returns a 400 response if the request body contains unknown fields. The body of the 400 response is: ```json { \"message\": \"Error - unrecognised fields\" } ``` By default, Zuora ignores unknown fields in the request body.",
       "defaultValue": false
     }
   ],
@@ -34,6 +36,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Active Currencies",
       "type": "array",
       "required": false,
+      "description": "A list of 3-letter currency codes representing active currencies for the product rate plan. Use a comma to separate each currency code. If the request body contains this field, the value of this field must contain the desired list of active currencies. The new list can never have more than four differences from the existing list. This field cannot be used to modify the status of more than four currencies in a single request. For example, in a single request, you can only activate four currencies, or deactivate four currencies, or activate two and deactivate two. Making more than four changes to currencies always requires more than one call. When specifying this field in the update request, you must provide the full list of active currencies you want, not just incremental changes. For each active currency update, provide the following currencies in the list: Current active currencies + at most four changes (additions or deletions)",
       "itemType": "string",
       "section": "Additional Fields"
     },
@@ -42,6 +45,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Description",
       "type": "string",
       "required": false,
+      "description": "A description of the product rate plan.",
       "maxLength": 500,
       "section": "Additional Fields"
     },
@@ -50,6 +54,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Effective End Date",
       "type": "date",
       "required": false,
+      "description": "The date when the product rate plan expires and can't be subscribed to, in `yyyy-mm-dd` format.",
       "maxLength": 29,
       "section": "Additional Fields"
     },
@@ -58,6 +63,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Effective Start Date",
       "type": "date",
       "required": false,
+      "description": "The date when the product rate plan becomes available and can be subscribed to, in `yyyy-mm-dd` format.",
       "maxLength": 29,
       "section": "Additional Fields"
     },
@@ -66,6 +72,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "External Id Source System",
       "type": "string",
       "required": false,
+      "description": "The ID of the external source system. **Note:** To use this field, you must set the `X-Zuora-WSDL-Version` request header to `130` or later. Otherwise, an error occurs.",
       "section": "Additional Fields"
     },
     {
@@ -73,6 +80,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "External Rate Plan Ids",
       "type": "string",
       "required": false,
+      "description": "An external ID of the product rate plan to be added. You can use this field to specify a product rate plan that is imported from an external system. If you want to update to multiple values, use a comma separated string. **Note:** To use this field, you must set the `X-Zuora-WSDL-Version` request header to `130` or later. Otherwise, an error occurs.",
       "section": "Additional Fields"
     },
     {
@@ -80,6 +88,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Grade",
       "type": "number",
       "required": false,
+      "description": "The grade that is assigned for the product rate plan. The value of this field must be a positive integer. The greater the value, the higher the grade. A product rate plan to be added to a Grading catalog group must have one grade. You can specify a grade for a product rate plan in this request or update the product rate plan individually. **Notes**: - To use this field, you must set the `X-Zuora-WSDL-Version` request header to `116` or later. Otherwise, an error occurs. - This field is in the **Early Adopter** phase. We are actively soliciting feedback from a small set of early adopters before releasing it as generally available. If you want to join this early adopter program, submit a request at [Zuora Global Support](http://support.zuora.com/).",
       "section": "Additional Fields"
     },
     {
@@ -87,6 +96,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Product Id",
       "type": "string",
       "required": false,
+      "description": "The ID of the product that contains the product rate plan.",
       "maxLength": 32,
       "section": "Additional Fields"
     },
@@ -95,6 +105,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Class N S",
       "type": "string",
       "required": false,
+      "description": "Class associated with the corresponding item in NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -103,6 +114,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Department N S",
       "type": "string",
       "required": false,
+      "description": "Department associated with the corresponding item in NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -111,6 +123,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Include Children N S",
       "type": "string",
       "required": false,
+      "description": "Specifies whether the corresponding item in NetSuite is visible under child subsidiaries. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "enum": [
         "Yes",
         "No"
@@ -122,6 +135,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Integration Id N S",
       "type": "string",
       "required": false,
+      "description": "ID of the corresponding object in NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -130,6 +144,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Integration Status N S",
       "type": "string",
       "required": false,
+      "description": "Status of the product rate plan's synchronization with NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -138,6 +153,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Item Type N S",
       "type": "string",
       "required": false,
+      "description": "Type of item that is created in NetSuite for the product rate plan. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "enum": [
         "Inventory",
         "Non Inventory",
@@ -150,6 +166,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Location N S",
       "type": "string",
       "required": false,
+      "description": "Location associated with the corresponding item in NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -158,6 +175,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Multi Currency Price N S",
       "type": "string",
       "required": false,
+      "description": "Multi-currency price associated with the corresponding item in NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -166,6 +184,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Price N S",
       "type": "string",
       "required": false,
+      "description": "Price associated with the corresponding item in NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -174,6 +193,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Subsidiary N S",
       "type": "string",
       "required": false,
+      "description": "Subsidiary associated with the corresponding item in NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -182,6 +202,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Sync Date N S",
       "type": "string",
       "required": false,
+      "description": "Date when the product rate plan was synchronized with NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "maxLength": 255,
       "section": "Additional Fields"
     },
@@ -190,6 +211,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Name",
       "type": "string",
       "required": false,
+      "description": "The name of the product rate plan. The name doesn't have to be unique in a Product Catalog, but the name has to be unique within a product.",
       "maxLength": 255,
       "section": "Account Settings"
     },
@@ -198,6 +220,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Product Rate Plan Number",
       "type": "string",
       "required": false,
+      "description": "The natural key of the product rate plan. For existing Product Rate Plan objects that are created before this field is introduced, this field will be null. Use this field to specify a value for only these objects. Zuora also provides a tool to help you automatically backfill this field with tenant ID for your existing product catalog. If you want to use this backfill tool, contact [Zuora Global Support](https://support.zuora.com/). **Note**: This field is only available if you set the `X-Zuora-WSDL-Version` request header to `133` or later.",
       "maxLength": 100,
       "section": "Account Settings"
     },
@@ -206,6 +229,7 @@ export const object_putproductrateplanEndpoint: ApiEndpoint = {
       "label": "Billing Period N S",
       "type": "string",
       "required": false,
+      "description": "Billing period associated with the corresponding item in NetSuite. Only available if you have installed the [Zuora Connector for NetSuite](https://www.zuora.com/connect/app/?appId=265).",
       "enum": [
         "Monthly",
         "Quarterly",

@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_paymentschedulestatisticEndpoint: ApiEndpoint = {
   "id": "get-paymentschedulestatistic",
   "name": "Retrieve payment schedule statistic of a date",
-  "description": "",
+  "description": "Retrieves the payment schedule statistic of a specific date.",
   "method": "GET",
   "path": "/v1/payment-schedules/statistics/{yyyy-mm-dd}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_paymentschedulestatisticEndpoint: ApiEndpoint = {
       "name": "yyyy-mm-dd",
       "label": "Yyyy Mm Dd",
       "type": "date",
-      "required": true
+      "required": true,
+      "description": "Specifies the date of the payment schedule statistic you want to view."
     }
   ],
   "bodyFields": [],

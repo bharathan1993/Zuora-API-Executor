@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const delete_accountEndpoint: ApiEndpoint = {
   "id": "delete-account",
   "name": "Delete an account",
-  "description": "",
+  "description": "Deletes a specific account asynchronously.",
   "method": "DELETE",
   "path": "/v1/accounts/{account-key}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const delete_accountEndpoint: ApiEndpoint = {
       "name": "account-key",
       "label": "Account Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Account number or account ID."
     }
   ],
   "bodyFields": [],

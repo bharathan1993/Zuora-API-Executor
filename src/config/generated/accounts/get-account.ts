@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_accountEndpoint: ApiEndpoint = {
   "id": "get-account",
   "name": "Retrieve an account",
-  "description": "",
+  "description": "Retrieves basic information about a customer account.",
   "method": "GET",
   "path": "/v1/accounts/{account-key}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_accountEndpoint: ApiEndpoint = {
       "name": "account-key",
       "label": "Account Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Account number or account ID."
     }
   ],
   "bodyFields": [],

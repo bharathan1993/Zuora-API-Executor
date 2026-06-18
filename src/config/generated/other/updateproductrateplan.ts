@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const updateproductrateplanEndpoint: ApiEndpoint = {
   "id": "updateproductrateplan",
   "name": "Update a product rate plan",
-  "description": "",
+  "description": "Updates an existing Product Rate Plan (PRP) in the Product Catalog.",
   "method": "PUT",
   "path": "/commerce/plans",
   "baseUrl": "https://rest.test.zuora.com",
@@ -17,6 +17,7 @@ export const updateproductrateplanEndpoint: ApiEndpoint = {
       "label": "Id",
       "type": "string",
       "required": true,
+      "description": "Unique identifier of the Product Rate Plan to update.",
       "section": "Additional Fields"
     },
     {
@@ -24,6 +25,7 @@ export const updateproductrateplanEndpoint: ApiEndpoint = {
       "label": "Grade",
       "type": "number",
       "required": false,
+      "description": "Plan grade or display rank used for ordering in catalogs or UIs.",
       "section": "Additional Fields"
     },
     {
@@ -31,6 +33,7 @@ export const updateproductrateplanEndpoint: ApiEndpoint = {
       "label": "Start Date",
       "type": "date",
       "required": false,
+      "description": "Rate plan effective start date (UTC, YYYY-MM-DD).",
       "section": "Additional Fields"
     },
     {
@@ -38,6 +41,7 @@ export const updateproductrateplanEndpoint: ApiEndpoint = {
       "label": "End Date",
       "type": "date",
       "required": false,
+      "description": "Rate plan effective end date (UTC, YYYY-MM-DD).",
       "section": "Additional Fields"
     },
     {
@@ -45,6 +49,7 @@ export const updateproductrateplanEndpoint: ApiEndpoint = {
       "label": "Name",
       "type": "string",
       "required": false,
+      "description": "Rate plan name.",
       "section": "Account Settings"
     }
   ],

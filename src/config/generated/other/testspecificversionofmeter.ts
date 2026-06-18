@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const testspecificversionofmeterEndpoint: ApiEndpoint = {
   "id": "testspecificversionofmeter",
   "name": "Test a specific version of a meter",
-  "description": "",
+  "description": "Test a specific version of a meter in Zuora Mediation without executing a full run. It supports multiple input methods, including uploaded files, sample files, and manual test data. This is useful for validating meter logic and transformations before meter run.",
   "method": "POST",
   "path": "/meters/debug/{meterId}/{version}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,13 +16,15 @@ export const testspecificversionofmeterEndpoint: ApiEndpoint = {
       "name": "meterId",
       "label": "Meter Id",
       "type": "number",
-      "required": true
+      "required": true,
+      "description": "The ID of the meter to be tested."
     },
     {
       "name": "version",
       "label": "Version",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The version of the meter to be tested."
     }
   ],
   "bodyFields": [
@@ -38,6 +40,7 @@ export const testspecificversionofmeterEndpoint: ApiEndpoint = {
           "label": "Processor Id",
           "type": "string",
           "required": false,
+          "description": "The source operator ID. Optional if there is only one local file source.",
           "section": "Additional Fields"
         },
         {
@@ -45,6 +48,7 @@ export const testspecificversionofmeterEndpoint: ApiEndpoint = {
           "label": "Sample File Id",
           "type": "number",
           "required": false,
+          "description": "Test meter with event definition sample file, specified by the ID.",
           "section": "Additional Fields"
         },
         {
@@ -52,6 +56,7 @@ export const testspecificversionofmeterEndpoint: ApiEndpoint = {
           "label": "Local File Id",
           "type": "number",
           "required": false,
+          "description": "Test meter with uploaded file, specified by the ID.",
           "section": "Additional Fields"
         },
         {
@@ -59,6 +64,7 @@ export const testspecificversionofmeterEndpoint: ApiEndpoint = {
           "label": "Test Data",
           "type": "array",
           "required": false,
+          "description": "Test meter with manually input data.",
           "itemType": "object",
           "itemFields": [
             {
@@ -66,6 +72,7 @@ export const testspecificversionofmeterEndpoint: ApiEndpoint = {
               "label": "Amount",
               "type": "number",
               "required": false,
+              "description": "Amount",
               "section": "Additional Fields"
             },
             {
@@ -73,6 +80,7 @@ export const testspecificversionofmeterEndpoint: ApiEndpoint = {
               "label": "Quantity",
               "type": "number",
               "required": false,
+              "description": "Quantity",
               "section": "Additional Fields"
             },
             {
@@ -80,6 +88,7 @@ export const testspecificversionofmeterEndpoint: ApiEndpoint = {
               "label": "Usage Date",
               "type": "date",
               "required": false,
+              "description": "UsageDate",
               "section": "Additional Fields"
             },
             {
@@ -87,6 +96,7 @@ export const testspecificversionofmeterEndpoint: ApiEndpoint = {
               "label": "Cost Center",
               "type": "string",
               "required": false,
+              "description": "CostCenter",
               "section": "Additional Fields"
             },
             {
@@ -94,6 +104,7 @@ export const testspecificversionofmeterEndpoint: ApiEndpoint = {
               "label": "Customer Id",
               "type": "string",
               "required": false,
+              "description": "CustomerId",
               "section": "Additional Fields"
             },
             {
@@ -101,6 +112,7 @@ export const testspecificversionofmeterEndpoint: ApiEndpoint = {
               "label": "Usage Identifier",
               "type": "string",
               "required": false,
+              "description": "UsageIdentifier",
               "section": "Additional Fields"
             }
           ],
@@ -111,6 +123,7 @@ export const testspecificversionofmeterEndpoint: ApiEndpoint = {
           "label": "Save Test Data",
           "type": "boolean",
           "required": false,
+          "description": "Whether to save the test data.",
           "section": "Additional Fields"
         },
         {
@@ -118,6 +131,7 @@ export const testspecificversionofmeterEndpoint: ApiEndpoint = {
           "label": "Test Data Name",
           "type": "string",
           "required": false,
+          "description": "The name of the test data.",
           "section": "Account Settings"
         },
         {
@@ -125,6 +139,7 @@ export const testspecificversionofmeterEndpoint: ApiEndpoint = {
           "label": "Test Data Id",
           "type": "number",
           "required": false,
+          "description": "Test meter with previously saved test data, specified by the ID.",
           "section": "Additional Fields"
         }
       ],
@@ -142,6 +157,7 @@ export const testspecificversionofmeterEndpoint: ApiEndpoint = {
           "label": "Processor Id",
           "type": "string",
           "required": false,
+          "description": "The source operator ID for event store.",
           "section": "Additional Fields"
         },
         {
@@ -149,6 +165,7 @@ export const testspecificversionofmeterEndpoint: ApiEndpoint = {
           "label": "Start Date",
           "type": "date",
           "required": false,
+          "description": "The start date of the event store to query from, e.g., 2025-01-01.",
           "section": "Additional Fields"
         },
         {
@@ -156,6 +173,7 @@ export const testspecificversionofmeterEndpoint: ApiEndpoint = {
           "label": "End Date",
           "type": "date",
           "required": false,
+          "description": "The end date of the event store to query to, e.g., 2025-02-01.",
           "section": "Additional Fields"
         }
       ],

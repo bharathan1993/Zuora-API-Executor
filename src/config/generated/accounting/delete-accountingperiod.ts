@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const delete_accountingperiodEndpoint: ApiEndpoint = {
   "id": "delete-accountingperiod",
   "name": "Delete an accounting period",
-  "description": "",
+  "description": "Deletes an accounting period.",
   "method": "DELETE",
   "path": "/v1/accounting-periods/{ap-id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const delete_accountingperiodEndpoint: ApiEndpoint = {
       "name": "ap-id",
       "label": "Ap Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "ID of the accounting period you want to delete."
     }
   ],
   "bodyFields": [],

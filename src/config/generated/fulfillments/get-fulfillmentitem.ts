@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_fulfillmentitemEndpoint: ApiEndpoint = {
   "id": "get-fulfillmentitem",
   "name": "Retrieve a fulfillment item",
-  "description": "",
+  "description": "Retrieves the detailed information about a specified fulfillment item.",
   "method": "GET",
   "path": "/v1/fulfillment-items/{id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_fulfillmentitemEndpoint: ApiEndpoint = {
       "name": "id",
       "label": "Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The id of the Fulfillment Item to retrieve."
     }
   ],
   "bodyFields": [],

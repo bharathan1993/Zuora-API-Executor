@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const post_rsasignaturesEndpoint: ApiEndpoint = {
   "id": "post-rsasignatures",
   "name": "Generate an RSA signature",
-  "description": "",
+  "description": "The REST API used in Payment Pages 2.0 are CORS (Cross-Origin Resource Sharing) enabled and therefore requires a digital signature. The POST rsa_signatures call generates and returns the required digital signature and token for a Payment Pages 2.0 form. You need to pass the generated signature to your client for it to access Payment Pages 2.0.",
   "method": "POST",
   "path": "/v1/rsa-signatures",
   "baseUrl": "https://rest.test.zuora.com",
@@ -24,6 +24,7 @@ export const post_rsasignaturesEndpoint: ApiEndpoint = {
       "label": "Authorization Amount",
       "type": "number",
       "required": false,
+      "description": "An optional client parameter that can be used for validating client-side HPM parameters. See [Client parameters for Payment Pages 2.0](https://knowledgecenter.zuora.com/Billing/Billing_and_Payments/LA_Hosted_Payment_Pages/B_Payment_Pages_2.0/J_Client_Parameters_for_Payment_Pages_2.0) and [Validate client-side HPM parameters](https://knowledgecenter.zuora.com/Billing/Billing_and_Payments/LA_Hosted_Payment_Pages/B_Payment_Pages_2.0/F_Generate_the_Digital_Signature_for_Payment_Pages_2.0#Validate_Client-side_HPM_Parameters) for details.",
       "section": "Additional Fields"
     },
     {
@@ -115,6 +116,7 @@ export const post_rsasignaturesEndpoint: ApiEndpoint = {
       "label": "Method",
       "type": "string",
       "required": true,
+      "description": "The type of the request. Set it to POST.",
       "section": "Additional Fields"
     },
     {
@@ -122,6 +124,7 @@ export const post_rsasignaturesEndpoint: ApiEndpoint = {
       "label": "Page Id",
       "type": "string",
       "required": true,
+      "description": "The page id of your Payment Pages 2.0 form. Click **Show Page Id** next to the Payment Page name in the Hosted Page List to retrieve the page id.",
       "section": "Additional Fields"
     },
     {
@@ -199,6 +202,7 @@ export const post_rsasignaturesEndpoint: ApiEndpoint = {
       "label": "Uri",
       "type": "string",
       "required": true,
+      "description": "The URL that the Payment Page will be served from. * For US Cloud 1 Production environment: Use https://na.zuora.com/apps/PublicHostedPageLite.do * For US Cloud 1 Sandbox environment: Use https://sandbox.na.zuora.com/apps/PublicHostedPageLite.do * For US Cloud 2 Production environment: Use https://www.zuora.com/apps/PublicHostedPageLite.do * For US Cloud 2 API Sandbox environment: Use https://apisandbox.zuora.com/apps/PublicHostedPageLite.do * For US Central Sandbox environment: Use https://test.zuora.com/apps/PublicHostedPageLite.do * For EU Cloud Production environment: Use https://eu.zuora.com/apps/PublicHostedPageLite.do * For EU Cloud Sandbox environment: Use https://sandbox.eu.zuora.com/apps/PublicHostedPageLite.do * For EU Central Sandbox environment: Use https://test.eu.zuora.com/apps/PublicHostedPageLite.do",
       "section": "Additional Fields"
     },
     {
@@ -213,6 +217,7 @@ export const post_rsasignaturesEndpoint: ApiEndpoint = {
       "label": "Account Id",
       "type": "string",
       "required": false,
+      "description": "An optional client parameter that can be used for validating client-side HPM parameters. See [Client parameters for Payment Pages 2.0](https://knowledgecenter.zuora.com/Billing/Billing_and_Payments/LA_Hosted_Payment_Pages/B_Payment_Pages_2.0/J_Client_Parameters_for_Payment_Pages_2.0) and [Validate client-side HPM parameters](https://knowledgecenter.zuora.com/Billing/Billing_and_Payments/LA_Hosted_Payment_Pages/B_Payment_Pages_2.0/F_Generate_the_Digital_Signature_for_Payment_Pages_2.0#Validate_Client-side_HPM_Parameters) for details.",
       "section": "Account Settings"
     },
     {

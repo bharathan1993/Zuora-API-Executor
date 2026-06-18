@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_publishopenpaymentmethodtypeEndpoint: ApiEndpoint = {
   "id": "put-publishopenpaymentmethodtype",
   "name": "Publish a custom payment method type",
-  "description": "",
+  "description": "Publish the latest draft revision of a specific custom payment method type.",
   "method": "PUT",
   "path": "/open-payment-method-types/publish/{paymentMethodTypeName}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_publishopenpaymentmethodtypeEndpoint: ApiEndpoint = {
       "name": "paymentMethodTypeName",
       "label": "Payment Method Type Name",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The API name of the custom payment method type, such as `AmazonPay__c_12368`."
     }
   ],
   "bodyFields": [],

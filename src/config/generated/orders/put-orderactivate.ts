@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_orderactivateEndpoint: ApiEndpoint = {
   "id": "put-orderactivate",
   "name": "Activate an order",
-  "description": "",
+  "description": "**Note:** This operation is only available if you have the [Orders](https://knowledgecenter.zuora.com/BC_Subscription_Management/Orders/AA_Overview_of_Orders#Orders) feature enabled. If you are an existing Zuora Subscribe and Amend customer, we recommend you enable Orders Harmonization to access the Orders feature. With Orders, you can access both existing functions for subscription and billing management and the new features on Zuora Billing.",
   "method": "PUT",
   "path": "/v1/orders/{orderNumber}/activate",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_orderactivateEndpoint: ApiEndpoint = {
       "name": "orderNumber",
       "label": "Order Number",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Order number of a order in which you are to activate."
     }
   ],
   "bodyFields": [],

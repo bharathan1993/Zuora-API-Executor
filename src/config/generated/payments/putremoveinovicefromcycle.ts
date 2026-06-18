@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const putremoveinovicefromcycleEndpoint: ApiEndpoint = {
   "id": "putremoveinovicefromcycle",
   "name": "Remove an invoice from retry cycle",
-  "description": "",
+  "description": "Stops any active retry cycles associated with the invoice provided.",
   "method": "PUT",
   "path": "/api/v1/payments/remove_invoice_from_retry_cycle/{invoice_id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const putremoveinovicefromcycleEndpoint: ApiEndpoint = {
       "name": "invoice_id",
       "label": "Invoice Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "ID of an invoice."
     }
   ],
   "bodyFields": [],

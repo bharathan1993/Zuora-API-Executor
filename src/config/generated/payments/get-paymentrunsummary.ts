@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_paymentrunsummaryEndpoint: ApiEndpoint = {
   "id": "get-paymentrunsummary",
   "name": "Retrieve a payment run summary",
-  "description": "",
+  "description": "Retrives the summary of a payment run.",
   "method": "GET",
   "path": "/v1/payment-runs/{paymentRunKey}/summary",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_paymentrunsummaryEndpoint: ApiEndpoint = {
       "name": "paymentRunKey",
       "label": "Payment Run Key",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique ID of a payment run or the payment run number. For example, 402890245f097f39015f0f074a2e0566."
     }
   ],
   "bodyFields": [],

@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const querylegacyproductsEndpoint: ApiEndpoint = {
   "id": "querylegacyproducts",
   "name": "Query legacy products from the Product Catalog",
-  "description": "",
+  "description": "This operation is functionally equivalent to the \"Query products from the Product Catalog\" operation, except that it returns results",
   "method": "POST",
   "path": "/commerce/legacy/products/list",
   "baseUrl": "https://rest.test.zuora.com",
@@ -17,6 +17,7 @@ export const querylegacyproductsEndpoint: ApiEndpoint = {
       "label": "Filters",
       "type": "array",
       "required": false,
+      "description": "Filter conditions for querying legacy products. Each filter defines a field, an operator, and a value to match against. Common filter fields include `id`, `name`, `product_number`, or `category`.",
       "itemType": "object",
       "itemFields": [
         {
@@ -24,6 +25,7 @@ export const querylegacyproductsEndpoint: ApiEndpoint = {
           "label": "Field",
           "type": "string",
           "required": true,
+          "description": "Field name to filter by.",
           "enum": [
             "id",
             "name",
@@ -37,6 +39,7 @@ export const querylegacyproductsEndpoint: ApiEndpoint = {
           "label": "Operator",
           "type": "string",
           "required": true,
+          "description": "Comparison operator for the filter condition. Supported values: - `EQ` (equals) - `NE` (not equals) - `LT` (less than) - `GT` (greater than) - `SW` (starts with) - `EW` (ends with) - `IN` (in list of values) - `LIKE` (partial match)",
           "enum": [
             "EQ",
             "NE",
@@ -54,6 +57,7 @@ export const querylegacyproductsEndpoint: ApiEndpoint = {
           "label": "Value",
           "type": "string",
           "required": true,
+          "description": "Value to match for the specified field. The data type depends on the field being filtered.",
           "section": "Additional Fields"
         }
       ],
@@ -64,12 +68,14 @@ export const querylegacyproductsEndpoint: ApiEndpoint = {
       "label": "Expand",
       "type": "object",
       "required": false,
+      "description": "Defines whether to include related entities such as Product Rate Plans (PRPs) and Product Rate Plan Charges (PRPCs) in the response. Each key corresponds to an entity type that can be expanded.",
       "fields": [
         {
           "name": "product_rate_plans",
           "label": "Product Rate Plans",
           "type": "boolean",
           "required": false,
+          "description": "When true, includes Product Rate Plans (PRPs) under each product.",
           "section": "Additional Fields"
         },
         {
@@ -77,6 +83,7 @@ export const querylegacyproductsEndpoint: ApiEndpoint = {
           "label": "Product Rate Plan Charges",
           "type": "boolean",
           "required": false,
+          "description": "When true, includes Product Rate Plan Charges (PRPCs) for each rate plan.",
           "section": "Additional Fields"
         }
       ],

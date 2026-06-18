@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_contactEndpoint: ApiEndpoint = {
   "id": "get-contact",
   "name": "Retrieve a contact",
-  "description": "",
+  "description": "Retrieves detailed information about a specific contact.",
   "method": "GET",
   "path": "/v1/contacts/{contactId}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_contactEndpoint: ApiEndpoint = {
       "name": "contactId",
       "label": "Contact Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The ID of the contact that you want to retrieve."
     }
   ],
   "bodyFields": [],

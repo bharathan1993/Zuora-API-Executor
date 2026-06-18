@@ -16,7 +16,8 @@ export const put_summaryjournalentryEndpoint: ApiEndpoint = {
       "name": "je-number",
       "label": "Je Number",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Journal entry number in the format JE-00000001."
     }
   ],
   "bodyFields": [],

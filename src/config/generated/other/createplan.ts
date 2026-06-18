@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const createplanEndpoint: ApiEndpoint = {
   "id": "createplan",
   "name": "Create a product rate plan",
-  "description": "",
+  "description": "Create a product rate plan (Plan) under an existing product.",
   "method": "POST",
   "path": "/commerce/plans",
   "baseUrl": "https://rest.test.zuora.com",
@@ -17,6 +17,7 @@ export const createplanEndpoint: ApiEndpoint = {
       "label": "Product Key",
       "type": "string",
       "required": true,
+      "description": "The unique identifier of the product under which the plan is created.",
       "section": "Additional Fields"
     },
     {
@@ -24,6 +25,7 @@ export const createplanEndpoint: ApiEndpoint = {
       "label": "Start Date",
       "type": "date",
       "required": true,
+      "description": "Plan effective start date (UTC, YYYY-MM-DD).",
       "section": "Additional Fields"
     },
     {
@@ -31,6 +33,7 @@ export const createplanEndpoint: ApiEndpoint = {
       "label": "End Date",
       "type": "date",
       "required": true,
+      "description": "Plan effective end date (UTC, YYYY-MM-DD).",
       "section": "Additional Fields"
     },
     {
@@ -38,6 +41,7 @@ export const createplanEndpoint: ApiEndpoint = {
       "label": "Active Currencies",
       "type": "array",
       "required": true,
+      "description": "ISO currency codes enabled for this plan.",
       "itemType": "string",
       "section": "Additional Fields"
     },
@@ -46,6 +50,7 @@ export const createplanEndpoint: ApiEndpoint = {
       "label": "Charges",
       "type": "array",
       "required": true,
+      "description": "The list of product rate plan charges to create under the plan.",
       "itemType": "object",
       "itemFields": [
         {
@@ -53,6 +58,7 @@ export const createplanEndpoint: ApiEndpoint = {
           "label": "Name",
           "type": "string",
           "required": true,
+          "description": "The name of the charge.",
           "section": "Account Settings"
         },
         {
@@ -60,6 +66,7 @@ export const createplanEndpoint: ApiEndpoint = {
           "label": "Charge Model",
           "type": "string",
           "required": true,
+          "description": "Charge model that defines how pricing is calculated.",
           "enum": [
             "flat_fee",
             "per_unit",
@@ -86,6 +93,7 @@ export const createplanEndpoint: ApiEndpoint = {
           "label": "Charge Type",
           "type": "string",
           "required": true,
+          "description": "Charge type (recurring, usage, or one-time).",
           "enum": [
             "one_time",
             "recurring",
@@ -98,6 +106,7 @@ export const createplanEndpoint: ApiEndpoint = {
           "label": "Unit Of Measure",
           "type": "string",
           "required": false,
+          "description": "Unit of measure for per-unit or usage charges.",
           "section": "Additional Fields"
         },
         {
@@ -105,6 +114,7 @@ export const createplanEndpoint: ApiEndpoint = {
           "label": "List Price Base",
           "type": "string",
           "required": false,
+          "description": "Optional list price base, if supported by the charge model.",
           "enum": [
             "Per_Billing_Period",
             "Per_Month",
@@ -120,6 +130,7 @@ export const createplanEndpoint: ApiEndpoint = {
           "label": "Specific List Price Base",
           "type": "number",
           "required": false,
+          "description": "Optional specific value used when `list_price_base` requires an explicit quantity (for example, number of months for `Per_Specific_Months`).",
           "section": "Additional Fields"
         },
         {
@@ -127,12 +138,14 @@ export const createplanEndpoint: ApiEndpoint = {
           "label": "Pricing",
           "type": "object",
           "required": true,
+          "description": "Defines the pricing for the charge. Provide exactly one structure per charge model.",
           "fields": [
             {
               "name": "flat_amounts",
               "label": "Flat Amounts",
               "type": "object",
               "required": true,
+              "description": "Map of currency to flat amount.",
               "section": "Additional Fields"
             },
             {
@@ -140,6 +153,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Unit Amounts",
               "type": "object",
               "required": true,
+              "description": "Map of currency to per-unit price.",
               "section": "Additional Fields"
             },
             {
@@ -147,6 +161,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Tiers",
               "type": "array",
               "required": true,
+              "description": "Tier definitions with optional min/max caps.",
               "itemType": "object",
               "itemFields": [
                 {
@@ -154,6 +169,7 @@ export const createplanEndpoint: ApiEndpoint = {
                   "label": "Tier",
                   "type": "string",
                   "required": true,
+                  "description": "Tier identifier.",
                   "section": "Additional Fields"
                 },
                 {
@@ -161,6 +177,7 @@ export const createplanEndpoint: ApiEndpoint = {
                   "label": "From",
                   "type": "number",
                   "required": true,
+                  "description": "Lower bound (inclusive).",
                   "section": "Additional Fields"
                 },
                 {
@@ -168,6 +185,7 @@ export const createplanEndpoint: ApiEndpoint = {
                   "label": "Up To",
                   "type": "number",
                   "required": false,
+                  "description": "Upper bound (inclusive). Null for open-ended last tier.",
                   "section": "Additional Fields"
                 },
                 {
@@ -175,6 +193,7 @@ export const createplanEndpoint: ApiEndpoint = {
                   "label": "Price Format",
                   "type": "string",
                   "required": true,
+                  "description": "Price format identifier used for the tier.",
                   "enum": [
                     "price_format_flat_fee",
                     "price_format_per_unit"
@@ -186,6 +205,7 @@ export const createplanEndpoint: ApiEndpoint = {
                   "label": "Unit Amounts",
                   "type": "object",
                   "required": false,
+                  "description": "Per-unit price by currency for this tier.",
                   "section": "Additional Fields"
                 },
                 {
@@ -193,6 +213,7 @@ export const createplanEndpoint: ApiEndpoint = {
                   "label": "Flat Amounts",
                   "type": "object",
                   "required": false,
+                  "description": "Flat amount by currency for this tier (if applicable).",
                   "section": "Additional Fields"
                 },
                 {
@@ -200,6 +221,7 @@ export const createplanEndpoint: ApiEndpoint = {
                   "label": "Min Amounts",
                   "type": "object",
                   "required": false,
+                  "description": "Minimum billed amount by currency for this tier.",
                   "section": "Additional Fields"
                 },
                 {
@@ -207,6 +229,7 @@ export const createplanEndpoint: ApiEndpoint = {
                   "label": "Max Amounts",
                   "type": "object",
                   "required": false,
+                  "description": "Maximum billed amount by currency for this tier.",
                   "section": "Additional Fields"
                 }
               ],
@@ -217,6 +240,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Discount Amounts",
               "type": "object",
               "required": true,
+              "description": "Map of currency to discount amount.",
               "section": "Additional Fields"
             },
             {
@@ -224,6 +248,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Discount Percentage",
               "type": "number",
               "required": true,
+              "description": "Discount percentage (e.g., 15 for 15%).",
               "section": "Additional Fields"
             }
           ],
@@ -234,12 +259,14 @@ export const createplanEndpoint: ApiEndpoint = {
           "label": "Bill Cycle",
           "type": "object",
           "required": true,
+          "description": "Defines how billing occurs for this charge.",
           "fields": [
             {
               "name": "type",
               "label": "Type",
               "type": "string",
               "required": true,
+              "description": "Determines how the billing day is selected for this charge.",
               "enum": [
                 "default_from_customer",
                 "specific_day_of_month",
@@ -256,6 +283,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Day Of Month",
               "type": "number",
               "required": false,
+              "description": "Required \"when type is specific_day_of_month\".",
               "section": "Additional Fields"
             },
             {
@@ -263,6 +291,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Day Of Week",
               "type": "string",
               "required": false,
+              "description": "Used \"when type is specific_day_of_week\".",
               "enum": [
                 "sunday",
                 "monday",
@@ -279,6 +308,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Period",
               "type": "string",
               "required": true,
+              "description": "Billing period length.",
               "enum": [
                 "bill_cycle_period_month",
                 "bill_cycle_period_quarter",
@@ -301,6 +331,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Period Alignment",
               "type": "string",
               "required": true,
+              "description": "How the billing period start aligns.",
               "enum": [
                 "align_to_charge",
                 "align_to_subscription_start",
@@ -314,6 +345,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Timing",
               "type": "string",
               "required": false,
+              "description": "When the charge is billed relative to the service period.",
               "enum": [
                 "in_advance",
                 "in_arrears"
@@ -328,6 +360,7 @@ export const createplanEndpoint: ApiEndpoint = {
           "label": "End Date Condition",
           "type": "string",
           "required": true,
+          "description": "Defines when the charge ends.",
           "enum": [
             "subscription_end",
             "end_date_one_time",
@@ -341,6 +374,7 @@ export const createplanEndpoint: ApiEndpoint = {
           "label": "Up To Periods Type",
           "type": "string",
           "required": false,
+          "description": "Granularity used with `end_date_condition = fixed_period` to express how long the charge remains active. When `end_date_condition = subscription_end`, this field is ignored.",
           "enum": [
             "billing_periods",
             "days",
@@ -355,6 +389,7 @@ export const createplanEndpoint: ApiEndpoint = {
           "label": "Up To Periods",
           "type": "number",
           "required": false,
+          "description": "Number of periods used with `end_date_condition = fixed_period`. Combined with `up_to_periods_type` to determine the fixed duration of the charge. Ignored when `end_date_condition = subscription_end`.",
           "section": "Additional Fields"
         },
         {
@@ -362,6 +397,7 @@ export const createplanEndpoint: ApiEndpoint = {
           "label": "Trigger Event",
           "type": "string",
           "required": true,
+          "description": "Event that triggers the charge.",
           "enum": [
             "contract_effective",
             "service_activation",
@@ -375,12 +411,14 @@ export const createplanEndpoint: ApiEndpoint = {
           "label": "Accounting",
           "type": "object",
           "required": false,
+          "description": "Accounting fields accepted on create/update requests. Field names use snake_case. **Conditional requirement rules** - If **Allow blank Accounting Codes** = **Yes** → Accounting fields are **optional**. - If **Allow blank Accounting Codes** = **No** and the tenant **has Zuora Revenue** → **all Accounting fields except `accounting_code` are required**. - If **Allow blank Accounting Codes** = **No** and the tenant **does NOT have Zuora Revenue** → only `recognized_revenue_account` and `deferred_revenue_account` are required. These rules apply to **all operations that accept `accounting`** in the payload.",
           "fields": [
             {
               "name": "accounting_code",
               "label": "Accounting Code",
               "type": "string",
               "required": false,
+              "description": "An accounting code associated with the charge for reporting/ERP mapping. Typically a short code or identifier, not the GL account name.",
               "section": "Account Settings"
             },
             {
@@ -388,6 +426,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Accounts Receivable Account",
               "type": "string",
               "required": false,
+              "description": "Accounts Receivable (AR) account to book invoices for this charge. Must match an existing account in the tenant's chart of accounts.",
               "section": "Account Settings"
             },
             {
@@ -395,6 +434,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Accounts Receivable Account Type",
               "type": "string",
               "required": false,
+              "description": "The account type associated with `accounts_receivable_account`. Maps to the `accountsReceivableAccountType` field in the accounting object.",
               "section": "Account Settings"
             },
             {
@@ -402,6 +442,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Deferred Revenue Account",
               "type": "string",
               "required": false,
+              "description": "Deferred revenue (liability) account to book revenue before recognition. Must match an existing account in the tenant's chart of accounts.",
               "section": "Account Settings"
             },
             {
@@ -409,6 +450,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Deferred Revenue Accounting Type",
               "type": "string",
               "required": false,
+              "description": "Accounting method/type applied to deferred revenue. Maps to the `deferredRevenueAccountingType` field in the accounting object.",
               "section": "Account Settings"
             },
             {
@@ -416,6 +458,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Recognized Revenue Account",
               "type": "string",
               "required": false,
+              "description": "The name of the account where the Account Type is \"Recognized Revenue\".",
               "maxLength": 100,
               "section": "Account Settings"
             },
@@ -424,6 +467,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Recognized Revenue Account Type",
               "type": "string",
               "required": false,
+              "description": "The account type associated with `recognized_revenue_account`. Maps to the `recognizedRevenueAccountType` field in the accounting object.",
               "section": "Account Settings"
             },
             {
@@ -431,6 +475,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Adjustment Liability Account",
               "type": "string",
               "required": false,
+              "description": "The name of the account where the Account Type is \"Adjustment Liability\".",
               "maxLength": 100,
               "section": "Account Settings"
             },
@@ -439,6 +484,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Adjustment Liability Account Type",
               "type": "string",
               "required": false,
+              "description": "The account type associated with `adjustment_liability_account`. Maps to the `adjustmentLiabilityAccountType` field in the accounting object.",
               "section": "Account Settings"
             },
             {
@@ -446,6 +492,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Adjustment Revenue Account",
               "type": "string",
               "required": false,
+              "description": "The name of the account where the Account Type is \"Adjustment Revenue\".",
               "maxLength": 100,
               "section": "Account Settings"
             },
@@ -454,6 +501,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Adjustment Revenue Account Type",
               "type": "string",
               "required": false,
+              "description": "The account type associated with `adjustment_revenue_account`. Maps to the `adjustmentRevenueAccountType` field in the accounting object.",
               "section": "Account Settings"
             },
             {
@@ -461,6 +509,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Contract Asset Account",
               "type": "string",
               "required": false,
+              "description": "The name of the account where the Account Type is \"Contract Asset\".",
               "maxLength": 100,
               "section": "Account Settings"
             },
@@ -469,6 +518,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Contract Asset Account Type",
               "type": "string",
               "required": false,
+              "description": "The account type associated with `contract_asset_account`. Maps to the `contractAssetAccountType` field in the accounting object.",
               "section": "Account Settings"
             },
             {
@@ -476,6 +526,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Contract Liability Account",
               "type": "string",
               "required": false,
+              "description": "The name of the account where the Account Type is \"Contract Liability\".",
               "maxLength": 100,
               "section": "Account Settings"
             },
@@ -484,6 +535,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Contract Liability Account Type",
               "type": "string",
               "required": false,
+              "description": "The account type associated with `contract_liability_account`. Maps to the `contractLiabilityAccountType` field in the accounting object.",
               "section": "Account Settings"
             },
             {
@@ -491,6 +543,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Contract Recognized Revenue Account",
               "type": "string",
               "required": false,
+              "description": "Recognized revenue account used specifically for contract-based recognition flows. Must match an existing account in the tenant's chart of accounts.",
               "section": "Account Settings"
             },
             {
@@ -498,6 +551,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Contract Recognized Revenue Account Type",
               "type": "string",
               "required": false,
+              "description": "The account type associated with `contract_recognized_revenue_account`. Maps to the `contractRecognizedRevenueAccountType` field in the accounting object.",
               "section": "Account Settings"
             },
             {
@@ -505,6 +559,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Unbilled Receivables Account",
               "type": "string",
               "required": false,
+              "description": "The name of the account where the Account Type is \"Unbilled Receivables\".",
               "maxLength": 100,
               "section": "Account Settings"
             },
@@ -513,6 +568,7 @@ export const createplanEndpoint: ApiEndpoint = {
               "label": "Unbilled Receivables Account Type",
               "type": "string",
               "required": false,
+              "description": "The account type associated with `unbilled_receivables_account`. Maps to the `unbilledReceivablesAccountType` field in the accounting object.",
               "section": "Account Settings"
             }
           ],
@@ -526,6 +582,7 @@ export const createplanEndpoint: ApiEndpoint = {
       "label": "Name",
       "type": "string",
       "required": true,
+      "description": "The name of the rate plan.",
       "section": "Account Settings"
     }
   ],

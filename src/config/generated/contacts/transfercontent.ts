@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const transfercontentEndpoint: ApiEndpoint = {
   "id": "transfercontent",
   "name": "Transfer a contact",
-  "description": "",
+  "description": "This operation transfers contacts of the accounts within the Customer Hierarchy when removing the account.",
   "method": "PUT",
   "path": "/v1/contacts/{contactId}/transfer",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const transfercontentEndpoint: ApiEndpoint = {
       "name": "contactId",
       "label": "Contact Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The ID of the contact that you want to scrub sensitive data from."
     }
   ],
   "bodyFields": [
@@ -25,6 +26,7 @@ export const transfercontentEndpoint: ApiEndpoint = {
       "label": "Destination Account Key",
       "type": "string",
       "required": false,
+      "description": "The ID or number of the destination account.",
       "section": "Account Settings"
     }
   ],

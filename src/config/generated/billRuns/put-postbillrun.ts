@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_postbillrunEndpoint: ApiEndpoint = {
   "id": "put-postbillrun",
   "name": "Post a bill run",
-  "description": "",
+  "description": "Posts a bill run asynchronously. To post a bill run, the current bill run must be in `Completed` status.",
   "method": "PUT",
   "path": "/v1/bill-runs/{billRunId}/post",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_postbillrunEndpoint: ApiEndpoint = {
       "name": "billRunId",
       "label": "Bill Run Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique ID of a bill run."
     }
   ],
   "bodyFields": [
@@ -25,6 +26,7 @@ export const put_postbillrunEndpoint: ApiEndpoint = {
       "label": "Invoice Date",
       "type": "date",
       "required": true,
+      "description": "The date that appears on the invoice being created, in `yyyy-mm-dd` format. The value cannot fall in a closed accounting period.",
       "section": "Invoice & Document Settings"
     }
   ],

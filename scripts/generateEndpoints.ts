@@ -198,6 +198,17 @@ async function main() {
   console.log('⚙️  Parsing endpoints...');
   const endpoints = parser.parseAllEndpoints();
 
+  const detailedSpecPath = path.join(__dirname, '..', 'zuora_openapi_otc.yaml');
+  if (fs.existsSync(detailedSpecPath)) {
+    console.log('📝 Enriching field descriptions from detailed OTC spec...');
+    const detailedParser = new OpenAPIParser();
+    detailedParser.loadSpec(detailedSpecPath);
+    const enrichedCount = parser.enrichEndpointsWithDescriptions(endpoints, detailedParser);
+    console.log(`✅ Enriched descriptions for ${enrichedCount} endpoints\n`);
+  } else {
+    console.log('ℹ️  Skipping description enrichment (zuora_openapi_otc.yaml not found)\n');
+  }
+
   console.log(`✅ Parsed ${endpoints.length} endpoints\n`);
 
   // Categorize endpoints

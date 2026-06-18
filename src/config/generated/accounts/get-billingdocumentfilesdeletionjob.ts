@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_billingdocumentfilesdeletionjobEndpoint: ApiEndpoint = {
   "id": "get-billingdocumentfilesdeletionjob",
   "name": "Retrieve a job of hard deleting billing document files",
-  "description": "",
+  "description": "Retrieves information about an asynchronous job of permanently deleting all billing document PDF files for specific accounts.",
   "method": "GET",
   "path": "/v1/accounts/billing-documents/files/deletion-jobs/{jobId}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_billingdocumentfilesdeletionjobEndpoint: ApiEndpoint = {
       "name": "jobId",
       "label": "Job Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique ID of a billing document file deletion job. For example, 2c92c8f83dc4f752013dc72c24ee016c."
     }
   ],
   "bodyFields": [],

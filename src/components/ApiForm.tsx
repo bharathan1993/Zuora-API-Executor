@@ -18,6 +18,7 @@ interface ApiFormProps {
   onHeadersChange?: (headers?: Record<string, string>) => void;
   onPathParamsChange?: (pathParams?: Record<string, any>) => void;
   onQueryParamsChange?: (queryParams?: Record<string, any>) => void;
+  onJsonModeChange?: (isJsonMode: boolean) => void;
   prefillData?: Record<string, any>;
   prefillQueryParams?: Record<string, any>;
   prefillHeaders?: Record<string, string>;
@@ -29,6 +30,178 @@ type HeaderRow = {
   id: string;
   key: string;
   value: string;
+};
+
+type FieldReferenceEntry = FieldDefinition & {
+  path: string;
+};
+
+type PathSegment = {
+  key: string;
+  isArray: boolean;
+};
+
+const pathToSegments = (path: string): PathSegment[] =>
+  path.split('.').map((part) => {
+    if (part.endsWith('[]')) {
+      return { key: part.slice(0, -2), isArray: true };
+    }
+    return { key: part, isArray: false };
+  });
+
+const flattenBodyFieldsForReference = (
+  fields: FieldDefinition[],
+  prefix = '',
+): FieldReferenceEntry[] => {
+  const entries: FieldReferenceEntry[] = [];
+
+  for (const field of fields) {
+    const path = prefix ? `${prefix}.${field.name}` : field.name;
+
+    if (field.type === 'object' && field.fields?.length) {
+      entries.push({ ...field, path });
+      entries.push(...flattenBodyFieldsForReference(field.fields, path));
+      continue;
+    }
+
+    if (field.type === 'array') {
+      const arrayPath = `${path}[]`;
+      entries.push({ ...field, path: arrayPath });
+      if (field.itemFields?.length) {
+        entries.push(...flattenBodyFieldsForReference(field.itemFields, arrayPath));
+      }
+      continue;
+    }
+
+    entries.push({ ...field, path });
+  }
+
+  return entries;
+};
+
+const deepMergePayload = (
+  target: Record<string, any>,
+  source: Record<string, any>,
+): Record<string, any> => {
+  const result = { ...target };
+
+  for (const key of Object.keys(source)) {
+    const sourceValue = source[key];
+    const targetValue = result[key];
+
+    if (
+      sourceValue !== null &&
+      typeof sourceValue === 'object' &&
+      !Array.isArray(sourceValue) &&
+      targetValue !== null &&
+      typeof targetValue === 'object' &&
+      !Array.isArray(targetValue)
+    ) {
+      result[key] = deepMergePayload(targetValue, sourceValue);
+      continue;
+    }
+
+    if (
+      Array.isArray(sourceValue) &&
+      Array.isArray(targetValue) &&
+      sourceValue.length > 0 &&
+      targetValue.length > 0 &&
+      typeof sourceValue[0] === 'object' &&
+      sourceValue[0] !== null &&
+      !Array.isArray(sourceValue[0]) &&
+      typeof targetValue[0] === 'object' &&
+      targetValue[0] !== null &&
+      !Array.isArray(targetValue[0])
+    ) {
+      result[key] = [
+        deepMergePayload(targetValue[0], sourceValue[0]),
+        ...targetValue.slice(1),
+      ];
+      continue;
+    }
+
+    result[key] = sourceValue;
+  }
+
+  return result;
+};
+
+const buildJsonFragmentForPath = (
+  path: string,
+  getPlaceholder: (field: FieldDefinition) => any,
+  field: FieldDefinition,
+): Record<string, any> => {
+  const segments = pathToSegments(path);
+  let value = getPlaceholder(field);
+
+  for (let index = segments.length - 1; index >= 0; index -= 1) {
+    const segment = segments[index];
+    value = segment.isArray
+      ? { [segment.key]: Array.isArray(value) ? value : [value] }
+      : { [segment.key]: value };
+  }
+
+  return value;
+};
+
+const placeCursorInJson = (
+  textarea: HTMLTextAreaElement | null,
+  path: string,
+  field: FieldDefinition,
+) => {
+  if (!textarea) return;
+
+  const text = textarea.value;
+  const segments = pathToSegments(path);
+  const keysToTry = [
+    segments[segments.length - 1]?.key,
+    ...segments.map((segment) => segment.key),
+  ].filter((key): key is string => Boolean(key));
+
+  let valueStart = -1;
+
+  for (const key of keysToTry) {
+    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const matches = [...text.matchAll(new RegExp(`"${escapedKey}"\\s*:\\s*`, 'g'))];
+    const lastMatch = matches[matches.length - 1];
+
+    if (lastMatch?.index !== undefined) {
+      valueStart = lastMatch.index + lastMatch[0].length;
+      break;
+    }
+  }
+
+  if (valueStart < 0) {
+    textarea.focus();
+    return;
+  }
+
+  const remainder = text.slice(valueStart);
+  let cursor = valueStart;
+
+  if (field.type === 'object' || remainder.startsWith('{')) {
+    const nextLine = remainder.indexOf('\n');
+    cursor = nextLine >= 0 ? valueStart + nextLine + 1 : valueStart + 1;
+  } else if (field.type === 'array' || remainder.startsWith('[')) {
+    if (remainder.startsWith('[]')) {
+      cursor = valueStart + 1;
+    } else if (remainder.startsWith('[\n')) {
+      const objectBrace = remainder.indexOf('{');
+      if (objectBrace >= 0) {
+        const nextLine = remainder.indexOf('\n', objectBrace);
+        cursor = valueStart + (nextLine >= 0 ? nextLine + 1 : objectBrace + 1);
+      } else {
+        cursor = valueStart + 1;
+      }
+    } else {
+      cursor = valueStart + 1;
+    }
+  } else if (remainder.startsWith('"')) {
+    cursor = valueStart + 1;
+  }
+
+  textarea.focus();
+  textarea.setSelectionRange(cursor, cursor);
 };
 
 const createHeaderRow = (): HeaderRow => ({
@@ -53,6 +226,7 @@ export const ApiForm = ({
   onHeadersChange,
   onPathParamsChange,
   onQueryParamsChange,
+  onJsonModeChange,
   prefillData,
   prefillQueryParams,
   prefillHeaders,
@@ -68,13 +242,15 @@ export const ApiForm = ({
   const [jsonMode, setJsonMode] = useState(false);
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState('');
-  const [fieldRefOpen, setFieldRefOpen] = useState(false);
-  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [fieldRefOpen, setFieldRefOpen] = useState(true);
+  const [fieldRefSearch, setFieldRefSearch] = useState('');
+  const [insertedFieldPath, setInsertedFieldPath] = useState<string | null>(null);
   const [fieldSearch, setFieldSearch] = useState('');
-  const [fieldFilter, setFieldFilter] = useState<'all' | 'required' | 'common' | 'filled' | 'issues'>('all');
+  const [fieldFilter, setFieldFilter] = useState<'all' | 'required' | 'filled' | 'issues'>('all');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const touchedFieldsRef = useRef<Set<string>>(new Set());
   const jsonDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const jsonTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Group fields by section
   const groupedFields = useMemo(() => {
@@ -115,9 +291,9 @@ export const ApiForm = ({
       if (field.section) {
         // Default collapse 'Additional Fields', expand others by default
         if (field.section === 'Additional Fields') {
-           initExpanded[field.section] = false;
+          initExpanded[field.section] = false;
         } else {
-           initExpanded[field.section] = true; // Or use false if you prefer default collapsed
+          initExpanded[field.section] = true; // Or use false if you prefer default collapsed
         }
       }
     });
@@ -133,9 +309,9 @@ export const ApiForm = ({
 
     // Ensure all sections are initialized
     Object.keys(groupedFields.sections).forEach(section => {
-        if (expandedSections[section] === undefined) {
-             initExpanded[section] = section !== 'Additional Fields';
-        }
+      if (expandedSections[section] === undefined) {
+        initExpanded[section] = section !== 'Additional Fields';
+      }
     });
 
     setFormData(initData);
@@ -147,6 +323,7 @@ export const ApiForm = ({
     setJsonMode(false);
     setJsonText('');
     setJsonError('');
+    onJsonModeChange?.(false);
     setFieldRefOpen(false);
     setFieldSearch('');
     setFieldFilter('all');
@@ -426,11 +603,11 @@ export const ApiForm = ({
   const getFieldPlaceholder = (field: FieldDefinition): any => {
     if (field.defaultValue !== undefined) return field.defaultValue;
     switch (field.type) {
-      case 'string':   return field.enum ? field.enum[0] : (field.placeholder ?? '');
-      case 'number':   return 0;
-      case 'boolean':  return false;
-      case 'date':     return 'YYYY-MM-DD';
-      case 'email':    return 'user@example.com';
+      case 'string': return field.enum ? field.enum[0] : (field.placeholder ?? '');
+      case 'number': return 0;
+      case 'boolean': return false;
+      case 'date': return 'YYYY-MM-DD';
+      case 'email': return 'user@example.com';
       case 'textarea': return '';
       case 'array':
         if (field.itemFields?.length) {
@@ -495,7 +672,9 @@ export const ApiForm = ({
       setJsonText('{}');
     }
     setJsonError('');
+    setFieldRefOpen(true);
     setJsonMode(true);
+    onJsonModeChange?.(true);
   };
 
   const switchToUiMode = () => {
@@ -503,6 +682,8 @@ export const ApiForm = ({
     applyJsonToForm(jsonText);
     setJsonMode(false);
     setJsonError('');
+    setFieldRefSearch('');
+    onJsonModeChange?.(false);
   };
 
   const handleJsonChange = (text: string) => {
@@ -695,59 +876,102 @@ export const ApiForm = ({
     return `${baseUrl}${finalPath}${query ? `?${query}` : ''}`;
   };
 
-  const isCommonField = (field: FieldDefinition) => {
-    const haystack = `${field.name} ${field.label || ''} ${field.description || ''}`.toLowerCase();
-    return ['account', 'subscription', 'invoice', 'payment', 'date', 'status', 'number', 'id', 'page', 'cursor', 'filter'].some((term) => haystack.includes(term));
-  };
-
   const filterFields = (fields: FieldDefinition[]) => {
     const query = fieldSearch.trim().toLowerCase();
     return fields.filter((field) => {
       const matchesSearch = !query || `${field.name} ${field.label || ''} ${field.description || ''}`.toLowerCase().includes(query);
       if (!matchesSearch) return false;
       if (fieldFilter === 'required') return field.required;
-      if (fieldFilter === 'common') return isCommonField(field);
       if (fieldFilter === 'filled') return hasValue(formData[field.name]);
       if (fieldFilter === 'issues') return Boolean(validationErrors[`body:${field.name}`]);
       return true;
     });
   };
 
+  const fieldReferenceEntries = useMemo(
+    () => flattenBodyFieldsForReference(endpoint.bodyFields || []),
+    [endpoint.bodyFields],
+  );
+
+  const filteredFieldReferenceEntries = useMemo(() => {
+    const query = fieldRefSearch.trim().toLowerCase();
+    if (!query) return fieldReferenceEntries;
+
+    return fieldReferenceEntries.filter((field) =>
+      `${field.path} ${field.label || ''} ${field.description || ''}`.toLowerCase().includes(query),
+    );
+  }, [fieldReferenceEntries, fieldRefSearch]);
+
+  const insertFieldIntoJson = (field: FieldReferenceEntry) => {
+    const fragment = buildJsonFragmentForPath(field.path, getFieldPlaceholder, field);
+
+    let currentPayload: Record<string, any> = {};
+    if (jsonText.trim()) {
+      try {
+        const parsed = JSON.parse(jsonText);
+        if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+          currentPayload = parsed;
+        }
+      } catch {
+        setJsonError('Fix JSON syntax before inserting fields.');
+        return;
+      }
+    }
+
+    const mergedPayload = deepMergePayload(currentPayload, fragment);
+    const nextText = JSON.stringify(mergedPayload, null, 2);
+
+    if (jsonDebounceRef.current) clearTimeout(jsonDebounceRef.current);
+    setJsonText(nextText);
+    setJsonError('');
+    setFormData(mergedPayload);
+    touchedFieldsRef.current = new Set();
+    markTouchedFromObject(mergedPayload);
+    setInsertedFieldPath(field.path);
+    setTimeout(() => setInsertedFieldPath(null), 1500);
+
+    requestAnimationFrame(() => {
+      placeCursorInJson(jsonTextareaRef.current, field.path, field);
+    });
+  };
+
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm dark:shadow-xl dark:shadow-black/20 transition-colors duration-200">
-      <div className="mb-6">
-        <div className="flex flex-col gap-4 mb-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${
-                endpoint.method === 'POST' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20' :
+      {/* Sticky Header - positioned directly in the card so its sticky viewport spans the card's entire height */}
+      <div className="sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm z-10 -mx-6 px-6 py-4 border-b border-slate-200 dark:border-slate-800 rounded-t-xl transition-colors duration-200 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between -mt-6 mb-6">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${endpoint.method === 'POST' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20' :
                 endpoint.method === 'GET' ? 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-500/20' :
-                endpoint.method === 'PUT' ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20' :
-                endpoint.method === 'DELETE' ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-500/20' :
-                'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600'
+                  endpoint.method === 'PUT' ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20' :
+                    endpoint.method === 'DELETE' ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-500/20' :
+                      'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600'
               }`}>
-                {endpoint.method}
-              </span>
-              <h2 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">{endpoint.name}</h2>
-            </div>
-            <p className="text-slate-600 dark:text-slate-400 mb-3">{formatDescription(endpoint.description)}</p>
-            <code className="text-xs bg-slate-100 dark:bg-slate-950 text-slate-600 dark:text-slate-300 px-2 py-1 rounded border border-slate-200 dark:border-slate-800 font-mono break-all">
-              {endpoint.path}
-            </code>
+              {endpoint.method}
+            </span>
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">{endpoint.name}</h2>
           </div>
-          {showSubmit && (
-            <button
-              type="submit"
-              form={formId}
-              disabled={isLoading}
-              className={`bg-gradient-to-r from-zuora-600 to-zuora-600 text-white py-3 px-6 rounded-lg font-bold shadow-lg shadow-zuora-500/25 hover:shadow-zuora-500/40 hover:from-zuora-500 hover:to-zuora-500 focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900 transition-all transform active:scale-[0.99] ${
-                isLoading ? 'opacity-70 cursor-not-allowed' : ''
+        </div>
+        {showSubmit && (
+          <button
+            type="submit"
+            form={formId}
+            disabled={isLoading}
+            className={`bg-gradient-to-r from-zuora-600 to-zuora-600 text-white py-2.5 px-5 rounded-lg font-bold shadow-lg shadow-zuora-500/25 hover:shadow-zuora-500/40 hover:from-zuora-500 hover:to-zuora-500 focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900 transition-all transform active:scale-[0.99] ${isLoading ? 'opacity-70 cursor-not-allowed' : ''
               }`}
-            >
-              {isLoading ? 'Running...' : 'Run Request'}
-              {!isLoading && <span className="ml-2 text-xs font-medium opacity-80">⌘ Enter</span>}
-            </button>
-          )}
+          >
+            {isLoading ? 'Running...' : 'Run Request'}
+            {!isLoading && <span className="ml-2 text-xs font-medium opacity-80">⌘ Enter</span>}
+          </button>
+        )}
+      </div>
+
+      <div className="mb-6">
+        <div className="mb-4">
+          <p className="text-slate-600 dark:text-slate-400 mb-3">{formatDescription(endpoint.description)}</p>
+          <code className="text-xs bg-slate-100 dark:bg-slate-950 text-slate-600 dark:text-slate-300 px-2 py-1 rounded border border-slate-200 dark:border-slate-800 font-mono break-all">
+            {endpoint.path}
+          </code>
         </div>
 
         <div className="mb-4 grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -812,11 +1036,10 @@ export const ApiForm = ({
             <button
               type="button"
               onClick={() => setActiveTab('params')}
-              className={`pb-3 text-sm font-medium transition-colors border-b-2 ${
-                activeTab === 'params'
+              className={`pb-3 text-sm font-medium transition-colors border-b-2 ${activeTab === 'params'
                   ? 'border-zuora-600 dark:border-zuora-400 text-zuora-600 dark:text-zuora-400'
                   : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
+                }`}
             >
               Params
               {((endpoint.pathParams?.length || 0) + Object.keys(getCompactQueryParams()).length) > 0 && (
@@ -828,22 +1051,20 @@ export const ApiForm = ({
             <button
               type="button"
               onClick={() => setActiveTab('body')}
-              className={`pb-3 text-sm font-medium transition-colors border-b-2 ${
-                activeTab === 'body'
+              className={`pb-3 text-sm font-medium transition-colors border-b-2 ${activeTab === 'body'
                   ? 'border-zuora-600 dark:border-zuora-400 text-zuora-600 dark:text-zuora-400'
                   : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
+                }`}
             >
               Request Body
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('headers')}
-              className={`pb-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${
-                activeTab === 'headers'
+              className={`pb-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'headers'
                   ? 'border-zuora-600 dark:border-zuora-400 text-zuora-600 dark:text-zuora-400'
                   : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
+                }`}
             >
               Headers
               {customHeaders.some(h => h.key.trim() !== '') && (
@@ -858,11 +1079,10 @@ export const ApiForm = ({
               <button
                 type="button"
                 onClick={switchToUiMode}
-                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-all ${
-                  !jsonMode
+                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-all ${!jsonMode
                     ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                }`}
+                  }`}
               >
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h10M4 18h6" />
@@ -872,11 +1092,10 @@ export const ApiForm = ({
               <button
                 type="button"
                 onClick={switchToJsonMode}
-                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-all ${
-                  jsonMode
+                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-all ${jsonMode
                     ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                }`}
+                  }`}
               >
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
@@ -938,156 +1157,217 @@ export const ApiForm = ({
             </div>
           </div>
         </div>
-        
+
         {/* Body Tab */}
         <div className={activeTab === 'body' ? 'block' : 'hidden'}>
           {endpoint.bodyFields && endpoint.bodyFields.length > 0 ? (
             jsonMode ? (
               /* ── JSON editor mode ── */
-              <div className="space-y-3">
-                {/* Toolbar */}
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Edit the request payload as raw JSON. Changes sync to the form automatically.
-                  </p>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    {endpoint.exampleRequest && (
+              <div className="relative flex min-h-[28rem] rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-slate-950 shadow-inner xl:min-h-[36rem]">
+                {/* JSON editor */}
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <div className="flex items-center justify-between gap-3 border-b border-slate-800 bg-slate-900/80 px-4 py-3 backdrop-blur-sm">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-slate-300">Request JSON</p>
+                      <p className="text-[11px] text-slate-500 truncate">
+                        Edits sync to preview and UI fields automatically
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {endpoint.exampleRequest && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const text = JSON.stringify(endpoint.exampleRequest, null, 2);
+                            setJsonText(text);
+                            applyJsonToForm(JSON.stringify(endpoint.exampleRequest));
+                          }}
+                          className="rounded-md border border-slate-700 bg-slate-800/80 px-2.5 py-1 text-[11px] font-medium text-zuora-300 hover:border-zuora-500/40 hover:bg-zuora-500/10 transition-colors"
+                        >
+                          Example
+                        </button>
+                      )}
+                      {endpoint.bodyFields?.some((field) => field.required) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const minimumPayload = generateMinimumPayload(endpoint.bodyFields!);
+                            const text = JSON.stringify(minimumPayload, null, 2);
+                            setJsonText(text);
+                            applyJsonToForm(text);
+                          }}
+                          className="rounded-md border border-slate-700 bg-slate-800/80 px-2.5 py-1 text-[11px] font-medium text-emerald-300 hover:border-emerald-500/40 hover:bg-emerald-500/10 transition-colors"
+                        >
+                          Minimum
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => {
-                          const text = JSON.stringify(endpoint.exampleRequest, null, 2);
+                          const template = generateJsonTemplate(endpoint.bodyFields!);
+                          const text = JSON.stringify(template, null, 2);
                           setJsonText(text);
-                          applyJsonToForm(JSON.stringify(endpoint.exampleRequest));
+                          applyJsonToForm(JSON.stringify(template));
                         }}
-                        className="text-xs font-medium text-zuora-600 dark:text-zuora-400 hover:text-zuora-700 dark:hover:text-zuora-300 hover:underline transition-colors"
+                        className="rounded-md border border-slate-700 bg-slate-800/80 px-2.5 py-1 text-[11px] font-medium text-slate-300 hover:border-slate-600 hover:bg-slate-800 transition-colors"
                       >
-                        Load Example
+                        Reset
                       </button>
-                    )}
-                    {endpoint.bodyFields?.some((field) => field.required) && (
                       <button
                         type="button"
-                        onClick={() => {
-                          const minimumPayload = generateMinimumPayload(endpoint.bodyFields!);
-                          const text = JSON.stringify(minimumPayload, null, 2);
-                          setJsonText(text);
-                          applyJsonToForm(text);
-                        }}
-                        className="text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:underline transition-colors"
+                        onClick={() => setFieldRefOpen((open) => !open)}
+                        className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-all ${fieldRefOpen
+                            ? 'border-zuora-500/40 bg-zuora-500/15 text-zuora-200 shadow-sm shadow-zuora-500/20'
+                            : 'border-slate-700 bg-slate-800/80 text-slate-300 hover:border-slate-600'
+                          }`}
+                        aria-expanded={fieldRefOpen}
                       >
-                        Minimum Payload
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h10M4 18h6" />
+                        </svg>
+                        Fields
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const template = generateJsonTemplate(endpoint.bodyFields!);
-                        const text = JSON.stringify(template, null, 2);
-                        setJsonText(text);
-                        applyJsonToForm(JSON.stringify(template));
-                      }}
-                      className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:underline transition-colors"
-                    >
-                      Reset Template
-                    </button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-1 flex-col p-4">
+                    <textarea
+                      ref={jsonTextareaRef}
+                      value={jsonText}
+                      onChange={(e) => handleJsonChange(e.target.value)}
+                      spellCheck={false}
+                      className={`min-h-[20rem] flex-1 w-full resize-none rounded-lg bg-transparent font-mono text-sm leading-relaxed text-emerald-400 focus:outline-none ${jsonError ? 'ring-1 ring-rose-500/50' : ''
+                        }`}
+                    />
+                    {jsonError ? (
+                      <p className="mt-3 text-xs text-rose-400 flex items-center gap-1.5">
+                        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                        </svg>
+                        {jsonError}
+                      </p>
+                    ) : jsonText.trim() ? (
+                      <p className="mt-3 text-xs text-emerald-500/90 flex items-center gap-1.5">
+                        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Valid JSON
+                      </p>
+                    ) : null}
                   </div>
                 </div>
 
-                {/* Textarea */}
-                <div>
-                  <textarea
-                    value={jsonText}
-                    onChange={(e) => handleJsonChange(e.target.value)}
-                    spellCheck={false}
-                    rows={16}
-                    className={`w-full bg-slate-950 rounded-lg p-4 border font-mono text-sm leading-relaxed resize-y focus:outline-none focus:ring-2 transition-colors duration-200
-                      text-emerald-400
-                      ${jsonError
-                        ? 'border-rose-500 focus:ring-rose-500/30'
-                        : 'border-slate-700 focus:ring-zuora-500/30'
-                      }`}
-                  />
-                  {jsonError ? (
-                    <p className="mt-1.5 text-xs text-rose-500 dark:text-rose-400 flex items-center gap-1">
-                      <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                      </svg>
-                      {jsonError}
-                    </p>
-                  ) : jsonText.trim() ? (
-                    <p className="mt-1.5 text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                      <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Valid JSON — preview and form fields updating automatically
-                    </p>
-                  ) : null}
-                </div>
+                {/* Slide-out field reference sidebar */}
+                <aside
+                  className={`relative flex shrink-0 flex-col border-l border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-[-12px_0_32px_-12px_rgba(0,0,0,0.35)] transition-[width,opacity,transform] duration-300 ease-out ${fieldRefOpen
+                      ? 'w-80 translate-x-0 opacity-100'
+                      : 'w-0 translate-x-4 opacity-0 pointer-events-none'
+                    }`}
+                  aria-hidden={!fieldRefOpen}
+                >
+                  <div className="flex h-full w-80 flex-col">
+                    <div className="border-b border-slate-200 dark:border-slate-800 px-4 py-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-zuora-500/10 text-zuora-600 dark:text-zuora-300">
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                              </svg>
+                            </span>
+                            <div>
+                              <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Field Reference</h3>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                {fieldReferenceEntries.length} fields · click to insert into JSON
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setFieldRefOpen(false)}
+                          className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+                          aria-label="Close field reference"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="relative mt-3">
+                        <svg className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <input
+                          type="search"
+                          value={fieldRefSearch}
+                          onChange={(event) => setFieldRefSearch(event.target.value)}
+                          placeholder="Search fields..."
+                          className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 py-2 pl-9 pr-3 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-zuora-500/40"
+                        />
+                      </div>
+                    </div>
 
-                {/* Field Reference panel */}
-                <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    <div className="flex-1 overflow-y-auto">
+                      {filteredFieldReferenceEntries.length === 0 ? (
+                        <div className="px-4 py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+                          No fields match your search.
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                          {filteredFieldReferenceEntries.map((field) => (
+                            <button
+                              key={field.path}
+                              type="button"
+                              title="Click to insert this field into the JSON payload"
+                              onClick={() => insertFieldIntoJson(field)}
+                              className="group w-full px-4 py-3 text-left transition-colors hover:bg-zuora-50/70 dark:hover:bg-zuora-500/5"
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <code className="break-all font-mono text-xs text-zuora-700 dark:text-zuora-300 group-hover:text-zuora-800 dark:group-hover:text-zuora-200">
+                                  {insertedFieldPath === field.path ? (
+                                    <span className="text-emerald-600 dark:text-emerald-400">✓ inserted</span>
+                                  ) : (
+                                    field.path
+                                  )}
+                                </code>
+                                <div className="flex shrink-0 items-center gap-1">
+                                  <span className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                                    {field.type}
+                                  </span>
+                                  {field.required && (
+                                    <span className="rounded border border-rose-200 bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-600 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-400">
+                                      req
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              {field.description && (
+                                <p className="mt-1.5 line-clamp-2 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                                  {field.description.split('**Note**')[0].split('.')[0].trim()}
+                                </p>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </aside>
+
+                {!fieldRefOpen && (
                   <button
                     type="button"
-                    onClick={() => setFieldRefOpen(o => !o)}
-                    className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+                    onClick={() => setFieldRefOpen(true)}
+                    className="absolute right-0 top-1/2 z-10 flex -translate-y-1/2 items-center gap-1 rounded-l-lg border border-r-0 border-slate-700 bg-slate-900/95 px-2 py-3 text-[11px] font-medium text-slate-300 shadow-lg backdrop-blur-sm transition-all hover:border-zuora-500/40 hover:bg-slate-900 hover:text-zuora-200"
+                    aria-label="Open field reference"
                   >
-                    <span className="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
-                      <svg className="w-3.5 h-3.5 text-zuora-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                      Field Reference
-                      <span className="normal-case font-normal text-slate-400 dark:text-slate-500">
-                        — {endpoint.bodyFields!.length} fields · click a name to copy
-                      </span>
-                    </span>
-                    <svg
-                      className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${fieldRefOpen ? 'rotate-180' : ''}`}
-                      fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <svg className="w-3.5 h-3.5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
+                    <span className="[writing-mode:vertical-rl] rotate-180 tracking-wide">Fields</span>
                   </button>
-
-                  {fieldRefOpen && (
-                    <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-72 overflow-y-auto">
-                      {endpoint.bodyFields!.map(field => (
-                        <div key={field.name} className="flex items-start gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                          <button
-                            type="button"
-                            title="Click to copy field name"
-                            onClick={() => {
-                              navigator.clipboard.writeText(field.name).catch(() => {});
-                              setCopiedField(field.name);
-                              setTimeout(() => setCopiedField(null), 1500);
-                            }}
-                            className="font-mono text-xs text-zuora-600 dark:text-zuora-400 hover:text-zuora-700 dark:hover:text-zuora-300 hover:underline transition-colors flex-shrink-0 mt-0.5"
-                          >
-                            {copiedField === field.name ? (
-                              <span className="text-emerald-500 dark:text-emerald-400">✓ copied</span>
-                            ) : (
-                              field.name
-                            )}
-                          </button>
-                          <div className="flex items-center gap-1.5 flex-shrink-0 mt-0.5">
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                              {field.type}
-                            </span>
-                            {field.required && (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20">
-                                required
-                              </span>
-                            )}
-                          </div>
-                          {field.description && (
-                            <p className="text-xs text-slate-400 dark:text-slate-500 truncate min-w-0">
-                              {field.description.split('**Note**')[0].split('.')[0].trim()}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             ) : (
               /* ── UI form mode ── */
@@ -1097,7 +1377,7 @@ export const ApiForm = ({
                     <div>
                       <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Payload navigator</h3>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Search or narrow large request bodies by required, common, filled, or problematic fields.
+                        Search or narrow large request bodies by required, filled, or problematic fields.
                       </p>
                     </div>
                     <input
@@ -1112,7 +1392,6 @@ export const ApiForm = ({
                     {[
                       ['all', 'All'],
                       ['required', 'Required only'],
-                      ['common', 'Common TAM fields'],
                       ['filled', 'Fields with values'],
                       ['issues', 'Validation issues'],
                     ].map(([value, label]) => (
@@ -1120,11 +1399,10 @@ export const ApiForm = ({
                         key={value}
                         type="button"
                         onClick={() => setFieldFilter(value as typeof fieldFilter)}
-                        className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                          fieldFilter === value
+                        className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${fieldFilter === value
                             ? 'bg-zuora-50 dark:bg-zuora-500/10 text-zuora-700 dark:text-zuora-300 border-zuora-200 dark:border-zuora-500/30'
                             : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:text-slate-700 dark:hover:text-slate-200'
-                        }`}
+                          }`}
                       >
                         {label}
                       </button>
@@ -1240,7 +1518,7 @@ export const ApiForm = ({
                 + Add Header
               </button>
             </div>
-            
+
             <div className="space-y-3">
               {customHeaders.map((header, index) => (
                 <div key={header.id} className="flex gap-2 items-start">
@@ -1286,26 +1564,14 @@ export const ApiForm = ({
                 </div>
               ))}
             </div>
-            
+
             <p className="text-xs text-slate-500 dark:text-slate-500 mt-4">
               Note: Common headers like 'Content-Type' and 'Authorization' are added automatically.
             </p>
           </div>
         </div>
 
-        {showSubmit && (
-          <div className="flex space-x-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`flex-1 bg-gradient-to-r from-zuora-600 to-zuora-600 text-white py-3 px-6 rounded-lg font-bold shadow-lg shadow-zuora-500/25 hover:shadow-zuora-500/40 hover:from-zuora-500 hover:to-zuora-500 focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900 transition-all transform active:scale-[0.99] ${
-                isLoading ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
-            >
-              {isLoading ? 'Executing...' : 'Execute API'}
-            </button>
-          </div>
-        )}
+
       </form>
     </div>
   );

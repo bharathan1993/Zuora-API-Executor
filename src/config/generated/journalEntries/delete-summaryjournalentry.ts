@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const delete_summaryjournalentryEndpoint: ApiEndpoint = {
   "id": "delete-summaryjournalentry",
   "name": "Delete a summary journal entry",
-  "description": "",
+  "description": "This reference describes how to delete a summary journal entry using the REST API.",
   "method": "DELETE",
   "path": "/v1/journal-entries/{je-number}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const delete_summaryjournalentryEndpoint: ApiEndpoint = {
       "name": "je-number",
       "label": "Je Number",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Journal entry number in the format JE-00000001."
     }
   ],
   "bodyFields": [],

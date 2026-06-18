@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const putexecuteinvoicepaymentEndpoint: ApiEndpoint = {
   "id": "putexecuteinvoicepayment",
   "name": "Execute the invoice payment",
-  "description": "",
+  "description": "For all active retry cycles associated with an invoice, schedules the next payment retry attempt to occur in the next hourly payment processor run.",
   "method": "PUT",
   "path": "/api/v1/payments/execute_invoice_payment/{invoice_id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const putexecuteinvoicepaymentEndpoint: ApiEndpoint = {
       "name": "invoice_id",
       "label": "Invoice Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "ID of an invoice."
     }
   ],
   "bodyFields": [],

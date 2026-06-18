@@ -288,7 +288,7 @@ export class OpenAPIParser {
       label: this.generateLabel(name),
       type: fieldType,
       required: isRequired,
-      description: schema.description || undefined,
+      description: schema.description ? this.normalizeDescription(schema.description) : undefined,
       placeholder: schema.placeholder || undefined,
       defaultValue: schema.default,
     };
@@ -448,7 +448,7 @@ export class OpenAPIParser {
       if (field) {
         // Override description from the parameter-level description (richer than schema-level)
         if (param.description) {
-          field.description = param.description;
+          field.description = this.normalizeDescription(param.description);
         }
         // Clear section for query params — they live in their own panel
         field.section = undefined;
@@ -486,7 +486,7 @@ export class OpenAPIParser {
         const field = this.convertFieldSchema(paramName, schema, true);
         if (field) {
           if (specParam.description) {
-            field.description = specParam.description;
+            field.description = this.normalizeDescription(specParam.description);
           }
           field.section = undefined;
           pathParams.push(field);
@@ -534,7 +534,7 @@ export class OpenAPIParser {
     return {
       id: operationId.toLowerCase().replace(/_/g, '-'),
       name: operation.summary || this.generateName(parsed.path, parsed.method),
-      description: operation.description?.split('\n')[0] || '',
+      description: operation.description ? this.normalizeDescription(operation.description.split('\n')[0]) : '',
       method: parsed.method as 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
       path: parsed.path,
       baseUrl: environments[0]?.baseUrl || 'https://rest.zuora.com',
@@ -636,6 +636,121 @@ export class OpenAPIParser {
     const resourceName = this.generateLabel(resource);
 
     return `${action} ${resourceName}`;
+  }
+
+  /**
+   * Strip HTML and normalize whitespace from OpenAPI description text.
+   */
+  normalizeDescription(description: string): string {
+    return description
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<a [^>]*>(.*?)<\/a>/gi, '$1')
+      .replace(/<[^>]+>/g, '')
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .join(' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  /**
+   * Copy field descriptions from a detailed OpenAPI spec onto endpoints parsed from a compact spec.
+   */
+  enrichEndpointsWithDescriptions(
+    endpoints: ApiEndpoint[],
+    detailedParser: OpenAPIParser,
+  ): number {
+    const detailedByKey = new Map<string, ParsedEndpoint>();
+
+    for (const parsed of detailedParser.getAllEndpoints()) {
+      detailedByKey.set(`${parsed.method} ${parsed.path}`, parsed);
+    }
+
+    let enrichedCount = 0;
+
+    for (const endpoint of endpoints) {
+      const detailed = detailedByKey.get(`${endpoint.method} ${endpoint.path}`);
+      if (!detailed) continue;
+
+      let enriched = false;
+
+      if (detailed.operation.description) {
+        const description = this.normalizeDescription(detailed.operation.description.split('\n')[0]);
+        if (description && description !== endpoint.description) {
+          endpoint.description = description;
+          enriched = true;
+        }
+      }
+
+      if (endpoint.bodyFields?.length && detailed.requestBodySchema) {
+        enriched = this.enrichFieldDescriptions(endpoint.bodyFields, detailed.requestBodySchema) || enriched;
+      }
+
+      if (endpoint.queryParams?.length && detailed.parameters?.length) {
+        enriched = this.enrichParameterDescriptions(endpoint.queryParams, detailed.parameters) || enriched;
+      }
+
+      if (endpoint.pathParams?.length && detailed.parameters?.length) {
+        enriched = this.enrichParameterDescriptions(endpoint.pathParams, detailed.parameters) || enriched;
+      }
+
+      if (enriched) {
+        enrichedCount += 1;
+      }
+    }
+
+    return enrichedCount;
+  }
+
+  private enrichParameterDescriptions(fields: FieldDefinition[], parameters: any[]): boolean {
+    let enriched = false;
+
+    for (const field of fields) {
+      const param = parameters.find((candidate) => candidate?.name === field.name);
+      if (!param?.description) continue;
+
+      const description = this.normalizeDescription(param.description);
+      if (description && description !== field.description) {
+        field.description = description;
+        enriched = true;
+      }
+    }
+
+    return enriched;
+  }
+
+  private enrichFieldDescriptions(fields: FieldDefinition[], schema: any): boolean {
+    const resolvedSchema = this.resolveSchema(schema);
+    if (!resolvedSchema?.properties) {
+      return false;
+    }
+
+    let enriched = false;
+
+    for (const field of fields) {
+      const propertySchema = resolvedSchema.properties[field.name];
+      if (!propertySchema) continue;
+
+      const resolvedProperty = this.resolveSchema(propertySchema);
+      if (resolvedProperty?.description) {
+        const description = this.normalizeDescription(resolvedProperty.description);
+        if (description && description !== field.description) {
+          field.description = description;
+          enriched = true;
+        }
+      }
+
+      if (field.fields?.length) {
+        enriched = this.enrichFieldDescriptions(field.fields, resolvedProperty) || enriched;
+      }
+
+      if (field.itemFields?.length && resolvedProperty?.items) {
+        enriched = this.enrichFieldDescriptions(field.itemFields, resolvedProperty.items) || enriched;
+      }
+    }
+
+    return enriched;
   }
 
   /**

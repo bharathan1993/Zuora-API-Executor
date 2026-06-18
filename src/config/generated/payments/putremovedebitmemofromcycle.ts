@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const putremovedebitmemofromcycleEndpoint: ApiEndpoint = {
   "id": "putremovedebitmemofromcycle",
   "name": "Remove a debit memo from retry cycle",
-  "description": "",
+  "description": "Stops any active retry cycles associated with the debit memo provided.",
   "method": "PUT",
   "path": "/api/v1/payments/remove_debit_memo_from_retry_cycle/{debit_memo_id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const putremovedebitmemofromcycleEndpoint: ApiEndpoint = {
       "name": "debit_memo_id",
       "label": "Debit Memo Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "ID of a debit memo."
     }
   ],
   "bodyFields": [],

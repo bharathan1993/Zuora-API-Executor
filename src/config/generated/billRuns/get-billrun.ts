@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_billrunEndpoint: ApiEndpoint = {
   "id": "get-billrun",
   "name": "Retrieve a bill run",
-  "description": "",
+  "description": "Retrieves the information about a specific bill run.",
   "method": "GET",
   "path": "/v1/bill-runs/{billRunId}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const get_billrunEndpoint: ApiEndpoint = {
       "name": "billRunId",
       "label": "Bill Run Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "The unique ID of a bill run."
     }
   ],
   "bodyFields": [],

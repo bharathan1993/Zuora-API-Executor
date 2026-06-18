@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const put_paymentmethodEndpoint: ApiEndpoint = {
   "id": "put-paymentmethod",
   "name": "Update a payment method",
-  "description": "",
+  "description": "This operation allows you to update an existing payment method.",
   "method": "PUT",
   "path": "/v1/payment-methods/{payment-method-id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
       "name": "payment-method-id",
       "label": "Payment Method Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "Unique ID of the payment method to update."
     }
   ],
   "bodyFields": [
@@ -25,12 +26,14 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
       "label": "Account Holder Info",
       "type": "object",
       "required": false,
+      "description": "The account holder information. This field is not supported in updating Credit Card Reference Transaction payment methods.",
       "fields": [
         {
           "name": "addressLine1",
           "label": "Address Line1",
           "type": "string",
           "required": false,
+          "description": "The first line of the address for the account holder. This field is required for SEPA Direct Debit payment methods on Stripe v2 for [certain countries](https://stripe.com/docs/payments/sepa-debit/set-up-payment?platform=web#web-submit-payment-method).",
           "section": "Additional Fields"
         },
         {
@@ -38,6 +41,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
           "label": "Address Line2",
           "type": "string",
           "required": false,
+          "description": "The second line of the address for the account holder.",
           "section": "Additional Fields"
         },
         {
@@ -45,6 +49,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
           "label": "City",
           "type": "string",
           "required": false,
+          "description": "The city where the account holder stays.",
           "section": "Additional Fields"
         },
         {
@@ -52,6 +57,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
           "label": "Country",
           "type": "string",
           "required": false,
+          "description": "The country where the account holder stays. This field is required for SEPA payment methods on Stripe v2 for [certain countries](https://stripe.com/docs/payments/sepa-debit/set-up-payment?platform=web#web-submit-payment-method).",
           "section": "Additional Fields"
         },
         {
@@ -59,6 +65,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
           "label": "Email",
           "type": "string",
           "required": false,
+          "description": "The email address of the account holder.",
           "section": "Communication Settings"
         },
         {
@@ -66,6 +73,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
           "label": "Phone",
           "type": "string",
           "required": false,
+          "description": "The phone number of the account holder.",
           "section": "Additional Fields"
         },
         {
@@ -73,6 +81,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
           "label": "State",
           "type": "string",
           "required": false,
+          "description": "The state where the account holder stays.",
           "section": "Additional Fields"
         },
         {
@@ -80,6 +89,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
           "label": "Zip Code",
           "type": "string",
           "required": false,
+          "description": "The zip code for the address of the account holder.",
           "section": "Additional Fields"
         }
       ],
@@ -90,6 +100,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
       "label": "Account Key",
       "type": "string",
       "required": false,
+      "description": "The customer account ID such as `2x92c0f859b0480f0159d3a4a6ee5bb6` or the customer account number such as `A02855638`. **Note:** You can use this field to associate an orphan payment method with a customer account. If a payment method is already associated with a customer account, you cannot change the associated payment method through this operation. You cannot remove the previous account ID and leave this field empty, either.",
       "section": "Account Settings"
     },
     {
@@ -97,6 +108,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
       "label": "Auth Gateway",
       "type": "string",
       "required": false,
+      "description": "Specifies the ID of the payment gateway that Zuora will use to authorize the payments that are made with the payment method. This field is not supported in updating Credit Card Reference Transaction payment methods. If Payment Gateway Routing is enabled: - If this field is not specified, gateway routing rules will be invoked. - If this field is specified, the specified gateway will be used to update the payment. If Payment Gateway Routing is disabled: - If this field is not specified, the default payment gateway will be used to update the payment. The default gateway of the customer account takes precedence over the default gateway of the tenant. - If this field is specified, the specified gateway will be used to update the payment.",
       "section": "Payment Settings"
     },
     {
@@ -104,12 +116,14 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
       "label": "Gateway Options",
       "type": "object",
       "required": false,
+      "description": "The field used to pass gateway-specific parameters and parameter values. The fields supported by gateways vary. For more information, see the Overview topic of each gateway integration in [Zuora Knowledge Center](https://knowledgecenter.zuora.com/Zuora_Billing/Billing_and_Payments/M_Payment_Gateways/Supported_Payment_Gateways). Zuora sends all the information that you specified to the gateway. If you specify any unsupported gateway option parameters, they will be ignored without error prompts. This field is not supported in updating Credit Card Reference Transaction payment methods.",
       "fields": [
         {
           "name": "key",
           "label": "Key",
           "type": "string",
           "required": false,
+          "description": "The name of a gateway-specific parameter.",
           "section": "Additional Fields"
         },
         {
@@ -117,6 +131,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
           "label": "Value",
           "type": "string",
           "required": false,
+          "description": "The value of the gateway-specific parameter.",
           "section": "Additional Fields"
         }
       ],
@@ -127,6 +142,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
       "label": "Max Consecutive Payment Failures",
       "type": "number",
       "required": false,
+      "description": "The maximum number of payment failures allowed for this payment method. This field is only applicable if `useDefaultRetryRule` is set to `false`.",
       "section": "Payment Settings"
     },
     {
@@ -134,6 +150,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
       "label": "Payment Retry Window",
       "type": "number",
       "required": false,
+      "description": "The retry interval in hours. This field is only applicable if `useDefaultRetryRule` is set to `false`.",
       "section": "Payment Settings"
     },
     {
@@ -141,6 +158,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
       "label": "Currency Code",
       "type": "string",
       "required": false,
+      "description": "The currency used for payment method authorization.",
       "section": "Additional Fields"
     },
     {
@@ -148,6 +166,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
       "label": "Ip Address",
       "type": "string",
       "required": false,
+      "description": "The IPv4 or IPv6 information of the user when the payment method is created or updated. Some gateways use this field for fraud prevention. If this field is passed to Zuora, Zuora directly passes it to gateways. If the IP address length is beyond 45 characters, a validation error occurs. For validating SEPA payment methods on Stripe v2, this field is required.",
       "section": "Additional Fields"
     },
     {
@@ -155,12 +174,14 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
       "label": "Mandate Info",
       "type": "object",
       "required": false,
+      "description": "The mandate information for the Credit Card, Credit Card Reference Transaction, ACH, or Bank Transfer payment method.",
       "fields": [
         {
           "name": "mandateId",
           "label": "Mandate Id",
           "type": "string",
           "required": false,
+          "description": "The mandate ID.",
           "maxLength": 36,
           "section": "Additional Fields"
         },
@@ -169,6 +190,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
           "label": "Mandate Reason",
           "type": "string",
           "required": false,
+          "description": "The reason of the mandate from the gateway side.",
           "maxLength": 64,
           "section": "Additional Fields"
         },
@@ -177,6 +199,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
           "label": "Mandate Status",
           "type": "string",
           "required": false,
+          "description": "The status of the mandate from the gateway side.",
           "maxLength": 64,
           "section": "Additional Fields"
         }
@@ -188,12 +211,14 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
       "label": "Processing Options",
       "type": "object",
       "required": false,
+      "description": "The container for payment method processing options.",
       "fields": [
         {
           "name": "checkDuplicated",
           "label": "Check Duplicated",
           "type": "boolean",
           "required": false,
+          "description": "Indicates whether to perform a duplication check when you create a payment method of the following types: - Credit Card - ACH - Bank Transfer The default value is `false`. With this field set to `true`, Zuora will check the active and closed payment methods associated with the same billing account to ensure that no duplicate payment methods are created. For more information, see Duplication check on payment methods.",
           "section": "Additional Fields"
         }
       ],
@@ -204,6 +229,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
       "label": "Use Default Retry Rule",
       "type": "boolean",
       "required": false,
+      "description": "Specifies whether to apply the default retry rule configured for your tenant in the Zuora Payments settings: - To use the default retry rule, specify `true`. - To use the custom retry rule specific to this payment method, specify `false`.",
       "section": "Additional Fields"
     },
     {
@@ -211,6 +237,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
       "label": "Expiration Month",
       "type": "number",
       "required": false,
+      "description": "One or two digits expiration month (1-12).",
       "section": "Additional Fields"
     },
     {
@@ -218,6 +245,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
       "label": "Expiration Year",
       "type": "number",
       "required": false,
+      "description": "Four-digit expiration year.",
       "section": "Additional Fields"
     },
     {
@@ -225,6 +253,7 @@ export const put_paymentmethodEndpoint: ApiEndpoint = {
       "label": "Security Code",
       "type": "string",
       "required": false,
+      "description": "Optional. It is the CVV or CVV2 security code specific for the credit card or debit card. To ensure PCI compliance, this value is not stored and cannot be queried. If securityCode code is not passed in the request payload, this operation only updates related fields in the payload. It does not validate the payment method through the gateway. If securityCode is passed in the request payload, this operation retrieves the credit card information from payload and validates them through the gateway.",
       "section": "Additional Fields"
     }
   ],

@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const get_retrieveproductchargedefinitionsEndpoint: ApiEndpoint = {
   "id": "get-retrieveproductchargedefinitions",
   "name": "List product charge definitions",
-  "description": "",
+  "description": "Retrieves basic information about the product charge definitions.",
   "method": "GET",
   "path": "/v1/product-charge-definitions",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,19 +16,22 @@ export const get_retrieveproductchargedefinitionsEndpoint: ApiEndpoint = {
       "name": "charge",
       "label": "Charge",
       "type": "string",
-      "required": false
+      "required": false,
+      "description": "The unique number or ID of the charge for which the product charge definitions are to be retrieved."
     },
     {
       "name": "rateplan",
       "label": "Rateplan",
       "type": "string",
-      "required": false
+      "required": false,
+      "description": "The unique number or ID of the product rate plan for which the product charge definitions are to be retrieved."
     },
     {
       "name": "hide-inherited-values",
       "label": "Hide Inherited Values",
       "type": "boolean",
-      "required": false
+      "required": false,
+      "description": "The flag that controls whether the response will merge the default charge definition fields for those fields that are not overridden."
     }
   ],
   "bodyFields": [],

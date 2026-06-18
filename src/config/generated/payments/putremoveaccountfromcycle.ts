@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const putremoveaccountfromcycleEndpoint: ApiEndpoint = {
   "id": "putremoveaccountfromcycle",
   "name": "Remove an account from retry cycle",
-  "description": "",
+  "description": "Stops any active retry cycles associated with the account provided.",
   "method": "PUT",
   "path": "/api/v1/payments/remove_account_from_retry_cycle/{account_id}",
   "baseUrl": "https://rest.test.zuora.com",
@@ -16,7 +16,8 @@ export const putremoveaccountfromcycleEndpoint: ApiEndpoint = {
       "name": "account_id",
       "label": "Account Id",
       "type": "string",
-      "required": true
+      "required": true,
+      "description": "ID of an account."
     }
   ],
   "bodyFields": [],

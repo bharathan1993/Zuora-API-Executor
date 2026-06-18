@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const postexecutepaymentsEndpoint: ApiEndpoint = {
   "id": "postexecutepayments",
   "name": "Execute payments",
-  "description": "",
+  "description": "For all active retry cycles associated with the invoice, debit memo, and/or account IDs provided, schedules the next payment retry attempt to occur in the next hourly payment processor run.",
   "method": "POST",
   "path": "/api/v1/payments/execute_payments",
   "baseUrl": "https://rest.test.zuora.com",
@@ -17,6 +17,7 @@ export const postexecutepaymentsEndpoint: ApiEndpoint = {
       "label": "Account Ids",
       "type": "array",
       "required": false,
+      "description": "IDs of accounts.",
       "itemType": "string",
       "section": "Account Settings"
     },
@@ -25,6 +26,7 @@ export const postexecutepaymentsEndpoint: ApiEndpoint = {
       "label": "Debit Memo Ids",
       "type": "array",
       "required": false,
+      "description": "IDs of debit memos.",
       "itemType": "string",
       "section": "Credit & Settlement Settings"
     },
@@ -33,6 +35,7 @@ export const postexecutepaymentsEndpoint: ApiEndpoint = {
       "label": "Invoice Ids",
       "type": "array",
       "required": false,
+      "description": "IDs of invoices.",
       "itemType": "string",
       "section": "Invoice & Document Settings"
     }

@@ -24,6 +24,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
           "label": "Order Line Item Id",
           "type": "string",
           "required": false,
+          "description": "The reference id of the related Order Line Item.",
           "section": "Additional Fields"
         },
         {
@@ -31,6 +32,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
           "label": "Bill Target Date",
           "type": "date",
           "required": false,
+          "description": "The target date for the Fulfillment to be picked up by bill run for billing.",
           "section": "Invoice & Document Settings"
         },
         {
@@ -38,6 +40,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
           "label": "Carrier",
           "type": "string",
           "required": false,
+          "description": "The carrier of the Fulfillment. The available values can be configured in **Billing Settings** > **Fulfillment Settings** through Zuora UI.",
           "section": "Additional Fields"
         },
         {
@@ -45,6 +48,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
           "label": "Custom Fields",
           "type": "object",
           "required": false,
+          "description": "Container for custom fields of a Fulfillment object.",
           "section": "Additional Fields"
         },
         {
@@ -52,6 +56,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
           "label": "Exclude Item Billing From Revenue Accounting",
           "type": "boolean",
           "required": false,
+          "description": "The flag to exclude Fulfillment related invoice items, invoice item adjustments, credit memo items, and debit memo items from revenue accounting. **Note**: This field is only available if you have the Order to Revenue or [Zuora Billing - Revenue Integration](https://knowledgecenter.zuora.com/Zuora_Revenue/Zuora_Billing_-_Revenue_Integration) feature enabled.",
           "section": "Account Settings"
         },
         {
@@ -59,6 +64,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
           "label": "Exclude Item Booking From Revenue Accounting",
           "type": "boolean",
           "required": false,
+          "description": "The flag to exclude Fulfillment from revenue accounting. **Note**: This field is only available if you have the Order to Revenue or [Zuora Billing - Revenue Integration](https://knowledgecenter.zuora.com/Zuora_Revenue/Zuora_Billing_-_Revenue_Integration) feature enabled.",
           "section": "Account Settings"
         },
         {
@@ -66,6 +72,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
           "label": "External Id",
           "type": "string",
           "required": false,
+          "description": "The external id of the Fulfillment.",
           "section": "Additional Fields"
         },
         {
@@ -73,6 +80,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
           "label": "Fulfillment Date",
           "type": "date",
           "required": false,
+          "description": "The date of the Fulfillment.",
           "section": "Additional Fields"
         },
         {
@@ -80,6 +88,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
           "label": "Fulfillment Location",
           "type": "string",
           "required": false,
+          "description": "The fulfillment location of the Fulfillment. The available values can be configured in **Billing Settings** > **Fulfillment Settings** through Zuora UI.",
           "section": "Additional Fields"
         },
         {
@@ -87,6 +96,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
           "label": "Fulfillment System",
           "type": "string",
           "required": false,
+          "description": "The fulfillment system of the Fulfillment. The available values can be configured in **Billing Settings** > **Fulfillment Settings** through Zuora UI.",
           "section": "Additional Fields"
         },
         {
@@ -94,6 +104,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
           "label": "Fulfillment Type",
           "type": "string",
           "required": false,
+          "description": "The type of the Fulfillment.",
           "enum": [
             "Delivery",
             "Return"
@@ -105,6 +116,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
           "label": "Quantity",
           "type": "number",
           "required": false,
+          "description": "The quantity of the Fulfillment.",
           "section": "Additional Fields"
         },
         {
@@ -112,6 +124,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
           "label": "State",
           "type": "string",
           "required": false,
+          "description": "The state of the Fulfillment. See [State transitions for an order, order line item, and fulfillment](https://knowledgecenter.zuora.com/Billing/Subscriptions/Orders/Order_Line_Items/AB_Order_Line_Item_States_and_Order_States) for more information.",
           "enum": [
             "Executing",
             "Booked",
@@ -126,6 +139,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
           "label": "Tracking Number",
           "type": "string",
           "required": false,
+          "description": "The tracking number of the Fulfillment.",
           "section": "Account Settings"
         },
         {
@@ -140,6 +154,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
               "label": "Custom Fields",
               "type": "object",
               "required": false,
+              "description": "Container for custom fields of a Fulfillment Item object.",
               "section": "Additional Fields"
             },
             {
@@ -147,6 +162,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
               "label": "Item Identifier",
               "type": "string",
               "required": false,
+              "description": "The external identifier of the Fulfillment Item.",
               "section": "Additional Fields"
             }
           ],
@@ -160,6 +176,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
       "label": "Processing Options",
       "type": "object",
       "required": false,
+      "description": "Processing options for generating billing documents.",
       "fields": [
         {
           "name": "billingOptions",
@@ -172,6 +189,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
               "label": "Document Date",
               "type": "date",
               "required": false,
+              "description": "The invoice date displayed on the billing document.",
               "section": "Invoice & Document Settings"
             },
             {
@@ -179,6 +197,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
               "label": "Target Date",
               "type": "date",
               "required": false,
+              "description": "Date through which to calculate charges for order line items if a billing document is generated. See [What is a Target Date?](https://knowledgecenter.zuora.com/Billing/Billing_and_Payments/J_Billing_Operations/G_Bill_Runs/Creating_Bill_Runs#What_is_a_Target_Date.3F).",
               "section": "Additional Fields"
             }
           ],
@@ -189,6 +208,7 @@ export const create_fulfillmentEndpoint: ApiEndpoint = {
           "label": "Run Billing",
           "type": "boolean",
           "required": false,
+          "description": "Indicates if the current request needs to generate a billing document. The billing document will be generated against all Order Line Items included in this order.",
           "section": "Invoice & Document Settings"
         }
       ],

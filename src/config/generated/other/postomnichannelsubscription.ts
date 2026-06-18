@@ -4,7 +4,7 @@ import { zuoraEnvironments } from '../../environments';
 export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
   "id": "postomnichannelsubscription",
   "name": "Create an omnichannel subscription",
-  "description": "",
+  "description": "Creates or updates an omnichannel subscription for a customer account.",
   "method": "POST",
   "path": "/v1/omni-channel-subscriptions",
   "baseUrl": "https://rest.test.zuora.com",
@@ -17,6 +17,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "Account Id",
       "type": "string",
       "required": false,
+      "description": "The ID of the account associated with this subscription.",
       "section": "Account Settings"
     },
     {
@@ -24,6 +25,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "Account Identifier Field",
       "type": "string",
       "required": false,
+      "description": "The account field used to identify the account in acountData. It could be a custom field.",
       "section": "Account Settings"
     },
     {
@@ -31,12 +33,14 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "Account Data",
       "type": "object",
       "required": false,
+      "description": "The information of the account that you want to create while creating an omnichannel subscription.",
       "fields": [
         {
           "name": "accountNumber",
           "label": "Account Number",
           "type": "string",
           "required": false,
+          "description": "The number of the account.",
           "maxLength": 70,
           "section": "Account Settings"
         },
@@ -45,6 +49,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
           "label": "Name",
           "type": "string",
           "required": true,
+          "description": "The name of the account.",
           "maxLength": 255,
           "section": "Account Settings"
         },
@@ -53,6 +58,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
           "label": "Currency",
           "type": "string",
           "required": true,
+          "description": "Three uppercase character currency code.",
           "section": "Additional Fields"
         },
         {
@@ -60,6 +66,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
           "label": "Notes",
           "type": "textarea",
           "required": false,
+          "description": "The note for the account.",
           "maxLength": 65535,
           "section": "Additional Fields"
         },
@@ -74,6 +81,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Address1",
               "type": "string",
               "required": false,
+              "description": "First line of the contact's address. This is often a street address or a business name.",
               "maxLength": 255,
               "section": "Additional Fields"
             },
@@ -82,6 +90,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Address2",
               "type": "string",
               "required": false,
+              "description": "Second line of the contact's address.",
               "maxLength": 255,
               "section": "Additional Fields"
             },
@@ -90,6 +99,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "City",
               "type": "string",
               "required": false,
+              "description": "City of the contact's address.",
               "maxLength": 100,
               "section": "Additional Fields"
             },
@@ -98,6 +108,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Contact Description",
               "type": "string",
               "required": false,
+              "description": "A description for the contact.",
               "maxLength": 100,
               "section": "Contact Information"
             },
@@ -106,6 +117,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Country",
               "type": "string",
               "required": false,
+              "description": "Country; must be a valid country name or abbreviation. If using [Zuora Tax](https://knowledgecenter.zuora.com/Zuora_Billing/Taxes/A_Zuora_Tax), you must specify a country in the bill-to contact to calculate tax.",
               "maxLength": 64,
               "section": "Additional Fields"
             },
@@ -114,6 +126,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "County",
               "type": "string",
               "required": false,
+              "description": "County of the contact's address.",
               "maxLength": 100,
               "section": "Additional Fields"
             },
@@ -122,6 +135,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Custom Fields",
               "type": "object",
               "required": false,
+              "description": "Container for custom fields.",
               "section": "Additional Fields"
             },
             {
@@ -129,6 +143,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Fax",
               "type": "string",
               "required": false,
+              "description": "Fax number of the contact.",
               "maxLength": 40,
               "section": "Additional Fields"
             },
@@ -137,6 +152,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "First Name",
               "type": "string",
               "required": true,
+              "description": "First name of the contact.",
               "maxLength": 100,
               "section": "Account Settings"
             },
@@ -145,6 +161,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Home Phone",
               "type": "string",
               "required": false,
+              "description": "Home phone number of the contact.",
               "maxLength": 40,
               "section": "Additional Fields"
             },
@@ -161,6 +178,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Mobile Phone",
               "type": "string",
               "required": false,
+              "description": "Mobile phone number of the contact.",
               "maxLength": 40,
               "section": "Additional Fields"
             },
@@ -169,6 +187,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Nickname",
               "type": "string",
               "required": false,
+              "description": "Nickname of the contact.",
               "maxLength": 100,
               "section": "Account Settings"
             },
@@ -177,6 +196,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Other Phone",
               "type": "string",
               "required": false,
+              "description": "Additional phone number of the contact. Use the `otherPhoneType` field to specify the type of phone number.",
               "maxLength": 40,
               "section": "Additional Fields"
             },
@@ -185,6 +205,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Other Phone Type",
               "type": "string",
               "required": false,
+              "description": "Specifies the type of phone number in the `otherPhone` field.",
               "enum": [
                 "Work",
                 "Mobile",
@@ -198,6 +219,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Personal Email",
               "type": "email",
               "required": false,
+              "description": "Personal email address of the contact.",
               "maxLength": 80,
               "section": "Communication Settings"
             },
@@ -206,6 +228,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Postal Code",
               "type": "string",
               "required": false,
+              "description": "ZIP code or other postal code of the contact's address.",
               "maxLength": 20,
               "section": "Additional Fields"
             },
@@ -214,6 +237,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "State",
               "type": "string",
               "required": false,
+              "description": "State or province of the contact's address.",
               "maxLength": 100,
               "section": "Additional Fields"
             },
@@ -222,6 +246,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Tax Region",
               "type": "string",
               "required": false,
+              "description": "Region defined in your taxation rules. Only applicable if you use Zuora Tax.",
               "maxLength": 100,
               "section": "Tax Settings"
             },
@@ -230,6 +255,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Work Email",
               "type": "email",
               "required": false,
+              "description": "Business email address of the contact.",
               "maxLength": 80,
               "section": "Communication Settings"
             },
@@ -238,6 +264,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Work Phone",
               "type": "string",
               "required": false,
+              "description": "Business phone number of the contact.",
               "maxLength": 40,
               "section": "Additional Fields"
             }
@@ -255,6 +282,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Address1",
               "type": "string",
               "required": false,
+              "description": "First line of the contact's address. This is often a street address or a business name.",
               "maxLength": 255,
               "section": "Additional Fields"
             },
@@ -263,6 +291,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Address2",
               "type": "string",
               "required": false,
+              "description": "Second line of the contact's address.",
               "maxLength": 255,
               "section": "Additional Fields"
             },
@@ -271,6 +300,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "City",
               "type": "string",
               "required": false,
+              "description": "City of the contact's address.",
               "maxLength": 100,
               "section": "Additional Fields"
             },
@@ -279,6 +309,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Contact Description",
               "type": "string",
               "required": false,
+              "description": "A description for the contact.",
               "maxLength": 100,
               "section": "Contact Information"
             },
@@ -287,6 +318,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Country",
               "type": "string",
               "required": false,
+              "description": "Country; must be a valid country name or abbreviation. If using [Zuora Tax](https://knowledgecenter.zuora.com/Zuora_Billing/Taxes/A_Zuora_Tax), you must specify a country in the bill-to contact to calculate tax.",
               "maxLength": 64,
               "section": "Additional Fields"
             },
@@ -295,6 +327,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "County",
               "type": "string",
               "required": false,
+              "description": "County of the contact's address.",
               "maxLength": 100,
               "section": "Additional Fields"
             },
@@ -303,6 +336,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Custom Fields",
               "type": "object",
               "required": false,
+              "description": "Container for custom fields.",
               "section": "Additional Fields"
             },
             {
@@ -310,6 +344,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Fax",
               "type": "string",
               "required": false,
+              "description": "Fax number of the contact.",
               "maxLength": 40,
               "section": "Additional Fields"
             },
@@ -318,6 +353,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "First Name",
               "type": "string",
               "required": true,
+              "description": "First name of the contact.",
               "maxLength": 100,
               "section": "Account Settings"
             },
@@ -326,6 +362,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Home Phone",
               "type": "string",
               "required": false,
+              "description": "Home phone number of the contact.",
               "maxLength": 40,
               "section": "Additional Fields"
             },
@@ -342,6 +379,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Mobile Phone",
               "type": "string",
               "required": false,
+              "description": "Mobile phone number of the contact.",
               "maxLength": 40,
               "section": "Additional Fields"
             },
@@ -350,6 +388,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Nickname",
               "type": "string",
               "required": false,
+              "description": "Nickname of the contact.",
               "maxLength": 100,
               "section": "Account Settings"
             },
@@ -358,6 +397,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Other Phone",
               "type": "string",
               "required": false,
+              "description": "Additional phone number of the contact. Use the `otherPhoneType` field to specify the type of phone number.",
               "maxLength": 40,
               "section": "Additional Fields"
             },
@@ -366,6 +406,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Other Phone Type",
               "type": "string",
               "required": false,
+              "description": "Specifies the type of phone number in the `otherPhone` field.",
               "enum": [
                 "Work",
                 "Mobile",
@@ -379,6 +420,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Personal Email",
               "type": "email",
               "required": false,
+              "description": "Personal email address of the contact.",
               "maxLength": 80,
               "section": "Communication Settings"
             },
@@ -387,6 +429,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Postal Code",
               "type": "string",
               "required": false,
+              "description": "ZIP code or other postal code of the contact's address.",
               "maxLength": 20,
               "section": "Additional Fields"
             },
@@ -395,6 +438,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "State",
               "type": "string",
               "required": false,
+              "description": "State or province of the contact's address.",
               "maxLength": 100,
               "section": "Additional Fields"
             },
@@ -403,6 +447,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Tax Region",
               "type": "string",
               "required": false,
+              "description": "Region defined in your taxation rules. Only applicable if you use Zuora Tax.",
               "maxLength": 100,
               "section": "Tax Settings"
             },
@@ -411,6 +456,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Work Email",
               "type": "email",
               "required": false,
+              "description": "Business email address of the contact.",
               "maxLength": 80,
               "section": "Communication Settings"
             },
@@ -419,6 +465,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
               "label": "Work Phone",
               "type": "string",
               "required": false,
+              "description": "Business phone number of the contact.",
               "maxLength": 40,
               "section": "Additional Fields"
             }
@@ -430,6 +477,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
           "label": "Custom Fields",
           "type": "object",
           "required": false,
+          "description": "Container for custom fields.",
           "section": "Additional Fields"
         }
       ],
@@ -440,6 +488,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External Subscription Id",
       "type": "string",
       "required": true,
+      "description": "The original transaction ID of the notification. This must be unique in the tenant.",
       "section": "Subscription Settings"
     },
     {
@@ -447,6 +496,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External Transaction Reason",
       "type": "string",
       "required": false,
+      "description": "The latest transaction reason.",
       "section": "Additional Fields"
     },
     {
@@ -454,6 +504,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External Source System",
       "type": "string",
       "required": false,
+      "description": "The source app store from which the channel subscription originated. For example, Apple, Google, Roku, Amazon. **Note:** When creating a new Omnichannel subscription, `externalSourceSystem` is a required field. When updating an existing Omnichannel subscription, `externalSourceSystem` is an optional field.",
       "section": "Additional Fields"
     },
     {
@@ -461,6 +512,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External State",
       "type": "string",
       "required": false,
+      "description": "The original status from client, such as active, canceled, expired, pastDue.",
       "section": "Additional Fields"
     },
     {
@@ -468,6 +520,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "State",
       "type": "string",
       "required": false,
+      "description": "The common external subscription state.",
       "section": "Additional Fields"
     },
     {
@@ -475,6 +528,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External Product Id",
       "type": "string",
       "required": false,
+      "description": "The product ID in the external system.",
       "section": "Additional Fields"
     },
     {
@@ -482,6 +536,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External Replace By Product Id",
       "type": "string",
       "required": false,
+      "description": "The product ID is going to replace the existing product ID in the `externalProductId` field during the subscription renewal.",
       "section": "Additional Fields"
     },
     {
@@ -489,6 +544,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External In App Ownership Type",
       "type": "string",
       "required": false,
+      "description": "Such as purchased, family_shared.",
       "section": "Additional Fields"
     },
     {
@@ -496,6 +552,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External Quantity",
       "type": "number",
       "required": false,
+      "description": "The quantity of the product, must be greather than 0.",
       "defaultValue": 1,
       "section": "Additional Fields"
     },
@@ -504,6 +561,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "Currency",
       "type": "string",
       "required": false,
+      "description": "The currency code of the transaction. If not specified, get value from the Account.",
       "section": "Additional Fields"
     },
     {
@@ -511,6 +569,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "Auto Renew",
       "type": "boolean",
       "required": false,
+      "description": "If `true`, the subscription automatically renews at the end of the term.",
       "defaultValue": false,
       "section": "Additional Fields"
     },
@@ -519,6 +578,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External Purchase Date",
       "type": "string",
       "required": false,
+      "description": "When the App Store charged the user’s account for a purchase, restored product, subscription, or subscription renewal after a lapse. UTC time, `yyyy-mm-dd hh:mm:ss`.",
       "section": "Additional Fields"
     },
     {
@@ -526,6 +586,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External Expiration Date",
       "type": "string",
       "required": false,
+      "description": "This expiration date is a static value that applies for each transaction. UTC time, `yyyy-mm-dd hh:mm:ss`.",
       "section": "Additional Fields"
     },
     {
@@ -533,6 +594,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External Application Id",
       "type": "string",
       "required": false,
+      "description": "The external application ID.",
       "section": "Additional Fields"
     },
     {
@@ -540,6 +602,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External Bundle Id",
       "type": "string",
       "required": false,
+      "description": "The external bundler ID.",
       "section": "Additional Fields"
     },
     {
@@ -547,6 +610,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External Subscriber Id",
       "type": "string",
       "required": false,
+      "description": "The external subscriber ID.",
       "section": "Additional Fields"
     },
     {
@@ -554,6 +618,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External Price",
       "type": "number",
       "required": false,
+      "description": "The price in external system.",
       "section": "Additional Fields"
     },
     {
@@ -561,6 +626,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External Purchase Type",
       "type": "string",
       "required": false,
+      "description": "The external purchase type.",
       "section": "Additional Fields"
     },
     {
@@ -568,6 +634,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External Last Renewal Date",
       "type": "string",
       "required": false,
+      "description": "This last renewal date is a static value that applies for each transaction. UTC time, `yyyy-mm-dd hh:mm:ss`.",
       "section": "Additional Fields"
     },
     {
@@ -575,6 +642,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External Next Renewal Date",
       "type": "string",
       "required": false,
+      "description": "This next renewal date is a static value that applies for each transaction. UTC time, `yyyy-mm-dd hh:mm:ss`.",
       "section": "Additional Fields"
     },
     {
@@ -582,6 +650,7 @@ export const postomnichannelsubscriptionEndpoint: ApiEndpoint = {
       "label": "External Activation Date",
       "type": "string",
       "required": false,
+      "description": "When the external subscription was activated on the external platform. UTC time, `yyyy-mm-dd hh:mm:ss`.",
       "section": "Tax Settings"
     }
   ],
