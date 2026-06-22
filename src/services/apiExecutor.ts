@@ -69,6 +69,7 @@ export class ApiExecutor {
       // Make the request
       const response = await axios(config);
       const duration = Date.now() - startTime;
+      const actualUrl = `${endpoint.baseUrl}${this.buildResolvedPath(endpoint, pathParams)}${this.buildQueryString(queryParams)}`;
 
       return {
         status: response.status,
@@ -76,8 +77,9 @@ export class ApiExecutor {
         data: response.data,
         headers: response.headers as Record<string, string>,
         duration,
+        timestamp: Date.now(),
         request: {
-          url: finalUrl,
+          url: actualUrl,
           method: endpoint.method,
           headers: (config.headers || {}) as Record<string, string>,
           data: config.data,
@@ -85,6 +87,7 @@ export class ApiExecutor {
       };
     } catch (error: any) {
       const duration = Date.now() - startTime;
+      const actualUrl = `${endpoint.baseUrl}${this.buildResolvedPath(endpoint, pathParams)}${this.buildQueryString(queryParams)}`;
 
       if (error.response) {
         // Server responded with error status
@@ -94,8 +97,9 @@ export class ApiExecutor {
           data: error.response.data,
           headers: error.response.headers as Record<string, string>,
           duration,
+          timestamp: Date.now(),
           request: {
-            url: finalUrl,
+            url: actualUrl,
             method: endpoint.method,
             headers: (config.headers || {}) as Record<string, string>,
             data: config.data,

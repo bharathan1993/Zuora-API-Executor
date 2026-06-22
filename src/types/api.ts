@@ -1,5 +1,13 @@
 export type FieldType = 'string' | 'number' | 'boolean' | 'date' | 'email' | 'array' | 'object' | 'textarea';
 
+export interface ChainedValue {
+  id: string;
+  key: string;     // JSON path, e.g. "accountId" or "subscription.id"
+  value: string;
+  source: string;  // e.g. "Create Account"
+  pinnedAt: number;
+}
+
 export interface FieldDefinition {
   name: string;
   label: string;
@@ -52,6 +60,7 @@ export interface ApiResponse {
   data: any;
   headers: Record<string, string>;
   duration: number;
+  timestamp?: number;
   request?: {
     url: string;
     method: string;

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import type { ApiEndpoint, FieldDefinition } from '../types/api';
+import type { ApiEndpoint, ChainedValue, FieldDefinition } from '../types/api';
 import { FormField } from './FormField';
 import { FieldSection } from './FieldSection';
 import { EnvironmentSelector } from './EnvironmentSelector';
@@ -24,6 +24,7 @@ interface ApiFormProps {
   prefillHeaders?: Record<string, string>;
   prefillPathParams?: Record<string, any>;
   prefillId?: string;
+  chainedValues?: ChainedValue[];
 }
 
 type HeaderRow = {
@@ -231,13 +232,15 @@ export const ApiForm = ({
   prefillQueryParams,
   prefillHeaders,
   prefillPathParams,
-  prefillId
+  prefillId,
+  chainedValues = []
 }: ApiFormProps) => {
   const [activeTab, setActiveTab] = useState<'params' | 'body' | 'headers'>('params');
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [pathParams, setPathParams] = useState<Record<string, any>>({});
   const [queryParams, setQueryParams] = useState<Record<string, any>>({});
   const [customHeaders, setCustomHeaders] = useState<HeaderRow[]>([createHeaderRow()]);
+  const [customBodyFields, setCustomBodyFields] = useState<Array<{ id: string; name: string; value: string }>>([]);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [jsonMode, setJsonMode] = useState(false);
   const [jsonText, setJsonText] = useState('');
@@ -319,6 +322,7 @@ export const ApiForm = ({
     setQueryParams(initQueryParams);
     setExpandedSections(initExpanded);
     setCustomHeaders([createHeaderRow()]);
+    setCustomBodyFields([]);
     setActiveTab('params');
     setJsonMode(false);
     setJsonText('');
@@ -437,6 +441,11 @@ export const ApiForm = ({
     if (endpoint.id === 'post-account' && result.autoPay === undefined) {
       result.autoPay = false;
     }
+    // Merge manually added custom fields
+    customBodyFields.forEach(({ name, value }) => {
+      const trimmedName = name.trim();
+      if (trimmedName) result[trimmedName] = value;
+    });
     return result;
   };
 
@@ -451,7 +460,7 @@ export const ApiForm = ({
     }));
   };
 
-  const previewData = useMemo(() => buildRequestBody(), [formData, endpoint]);
+  const previewData = useMemo(() => buildRequestBody(), [formData, endpoint, customBodyFields]);
 
   // Notify parent of filtered form data changes
   useEffect(() => {
@@ -640,11 +649,72 @@ export const ApiForm = ({
     return { ...required, ...optional };
   };
 
+  const getSmartSampleValue = (field: FieldDefinition): any => {
+    if (field.sampleValue !== undefined) return field.sampleValue;
+    if (field.defaultValue !== undefined) return field.defaultValue;
+    if (field.enum?.length) return field.enum[0];
+    const n = field.name.toLowerCase();
+    const today = new Date().toISOString().split('T')[0];
+    if (field.type === 'date') return today;
+    if (field.type === 'email') return 'contact@example.com';
+    if (field.type === 'boolean') {
+      if (n.includes('autorenew')) return true;
+      return false;
+    }
+    if (field.type === 'number') {
+      if (n.includes('billcycleday') || n.includes('cycleday')) return 1;
+      if (n.includes('quantity') || n.includes('qty')) return 1;
+      if (n.includes('price') || n.includes('amount') || n.includes('rate')) return 100;
+      if (n.includes('term') && !n.includes('date')) return 12;
+      if (n.includes('trial')) return 30;
+      return 1;
+    }
+    if (field.type === 'string') {
+      if (n.includes('currency')) return 'USD';
+      if (n.includes('email')) return 'contact@example.com';
+      if (n === 'firstname' || n.includes('firstname')) return 'John';
+      if (n === 'lastname' || n.includes('lastname')) return 'Doe';
+      if (n.includes('phone') || n.includes('fax')) return '+1-555-0100';
+      if (n.includes('country')) return 'US';
+      if (n.includes('state') || n.includes('province')) return 'CA';
+      if (n.includes('city')) return 'San Francisco';
+      if (n.includes('postalcode') || n.includes('zipcode') || n.includes('zip')) return '94107';
+      if (n.includes('address') || n.includes('street')) return '123 Main St';
+      if (n === 'name' || n.endsWith('name')) return 'Acme Corporation';
+      if (n.includes('description') || n.includes('notes')) return 'Sample description';
+      if (n.includes('date')) return today;
+      if (n.includes('status')) return 'Active';
+      if (n.includes('termtype')) return 'TERMED';
+      if (n.includes('paymentterm')) return 'Due Upon Receipt';
+      if (n.includes('key') && n.includes('account')) return 'A-00000001';
+      if (n.includes('key') && n.includes('subscription')) return 'S-00000001';
+      if (n.includes('key') && n.includes('product')) return 'P-00000001';
+      return field.placeholder || '';
+    }
+    if (field.type === 'array') {
+      if (field.itemFields?.length) {
+        const item: Record<string, any> = {};
+        field.itemFields.filter(f => f.required).forEach(f => { item[f.name] = getSmartSampleValue(f); });
+        return [item];
+      }
+      return field.itemEnum?.length ? [field.itemEnum[0]] : [];
+    }
+    if (field.type === 'object') {
+      if (field.fields?.length) {
+        const obj: Record<string, any> = {};
+        field.fields.filter(f => f.required).forEach(f => { obj[f.name] = getSmartSampleValue(f); });
+        return obj;
+      }
+      return {};
+    }
+    return null;
+  };
+
   const generateMinimumPayload = (fields: FieldDefinition[]): Record<string, any> => {
     const result: Record<string, any> = {};
     fields.forEach(field => {
       if (field.required) {
-        result[field.name] = getFieldPlaceholder(field);
+        result[field.name] = getSmartSampleValue(field);
       }
     });
     return result;
@@ -725,54 +795,113 @@ export const ApiForm = ({
     return () => window.removeEventListener('keydown', handleShortcut);
   }, [formId]);
 
+  const generateFallbackDescription = () => {
+    // Curated descriptions for endpoints whose spec description is only a Note/feature-gate
+    const curated: Record<string, string> = {
+      'Create an order': 'Creates a new subscription order to process account and subscription changes.',
+      'Create an order asynchronously': 'Initiates order creation as a background job and returns a job ID to poll for results.',
+      'Preview an order': 'Generates a preview of an order to review charges and impacts before finalizing.',
+      'Preview an order asynchronously': 'Initiates an asynchronous order preview and returns a job ID to poll for results.',
+      'List orders': 'Retrieves a paginated list of orders in the tenant.',
+      'Retrieve an order': 'Fetches full details of a specific order by order number.',
+      'Update an order': 'Modifies the custom fields or description of an existing order.',
+      'Delete an order': 'Removes a specified order from the system.',
+      'Activate an order': 'Changes the status of a draft order to active, allowing it to be processed.',
+      'Cancel an order': 'Cancels an active order, preventing further processing.',
+      'Create a credit memo': 'Generates a credit memo to adjust a customer account balance.',
+      'Create a credit memo from an invoice': 'Generates a credit memo based on a specified invoice.',
+      'Create a credit memo from a charge': 'Generates a credit memo for a specific product rate plan charge.',
+      'Retrieve a credit memo': 'Fetches the details of a specific credit memo by ID.',
+      'Update a credit memo': 'Modifies the details of a draft credit memo.',
+      'Delete a credit memo': 'Removes a draft credit memo from the system.',
+      'List credit memos': 'Retrieves a paginated list of credit memos in the tenant.',
+      'Apply a credit memo': 'Applies a posted credit memo to one or more invoices or debit memos.',
+      'Unapply a credit memo': 'Removes the application of a credit memo from invoices or debit memos.',
+      'Cancel a credit memo': 'Cancels a credit memo that is currently in draft status.',
+      'Post a credit memo': 'Posts a draft credit memo, making it active and ready to apply.',
+      'Reverse a credit memo': 'Reverses a posted credit memo by creating an offsetting debit memo.',
+      'Email a credit memo': 'Sends a credit memo to the customer email address on record.',
+      'Get a PDF file of a credit memo': 'Retrieves the PDF representation of a credit memo.',
+      'Create a debit memo': 'Generates a debit memo to charge an amount to a customer account.',
+      'Create a debit memo from an invoice': 'Generates a debit memo based on a specified invoice.',
+      'Create a debit memo from a charge': 'Generates a debit memo for a specific product rate plan charge.',
+      'Retrieve a debit memo': 'Fetches the details of a specific debit memo by ID.',
+      'Update a debit memo': 'Modifies the details of a draft debit memo.',
+      'Delete a debit memo': 'Removes a draft debit memo from the system.',
+      'List debit memos': 'Retrieves a paginated list of debit memos in the tenant.',
+      'Apply a debit memo': 'Applies a posted payment to a specified debit memo.',
+      'Cancel a debit memo': 'Cancels a debit memo that is currently in draft status.',
+      'Post a debit memo': 'Posts a draft debit memo, making it active.',
+      'Email a debit memo': 'Sends a debit memo to the customer email address on record.',
+      'Get a PDF file of a debit memo': 'Retrieves the PDF representation of a debit memo.',
+      'Create a payment': 'Creates a new electronic or external payment against a customer account.',
+      'Apply a payment': 'Applies a payment to one or more invoices or debit memos.',
+      'Unapply a payment': 'Removes the application of a payment from invoices or debit memos.',
+      'Transfer a payment': 'Transfers a payment from one invoice to another invoice.',
+      'Cancel a payment': 'Cancels a payment that is currently in draft status.',
+      'Refund a payment': 'Processes a refund for a specified payment back to the customer.',
+      'Create a refund': 'Creates a standalone refund not tied to a specific payment.',
+      'List invoice items of a credit memo': 'Lists all line items of a specified credit memo.',
+      'List items of a debit memo': 'Lists all line items of a specified debit memo.',
+    };
+
+    if (curated[endpoint.name]) return curated[endpoint.name];
+
+    // Derive from endpoint name — already human-readable ("Create an order" → "Creates an order in Zuora.")
+    const verbMap: Record<string, string> = {
+      'Create': 'Creates', 'List': 'Lists', 'Retrieve': 'Retrieves', 'Get': 'Gets',
+      'Update': 'Updates', 'Delete': 'Deletes', 'Cancel': 'Cancels', 'Post': 'Posts',
+      'Apply': 'Applies', 'Unapply': 'Removes the application of', 'Reverse': 'Reverses',
+      'Transfer': 'Transfers', 'Refund': 'Processes a refund for', 'Preview': 'Generates a preview of',
+      'Activate': 'Activates', 'Generate': 'Generates', 'Email': 'Emails',
+      'Upload': 'Uploads', 'Download': 'Downloads', 'Run': 'Runs', 'Execute': 'Executes',
+    };
+    const words = endpoint.name.split(' ');
+    const verb = verbMap[words[0]] || (words[0] + 's');
+    const rest = words.slice(1).join(' ');
+    if (rest) return `${verb} ${rest} in Zuora.`;
+
+    // Last resort: path-based
+    const pathParts = endpoint.path.split('/').filter(Boolean);
+    const resource = pathParts[pathParts.length - 1]?.replace(/[{}]/g, '').replace(/-/g, ' ');
+    const actionMap: Record<string, string> = { GET: 'Retrieves', POST: 'Creates', PUT: 'Updates', DELETE: 'Deletes', PATCH: 'Partially updates' };
+    return `${actionMap[endpoint.method] || 'Manages'} ${resource || 'resource'} in Zuora.`;
+  };
+
   const formatDescription = (desc: string) => {
     if (!desc) return generateFallbackDescription();
 
-    // Remove long "Note:" blocks and URLs often found in Zuora docs
+    // Strip **Note:** / **Note**: and **Important:** / **Important**: blocks (both colon positions)
     let cleaned = desc
-      .split('**Note**:')[0]
-      .split('**Important**:')[0]
+      .replace(/\*\*Note:\*\*\s*/gi, '')
+      .replace(/\*\*Note\*\*:\s*/gi, '')
+      .replace(/\*\*Important:\*\*\s*/gi, '')
+      .replace(/\*\*Important\*\*:\s*/gi, '')
       .split('For more information')[0]
       .split('See [')[0]
       .split('https://')[0]
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove markdown links
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // strip markdown links (even with empty URL)
+      .replace(/\*\*([^*]+)\*\*/g, '$1')        // strip bold markers
       .trim();
 
-    // If description is too short or starts with unhelpful text, generate fallback
-    if (cleaned.length < 10 || cleaned.startsWith('This operation') || cleaned.startsWith('Use this')) {
+    // If only a feature-gate sentence remains, use fallback
+    const lower = cleaned.toLowerCase();
+    if (
+      cleaned.length < 10 ||
+      lower.startsWith('this operation is only available') ||
+      lower.startsWith('this feature') ||
+      lower.startsWith('only available') ||
+      lower.startsWith('use this') ||
+      lower.startsWith('this rest api')
+    ) {
       return generateFallbackDescription();
     }
 
-    // Take only the first 1-2 sentences (up to 200 chars)
+    // Take first 1-2 sentences, capped at 200 chars
     const sentences = cleaned.split(/[.!?]+\s/);
     const firstSentences = sentences.slice(0, 2).join('. ');
-
-    // If still too long, truncate at 200 characters
-    if (firstSentences.length > 200) {
-      return firstSentences.substring(0, 200).trim() + '...';
-    }
-
+    if (firstSentences.length > 200) return firstSentences.substring(0, 200).trim() + '...';
     return firstSentences + (firstSentences.endsWith('.') ? '' : '.');
-  };
-
-  const generateFallbackDescription = () => {
-    const method = endpoint.method;
-    const pathParts = endpoint.path.split('/').filter(Boolean);
-    const resource = pathParts[pathParts.length - 1]?.replace(/[{}]/g, '').replace(/-/g, ' ');
-
-    // Generate description based on method and resource
-    const actionMap: Record<string, string> = {
-      GET: 'Retrieves',
-      POST: 'Creates',
-      PUT: 'Updates',
-      DELETE: 'Deletes',
-      PATCH: 'Partially updates',
-    };
-
-    const action = actionMap[method] || 'Manages';
-    const resourceName = resource || 'resource';
-
-    return `${action} ${resourceName} information in Zuora.`;
   };
 
   const hasValue = (value: any) => {
@@ -937,34 +1066,6 @@ export const ApiForm = ({
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm dark:shadow-xl dark:shadow-black/20 transition-colors duration-200">
-      {/* Sticky Header - positioned directly in the card so its sticky viewport spans the card's entire height */}
-      <div className="sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm z-10 -mx-6 px-6 py-4 border-b border-slate-200 dark:border-slate-800 rounded-t-xl transition-colors duration-200 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between -mt-6 mb-6">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${endpoint.method === 'POST' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20' :
-                endpoint.method === 'GET' ? 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-500/20' :
-                  endpoint.method === 'PUT' ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20' :
-                    endpoint.method === 'DELETE' ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-500/20' :
-                      'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600'
-              }`}>
-              {endpoint.method}
-            </span>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">{endpoint.name}</h2>
-          </div>
-        </div>
-        {showSubmit && (
-          <button
-            type="submit"
-            form={formId}
-            disabled={isLoading}
-            className={`bg-gradient-to-r from-zuora-600 to-zuora-600 text-white py-2.5 px-5 rounded-lg font-bold shadow-lg shadow-zuora-500/25 hover:shadow-zuora-500/40 hover:from-zuora-500 hover:to-zuora-500 focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900 transition-all transform active:scale-[0.99] ${isLoading ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
-          >
-            {isLoading ? 'Running...' : 'Run Request'}
-            {!isLoading && <span className="ml-2 text-xs font-medium opacity-80">⌘ Enter</span>}
-          </button>
-        )}
-      </div>
 
       <div className="mb-6">
         <div className="mb-4">
@@ -974,16 +1075,12 @@ export const ApiForm = ({
           </code>
         </div>
 
-        <div className="mb-4 grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="mb-4 grid grid-cols-3 gap-2">
           <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3">
             <div className="text-[10px] uppercase tracking-wider text-slate-500">Auth</div>
             <div className={`text-sm font-semibold ${authToken ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
               {authToken ? 'Token ready' : 'Needs token'}
             </div>
-          </div>
-          <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3">
-            <div className="text-[10px] uppercase tracking-wider text-slate-500">Proxy</div>
-            <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">{useProxy ? 'Enabled' : 'Direct'}</div>
           </div>
           <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3">
             <div className="text-[10px] uppercase tracking-wider text-slate-500">Required</div>
@@ -1125,6 +1222,7 @@ export const ApiForm = ({
                       value={pathParams[param.name]}
                       onChange={(value) => handlePathParamChange(param.name, value)}
                       error={validationErrors[`path:${param.name}`]}
+                      chainedValues={chainedValues}
                     />
                   ))}
                 </div>
@@ -1148,6 +1246,7 @@ export const ApiForm = ({
                       onChange={(value) => handleQueryParamChange(param.name, value)}
                       error={validationErrors[`query:${param.name}`]}
                       className={param.type === 'array' || param.type === 'textarea' ? 'col-span-1 md:col-span-2' : ''}
+                      chainedValues={chainedValues}
                     />
                   ))}
                 </div>
@@ -1473,6 +1572,7 @@ export const ApiForm = ({
                         onTouched={markTouched}
                         error={validationErrors[`body:${field.name}`]}
                         className={field.type === 'object' || field.type === 'array' || field.type === 'textarea' ? 'col-span-1 md:col-span-2' : ''}
+                        chainedValues={chainedValues}
                       />
                     ))}
                   </div>
@@ -1494,6 +1594,7 @@ export const ApiForm = ({
                     isAdvanced={sectionName === 'Additional Fields'}
                     isExpanded={expandedSections[sectionName]}
                     onToggle={() => toggleSection(sectionName)}
+                    chainedValues={chainedValues}
                   />
                 ))}
               </div>
@@ -1501,6 +1602,73 @@ export const ApiForm = ({
           ) : (
             <div className="text-center py-8 text-slate-500 dark:text-slate-400 text-sm">
               No body parameters required for this request.
+            </div>
+          )}
+
+          {/* Custom Fields Section — always visible in body tab */}
+          {activeTab === 'body' && !jsonMode && (
+            <div className="mt-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-950/40 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Custom Fields</span>
+                  <span className="ml-2 text-[10px] text-slate-400 dark:text-slate-500">Tenant-specific fields (e.g. <span className="font-mono">MyField__c</span>)</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCustomBodyFields(prev => [...prev, { id: crypto.randomUUID(), name: '', value: '' }])}
+                  className="flex items-center gap-1 text-xs font-medium text-zuora-600 dark:text-zuora-400 hover:text-zuora-700 dark:hover:text-zuora-300 transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add custom field
+                </button>
+              </div>
+
+              {customBodyFields.length === 0 ? (
+                <p className="text-xs text-slate-400 dark:text-slate-600 italic">
+                  No custom fields added. Click "Add custom field" to include tenant-specific fields in the request.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {customBodyFields.map((cf, index) => (
+                    <div key={cf.id} className="flex gap-2 items-center">
+                      <input
+                        type="text"
+                        value={cf.name}
+                        onChange={e => {
+                          const next = [...customBodyFields];
+                          next[index] = { ...next[index], name: e.target.value };
+                          setCustomBodyFields(next);
+                        }}
+                        placeholder="FieldName__c"
+                        className="w-2/5 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent transition-colors"
+                      />
+                      <input
+                        type="text"
+                        value={cf.value}
+                        onChange={e => {
+                          const next = [...customBodyFields];
+                          next[index] = { ...next[index], value: e.target.value };
+                          setCustomBodyFields(next);
+                        }}
+                        placeholder="Value"
+                        className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent transition-colors"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setCustomBodyFields(prev => prev.filter(f => f.id !== cf.id))}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors shrink-0"
+                        title="Remove field"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
