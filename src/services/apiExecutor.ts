@@ -17,6 +17,12 @@ export class ApiExecutor {
 
     let finalUrl = '';
     let config: AxiosRequestConfig = {};
+    // Revenue endpoints use a per-user host stored in localStorage
+    const isRevenue = endpoint.product === 'revenue';
+    const revenueHost = isRevenue
+      ? (localStorage.getItem('zuora_revenue_host') || '').replace(/\/$/, '')
+      : null;
+    const effectiveBaseUrl = revenueHost ?? endpoint.baseUrl;
     try {
       // Replace path parameters in the URL
       const path = this.buildResolvedPath(endpoint, pathParams);
@@ -32,17 +38,16 @@ export class ApiExecutor {
       if (this.useProxy) {
         // Use local proxy server
         finalUrl = `${this.proxyUrl}${path}${queryString}`;
-        // Pass the base URL as a custom header
-        headers['X-Target-URL'] = endpoint.baseUrl;
+        headers['X-Target-URL'] = effectiveBaseUrl;
       } else {
-        // Direct request
-        finalUrl = `${endpoint.baseUrl}${path}${queryString}`;
+        finalUrl = `${effectiveBaseUrl}${path}${queryString}`;
       }
 
       config = {
         method: endpoint.method,
         url: finalUrl,
         headers,
+        responseType: 'arraybuffer',
       };
 
       // Add authentication
@@ -61,6 +66,14 @@ export class ApiExecutor {
         }
       }
 
+      // Revenue token — auto-inject from localStorage for non-auth Revenue endpoints
+      if (isRevenue && endpoint.authType === 'revenue-token') {
+        const revenueToken = localStorage.getItem('zuora_revenue_token') || '';
+        if (revenueToken) {
+          config.headers = { ...config.headers, token: revenueToken };
+        }
+      }
+
       // Add request body
       if (data && (endpoint.method === 'POST' || endpoint.method === 'PUT' || endpoint.method === 'PATCH')) {
         config.data = data;
@@ -69,13 +82,50 @@ export class ApiExecutor {
       // Make the request
       const response = await axios(config);
       const duration = Date.now() - startTime;
-      const actualUrl = `${endpoint.baseUrl}${this.buildResolvedPath(endpoint, pathParams)}${this.buildQueryString(queryParams)}`;
+      const actualUrl = `${effectiveBaseUrl}${this.buildResolvedPath(endpoint, pathParams)}${this.buildQueryString(queryParams)}`;
+
+      const contentType: string = response.headers['content-type'] || '';
+      const isJson = contentType.includes('application/json') || contentType.includes('text/');
+      const responseHeaders = response.headers as Record<string, string>;
+
+      if (!isJson && response.data instanceof ArrayBuffer && response.data.byteLength > 0) {
+        const blob = new Blob([response.data], { type: contentType || 'application/octet-stream' });
+        const blobUrl = URL.createObjectURL(blob);
+        const disposition: string = responseHeaders['content-disposition'] || '';
+        const filenameMatch = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        const filename = filenameMatch ? filenameMatch[1].replace(/['"]/g, '') : this.guessFilename(contentType, path);
+        return {
+          status: response.status,
+          statusText: response.statusText,
+          data: null,
+          headers: responseHeaders,
+          duration,
+          timestamp: Date.now(),
+          blobUrl,
+          filename,
+          request: {
+            url: actualUrl,
+            method: endpoint.method,
+            headers: (config.headers || {}) as Record<string, string>,
+            data: config.data,
+          },
+        };
+      }
+
+      // Parse JSON/text from arraybuffer
+      const text = new TextDecoder().decode(response.data as ArrayBuffer);
+      let parsedData: any;
+      try {
+        parsedData = JSON.parse(text);
+      } catch {
+        parsedData = text;
+      }
 
       return {
         status: response.status,
         statusText: response.statusText,
-        data: response.data,
-        headers: response.headers as Record<string, string>,
+        data: parsedData,
+        headers: responseHeaders,
         duration,
         timestamp: Date.now(),
         request: {
@@ -87,14 +137,22 @@ export class ApiExecutor {
       };
     } catch (error: any) {
       const duration = Date.now() - startTime;
-      const actualUrl = `${endpoint.baseUrl}${this.buildResolvedPath(endpoint, pathParams)}${this.buildQueryString(queryParams)}`;
+      const actualUrl = `${effectiveBaseUrl}${this.buildResolvedPath(endpoint, pathParams)}${this.buildQueryString(queryParams)}`;
 
       if (error.response) {
-        // Server responded with error status
+        // Server responded with error status — parse body from arraybuffer
+        let errorData: any = error.response.data;
+        if (errorData instanceof ArrayBuffer) {
+          try {
+            errorData = JSON.parse(new TextDecoder().decode(errorData));
+          } catch {
+            errorData = new TextDecoder().decode(errorData);
+          }
+        }
         return {
           status: error.response.status,
           statusText: error.response.statusText,
-          data: error.response.data,
+          data: errorData,
           headers: error.response.headers as Record<string, string>,
           duration,
           timestamp: Date.now(),
@@ -113,6 +171,16 @@ export class ApiExecutor {
         throw new Error(`Request failed: ${error.message}`);
       }
     }
+  }
+
+  private guessFilename(contentType: string, path: string): string {
+    const ext = contentType.includes('pdf') ? '.pdf'
+      : contentType.includes('zip') ? '.zip'
+      : contentType.includes('csv') ? '.csv'
+      : contentType.includes('excel') || contentType.includes('spreadsheet') ? '.xlsx'
+      : '';
+    const base = path.split('/').filter(Boolean).pop() || 'download';
+    return ext ? `${base}${ext}` : base;
   }
 
   private buildResolvedPath(endpoint: ApiEndpoint, pathParams?: Record<string, any>): string {

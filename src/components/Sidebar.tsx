@@ -4,6 +4,8 @@ import {
   getEndpointsByCategory,
   getAvailableCategories,
   getGeneralPurposeOperationGroups,
+  REVENUE_CATEGORIES,
+  getRevenueCategoryEndpoints,
 } from '../config/zuoraEndpoints';
 
 interface SidebarProps {
@@ -221,7 +223,7 @@ export const Sidebar = ({
       <aside
         className={`fixed lg:static inset-y-0 left-0 z-30 w-80 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        } flex flex-col h-full shadow-2xl lg:shadow-none`}
+        } flex flex-col h-full shadow-2xl lg:shadow-none flex-shrink-0`}
       >
         {/* Logo Area */}
         <div className="p-6 border-b border-slate-100 dark:border-slate-900 flex items-center gap-3">
@@ -404,6 +406,52 @@ export const Sidebar = ({
                     {isExpanded && category !== 'general-purpose-operations' && (
                       <ul className="mt-1 ml-4 space-y-0.5 border-l-2 border-slate-100 dark:border-slate-900 pl-2">
                         {filteredEndpoints.map((endpoint) => (
+                          <li key={endpoint.id}>{renderEndpointButton(endpoint)}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Section: Revenue APIs */}
+          <div>
+            <div className="px-4 mb-2 flex items-center gap-2">
+              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
+              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Revenue</span>
+              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
+            </div>
+            <div className="space-y-1">
+              {REVENUE_CATEGORIES.map((cat) => {
+                const catEndpoints = getRevenueCategoryEndpoints(cat.id);
+                const filteredRevenue = getFilteredEndpoints(catEndpoints);
+                const isExpanded = expandedCategories[cat.id];
+                if (filteredRevenue.length === 0 && searchQuery) return null;
+                return (
+                  <div key={cat.id}>
+                    <button
+                      onClick={() => toggleCategory(cat.id)}
+                      className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium text-left text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors group"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1 text-left">
+                        <svg className="w-5 h-5 shrink-0 text-violet-400 group-hover:text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        <span className="text-left leading-snug">{cat.label}</span>
+                        <span className="shrink-0 text-xs text-slate-400 dark:text-slate-600">{filteredRevenue.length}</span>
+                      </div>
+                      <svg
+                        className={`w-4 h-4 text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {isExpanded && (
+                      <ul className="mt-1 ml-4 space-y-0.5 border-l-2 border-violet-100 dark:border-violet-900/40 pl-2">
+                        {filteredRevenue.map((endpoint) => (
                           <li key={endpoint.id}>{renderEndpointButton(endpoint)}</li>
                         ))}
                       </ul>

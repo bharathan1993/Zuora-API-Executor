@@ -8,7 +8,7 @@ import { JsonPreview } from './components/JsonPreview';
 import { SavedRequests } from './components/SavedRequests';
 import { StorageManager } from './components/StorageManager';
 import { NameModal } from './components/NameModal';
-import { zuoraEndpoints } from './config/zuoraEndpoints';
+import { zuoraEndpoints, revenueEndpoints } from './config/zuoraEndpoints';
 import { zuoraEnvironments } from './config/environments';
 import { apiExecutor } from './services/apiExecutor';
 import { useTheme } from './hooks/useTheme';
@@ -16,6 +16,7 @@ import { useStorageUsage, STORAGE_KEYS } from './hooks/useStorageUsage';
 import type { ApiEndpoint, ApiResponse, ApiRequest, SavedFolder, SavedRequest, ChainedValue } from './types/api';
 
 function App() {
+  const allEndpoints = [...zuoraEndpoints, ...revenueEndpoints];
   const [selectedEndpoint, setSelectedEndpoint] = useState<ApiEndpoint>(zuoraEndpoints[0]);
   const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<string>(
     zuoraEnvironments[0]?.id || ''
@@ -27,7 +28,9 @@ function App() {
   const [currentRequest, setCurrentRequest] = useState<ApiRequest | null>(null);
   const useProxy = true;
   const [currentView, setCurrentView] = useState<string>('auth');
+  const [previousView, setPreviousView] = useState<string>('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [liveFormData, setLiveFormData] = useState<Record<string, any>>({});
   const [liveHeaders, setLiveHeaders] = useState<Record<string, string> | undefined>();
   const [livePathParams, setLivePathParams] = useState<Record<string, any> | undefined>();
@@ -147,11 +150,12 @@ function App() {
       saveFormState(selectedEndpoint.id);
     }
 
+    setPreviousView(currentView);
     setCurrentView(view);
     setIsSidebarOpen(false);
 
     if (view !== 'auth' && view !== 'storage') {
-      const endpoint = zuoraEndpoints.find(e => e.id === view);
+      const endpoint = allEndpoints.find(e => e.id === view);
       if (endpoint) {
         setSelectedEndpoint(endpoint);
         setResponse(null);
@@ -214,8 +218,14 @@ function App() {
     pathParams?: Record<string, any>,
     queryParams?: Record<string, any>
   ) => {
-    if (!authToken) {
+    const isRevenueEndpoint = endpoint.product === 'revenue';
+    const revenueToken = localStorage.getItem('zuora_revenue_token') || '';
+    if (!isRevenueEndpoint && !authToken) {
       setError('Please generate an OAuth token first');
+      return;
+    }
+    if (isRevenueEndpoint && endpoint.authType === 'revenue-token' && !revenueToken) {
+      setError('Please generate a Revenue token first (Authentication → Revenue tab)');
       return;
     }
 
@@ -253,6 +263,15 @@ function App() {
       const result = await apiExecutor.execute(request);
       setResponse(result);
       setResponseHistory((prev) => [result, ...prev].slice(0, 8));
+
+      // Auto-save Revenue token after successful authentication
+      if (
+        selectedEndpoint.id === 'revenue-create-authentication' &&
+        result.status >= 200 && result.status < 300 &&
+        result.data?.Message && result.data.Message !== 'Token Generated'
+      ) {
+        localStorage.setItem('zuora_revenue_token', result.data.Message);
+      }
     } catch (err: any) {
       setError(err.message || 'An error occurred while executing the request');
     } finally {
@@ -510,20 +529,37 @@ function App() {
         />
       )}
 
-      <Sidebar
-        currentView={currentView}
-        onSelectView={handleViewChange}
-        endpoints={zuoraEndpoints}
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        favoriteEndpointIds={favoriteEndpointIds}
-        recentEndpointIds={recentEndpointIds}
-        onToggleFavorite={handleToggleFavoriteEndpoint}
-        storagePercentUsed={usage.percentUsed}
-      />
+      <div className={`hidden lg:flex flex-col transition-all duration-300 ease-in-out flex-shrink-0 ${isSidebarCollapsed ? 'w-0 overflow-hidden' : 'w-80'}`}>
+        <Sidebar
+          currentView={currentView}
+          onSelectView={handleViewChange}
+          endpoints={allEndpoints}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          favoriteEndpointIds={favoriteEndpointIds}
+          recentEndpointIds={recentEndpointIds}
+          onToggleFavorite={handleToggleFavoriteEndpoint}
+          storagePercentUsed={usage.percentUsed}
+        />
+      </div>
+
+      {/* Mobile sidebar (overlay) */}
+      <div className="lg:hidden">
+        <Sidebar
+          currentView={currentView}
+          onSelectView={handleViewChange}
+          endpoints={allEndpoints}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          favoriteEndpointIds={favoriteEndpointIds}
+          recentEndpointIds={recentEndpointIds}
+          onToggleFavorite={handleToggleFavoriteEndpoint}
+          storagePercentUsed={usage.percentUsed}
+        />
+      </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden w-full relative">
+      <div className="flex-1 flex flex-col h-full overflow-hidden w-full relative min-w-0">
         
         {/* Top Header */}
         <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-20 transition-colors duration-200 flex-shrink-0">
@@ -539,6 +575,36 @@ function App() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
+
+              {/* Desktop Sidebar Toggle */}
+              <button
+                onClick={() => setIsSidebarCollapsed(c => !c)}
+                title={isSidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+                className="hidden lg:flex items-center justify-center p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
+              >
+                {isSidebarCollapsed ? (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7M19 19l-7-7 7-7" />
+                  </svg>
+                )}
+              </button>
+
+              {/* Back button — shown when on utility pages with a prior endpoint to return to */}
+              {(currentView === 'auth' || currentView === 'storage') && previousView && previousView !== 'auth' && previousView !== 'storage' && (
+                <button
+                  onClick={() => handleViewChange(previousView)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors shrink-0"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  Back
+                </button>
+              )}
 
               {/* Method badge + endpoint title */}
               <div className="flex items-center gap-2.5 flex-1 min-w-0">
@@ -677,7 +743,7 @@ function App() {
                 onClearAll={() => { clearAllStorage(); refreshStorage(); }}
               />
             ) : currentView === 'auth' ? (
-              <div className="space-y-8 animate-fadeIn">
+              <div className="animate-fadeIn h-full" style={{ minHeight: 'calc(100vh - 12rem)' }}>
                 <OAuthAuthentication
                   environments={zuoraEnvironments}
                   selectedEnvironmentId={selectedEnvironmentId}
@@ -723,19 +789,13 @@ function App() {
                       <JsonPreview data={liveFormData} onSave={handleSaveRequest} onEdit={handlePreviewEdit} />
                     )}
 
-                    <SavedRequests
-                      requests={savedRequests.filter((r) => r.endpointId === selectedEndpoint?.id)}
-                      folders={savedFolders.filter((f) => f.endpointId === selectedEndpoint?.id)}
-                      endpoints={zuoraEndpoints}
-                      onUse={handleUseSavedRequest}
-                      onRun={handleRunSavedRequest}
-                      onDelete={handleDeleteSavedRequest}
-                      onRename={handleRenameSavedRequest}
-                      onDuplicate={handleDuplicateSavedRequest}
-                      onCreateFolder={handleCreateFolder}
-                      onRenameFolder={handleRenameFolder}
-                      onDeleteFolder={handleDeleteFolder}
-                      onMoveRequest={handleMoveSavedRequest}
+                    <ResponseViewer
+                      response={response}
+                      error={error}
+                      chainedValues={chainedValues}
+                      onPinValue={handlePinValue}
+                      onUnpinValue={handleUnpinValue}
+                      endpointName={selectedEndpoint.name}
                     />
 
                     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm dark:shadow-xl dark:shadow-black/20 transition-colors duration-200">
@@ -778,15 +838,22 @@ function App() {
                         <div className="text-sm text-slate-500">Run requests to build a lightweight troubleshooting timeline.</div>
                       )}
                     </div>
-                    
-                    <ResponseViewer
-                      response={response}
-                      error={error}
-                      chainedValues={chainedValues}
-                      onPinValue={handlePinValue}
-                      onUnpinValue={handleUnpinValue}
-                      endpointName={selectedEndpoint.name}
+
+                    <SavedRequests
+                      requests={savedRequests.filter((r) => r.endpointId === selectedEndpoint?.id)}
+                      folders={savedFolders.filter((f) => f.endpointId === selectedEndpoint?.id)}
+                      endpoints={allEndpoints}
+                      onUse={handleUseSavedRequest}
+                      onRun={handleRunSavedRequest}
+                      onDelete={handleDeleteSavedRequest}
+                      onRename={handleRenameSavedRequest}
+                      onDuplicate={handleDuplicateSavedRequest}
+                      onCreateFolder={handleCreateFolder}
+                      onRenameFolder={handleRenameFolder}
+                      onDeleteFolder={handleDeleteFolder}
+                      onMoveRequest={handleMoveSavedRequest}
                     />
+
                     <CodeGenerator request={liveRequest} />
                   </div>
                   )}

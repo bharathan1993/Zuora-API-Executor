@@ -45,7 +45,8 @@ export interface ApiEndpoint {
   baseUrl: string; // Default base URL
   environments?: Environment[]; // Available environments
   requiresAuth: boolean;
-  authType?: 'bearer' | 'basic' | 'apiKey';
+  authType?: 'bearer' | 'basic' | 'apiKey' | 'revenue-token';
+  product?: 'revenue';
   headers?: Record<string, string>;
   queryParams?: FieldDefinition[];
   pathParams?: FieldDefinition[];
@@ -61,6 +62,8 @@ export interface ApiResponse {
   headers: Record<string, string>;
   duration: number;
   timestamp?: number;
+  blobUrl?: string;
+  filename?: string;
   request?: {
     url: string;
     method: string;
