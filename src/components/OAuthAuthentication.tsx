@@ -491,15 +491,6 @@ export const OAuthAuthentication = ({
   const [revenueGeneratingId, setRevenueGeneratingId] = useState<string | null>(null);
   const [revenueErrors, setRevenueErrors] = useState<Record<string, string>>({});
   const [revenueShowToken, setRevenueShowToken] = useState(false);
-  const defaultRevenueProxyUrl = window.location.hostname === 'localhost' ? 'http://localhost:3001/proxy' : '/api/proxy';
-  const [revenueProxyUrl, setRevenueProxyUrl] = useState<string>(
-    () => localStorage.getItem('zuora_revenue_proxy_url') || defaultRevenueProxyUrl
-  );
-  const [revenueProxyEditing, setRevenueProxyEditing] = useState(false);
-  const [revenueProxyDraft, setRevenueProxyDraft] = useState('');
-  const [revenueDirectMode, setRevenueDirectMode] = useState<boolean>(
-    () => localStorage.getItem('zuora_revenue_direct_mode') === 'true'
-  );
   const [selectedRevenueId, setSelectedRevenueId] = useState<string>(() => localStorage.getItem(REVENUE_ACTIVE_KEY) ?? '');
 
   const activeRevenueInstance = revenueInstances.find(r => r.id === activeRevenueId) ?? null;
@@ -554,22 +545,16 @@ export const OAuthAuthentication = ({
     setRevenueErrors(prev => ({ ...prev, [instance.id]: '' }));
     try {
       const basicAuth = btoa(`${instance.username}:${instance.password}`);
-      const authHeaders: Record<string, string> = {
-        'Authorization': `Basic ${basicAuth}`,
-        'role': instance.role,
-        'clientname': instance.clientname,
-      };
-      const resp = await fetch(
-        revenueDirectMode
-          ? `${instance.host.replace(/\/$/, '')}/api/integration/v1/authenticate`
-          : revenueProxyUrl,
-        {
-          method: 'POST',
-          headers: revenueDirectMode
-            ? authHeaders
-            : { ...authHeaders, 'X-Target-URL': `${instance.host.replace(/\/$/, '')}/api/integration/v1/authenticate` },
-        }
-      );
+      const proxyBase = window.location.hostname === 'localhost' ? 'http://localhost:3001/proxy' : '/api/proxy';
+      const resp = await fetch(proxyBase, {
+        method: 'POST',
+        headers: {
+          'X-Target-URL': `${instance.host.replace(/\/$/, '')}/api/integration/v1/authenticate`,
+          'Authorization': `Basic ${basicAuth}`,
+          'role': instance.role,
+          'clientname': instance.clientname,
+        },
+      });
       const token = resp.headers.get('revpro-token');
       if (token) {
         const updated = revenueInstances.map(r => r.id === instance.id ? { ...r, token } : r);
@@ -1333,106 +1318,6 @@ export const OAuthAuthentication = ({
                       </div>
                     )}
 
-                    {/* Connection mode */}
-                    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3.5 space-y-3">
-                      <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Connection Mode</p>
-
-                      {/* Mode pills */}
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setRevenueDirectMode(true);
-                            localStorage.setItem('zuora_revenue_direct_mode', 'true');
-                          }}
-                          className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition-all ${
-                            revenueDirectMode
-                              ? 'bg-violet-600 border-violet-600 text-white shadow-sm shadow-violet-500/20'
-                              : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-violet-300 dark:hover:border-violet-600 hover:text-violet-600 dark:hover:text-violet-400'
-                          }`}
-                        >
-                          Direct
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setRevenueDirectMode(false);
-                            localStorage.setItem('zuora_revenue_direct_mode', 'false');
-                          }}
-                          className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition-all ${
-                            !revenueDirectMode
-                              ? 'bg-violet-600 border-violet-600 text-white shadow-sm shadow-violet-500/20'
-                              : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-violet-300 dark:hover:border-violet-600 hover:text-violet-600 dark:hover:text-violet-400'
-                          }`}
-                        >
-                          Via Proxy
-                        </button>
-                      </div>
-
-                      {/* Mode description */}
-                      {revenueDirectMode ? (
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                          Browser sends requests directly to the Revenue host. Use this when the Revenue server is accessible from your network without a proxy.
-                        </p>
-                      ) : (
-                        <div className="space-y-2">
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                            Requests route through a proxy server. Use this if the Revenue host is blocked from direct browser access.
-                          </p>
-                          <div className="flex items-center gap-2">
-                            {revenueProxyEditing ? (
-                              <div className="flex-1 space-y-1.5">
-                                <input
-                                  type="url"
-                                  value={revenueProxyDraft}
-                                  onChange={e => setRevenueProxyDraft(e.target.value)}
-                                  placeholder="https://your-proxy.example.com/proxy"
-                                  className="w-full text-[11px] font-mono bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-400"
-                                />
-                                <div className="flex gap-1.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const val = revenueProxyDraft.trim() || defaultRevenueProxyUrl;
-                                      setRevenueProxyUrl(val);
-                                      localStorage.setItem('zuora_revenue_proxy_url', val);
-                                      setRevenueProxyEditing(false);
-                                    }}
-                                    className="flex-1 py-1 rounded-lg text-[11px] font-semibold bg-violet-600 text-white hover:bg-violet-500 transition-colors"
-                                  >
-                                    Save
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setRevenueProxyUrl(defaultRevenueProxyUrl);
-                                      localStorage.removeItem('zuora_revenue_proxy_url');
-                                      setRevenueProxyEditing(false);
-                                    }}
-                                    className="px-2 py-1 rounded-lg text-[11px] border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-                                  >
-                                    Reset
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <>
-                                <code className="flex-1 text-[11px] font-mono text-violet-700 dark:text-violet-300 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 truncate">
-                                  {revenueProxyUrl}
-                                </code>
-                                <button
-                                  type="button"
-                                  onClick={() => { setRevenueProxyDraft(revenueProxyUrl); setRevenueProxyEditing(true); }}
-                                  className="shrink-0 text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
-                                >
-                                  Edit
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
 
                     <button
                       type="button"

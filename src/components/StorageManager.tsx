@@ -9,7 +9,6 @@ const AUTH_KEY_LABELS: Record<string, string> = {
   zuora_active_tenant_id: 'Active Billing Tenant',
   zuora_revenue_instances: 'Revenue Instances',
   zuora_revenue_active_id: 'Active Revenue Instance',
-  zuora_revenue_proxy_url: 'Revenue Proxy URL',
   zuora_revenue_host: 'Revenue Host (legacy)',
   zuora_revenue_token: 'Revenue Token (legacy)',
   zuora_revenue_username: 'Revenue Username (legacy)',
