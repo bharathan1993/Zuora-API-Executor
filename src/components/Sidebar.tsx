@@ -18,6 +18,7 @@ interface SidebarProps {
   recentEndpointIds?: string[];
   onToggleFavorite?: (endpointId: string) => void;
   storagePercentUsed?: number;
+  onSectionChange?: (section: 'billing' | 'revenue') => void;
 }
 
 export const Sidebar = ({
@@ -30,6 +31,7 @@ export const Sidebar = ({
   recentEndpointIds = [],
   onToggleFavorite,
   storagePercentUsed = 0,
+  onSectionChange,
 }: SidebarProps) => {
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
     accounts: true,
@@ -37,7 +39,9 @@ export const Sidebar = ({
     'general-purpose-operations:actions': true,
   });
   const [recentExpanded, setRecentExpanded] = useState(true);
+  const [quickAccessExpanded, setQuickAccessExpanded] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [apiSection, setApiSection] = useState<'billing' | 'revenue'>('billing');
 
   const categories = getAvailableCategories();
 
@@ -243,7 +247,7 @@ export const Sidebar = ({
         </div>
 
         {/* Search */}
-        <div className="p-4 border-b border-slate-100 dark:border-slate-900">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-900 space-y-3">
           <div className="relative">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -255,6 +259,32 @@ export const Sidebar = ({
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600"
             />
+          </div>
+
+          {/* Billing / Revenue toggle */}
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-1 gap-1">
+            <button
+              type="button"
+              onClick={() => { setApiSection('billing'); onSectionChange?.('billing'); }}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                apiSection === 'billing'
+                  ? 'bg-white dark:bg-slate-700 text-zuora-700 dark:text-zuora-300 shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+            >
+              Zuora Billing
+            </button>
+            <button
+              type="button"
+              onClick={() => { setApiSection('revenue'); onSectionChange?.('revenue'); }}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                apiSection === 'revenue'
+                  ? 'bg-white dark:bg-slate-700 text-violet-700 dark:text-violet-300 shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+            >
+              Revenue
+            </button>
           </div>
         </div>
 
@@ -309,10 +339,24 @@ export const Sidebar = ({
 
           {(favoriteEndpointIds.length > 0 || recentEndpointIds.length > 0) && (
             <div>
-              <h3 className="px-4 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
-                Quick Access
-              </h3>
-              <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => setQuickAccessExpanded((v) => !v)}
+                className="w-full flex items-center justify-between px-4 mb-2 group"
+              >
+                <h3 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
+                  Quick Access
+                </h3>
+                <svg
+                  className={`w-3 h-3 text-slate-400 transition-transform ${quickAccessExpanded ? 'rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {quickAccessExpanded && <div className="space-y-3">
                 {favoriteEndpointIds.length > 0 && (
                   <div>
                     <div className="px-4 mb-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400">Favorites</div>
@@ -359,12 +403,12 @@ export const Sidebar = ({
                     )}
                   </div>
                 )}
-              </div>
+              </div>}
             </div>
           )}
 
           {/* Section: API Categories */}
-          <div>
+          {apiSection === 'billing' && <div>
             <h3 className="px-4 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
               API Categories
             </h3>
@@ -414,10 +458,10 @@ export const Sidebar = ({
                 );
               })}
             </div>
-          </div>
+          </div>}
 
           {/* Section: Revenue APIs */}
-          <div>
+          {apiSection === 'revenue' && <div>
             <div className="px-4 mb-2 flex items-center gap-2">
               <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
               <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Revenue</span>
@@ -460,7 +504,7 @@ export const Sidebar = ({
                 );
               })}
             </div>
-          </div>
+          </div>}
 
         </nav>
 

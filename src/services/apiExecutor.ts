@@ -11,6 +11,21 @@ export class ApiExecutor {
     this.useProxy = use;
   }
 
+  private getRevenueHost(): string | null {
+    // Try multi-instance active host first
+    try {
+      const activeId = localStorage.getItem('zuora_revenue_active_id');
+      const instances = JSON.parse(localStorage.getItem('zuora_revenue_instances') || '[]');
+      if (activeId && Array.isArray(instances)) {
+        const active = instances.find((i: { id: string; host: string }) => i.id === activeId);
+        if (active?.host) return active.host.replace(/\/$/, '');
+      }
+    } catch { /* ignore */ }
+    // Fall back to legacy single-instance key
+    const legacy = localStorage.getItem('zuora_revenue_host');
+    return legacy ? legacy.replace(/\/$/, '') : null;
+  }
+
   async execute(request: ApiRequest): Promise<ApiResponse> {
     const { endpoint, authToken, data, customHeaders, pathParams, queryParams } = request;
     const startTime = Date.now();
@@ -19,10 +34,7 @@ export class ApiExecutor {
     let config: AxiosRequestConfig = {};
     // Revenue endpoints use a per-user host stored in localStorage
     const isRevenue = endpoint.product === 'revenue';
-    const revenueHost = isRevenue
-      ? (localStorage.getItem('zuora_revenue_host') || '').replace(/\/$/, '')
-      : null;
-    const effectiveBaseUrl = revenueHost ?? endpoint.baseUrl;
+    const effectiveBaseUrl = isRevenue ? this.getRevenueHost() ?? endpoint.baseUrl : endpoint.baseUrl;
     try {
       // Replace path parameters in the URL
       const path = this.buildResolvedPath(endpoint, pathParams);
@@ -215,8 +227,12 @@ export class ApiExecutor {
   }
 
   private buildResolvedUrl(request: ApiRequest): string {
-    const path = this.buildResolvedPath(request.endpoint, request.pathParams);
-    return `${request.endpoint.baseUrl}${path}${this.buildQueryString(request.queryParams)}`;
+    const { endpoint } = request;
+    const baseUrl = endpoint.product === 'revenue'
+      ? (this.getRevenueHost() ?? endpoint.baseUrl)
+      : endpoint.baseUrl;
+    const path = this.buildResolvedPath(endpoint, request.pathParams);
+    return `${baseUrl}${path}${this.buildQueryString(request.queryParams)}`;
   }
 
   generateCurlCommand(request: ApiRequest): string {

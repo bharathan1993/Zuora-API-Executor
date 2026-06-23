@@ -29,6 +29,7 @@ function App() {
   const useProxy = true;
   const [currentView, setCurrentView] = useState<string>('auth');
   const [previousView, setPreviousView] = useState<string>('');
+  const [apiSection, setApiSection] = useState<'billing' | 'revenue'>('billing');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [liveFormData, setLiveFormData] = useState<Record<string, any>>({});
@@ -540,6 +541,7 @@ function App() {
           recentEndpointIds={recentEndpointIds}
           onToggleFavorite={handleToggleFavoriteEndpoint}
           storagePercentUsed={usage.percentUsed}
+          onSectionChange={setApiSection}
         />
       </div>
 
@@ -555,6 +557,7 @@ function App() {
           recentEndpointIds={recentEndpointIds}
           onToggleFavorite={handleToggleFavoriteEndpoint}
           storagePercentUsed={usage.percentUsed}
+          onSectionChange={setApiSection}
         />
       </div>
 
@@ -750,6 +753,7 @@ function App() {
                   onEnvironmentChange={handleEnvironmentChange}
                   onTokenGenerated={handleTokenGenerated}
                   useCorsProxy={useProxy}
+                  initialProductTab={apiSection}
                 />
               </div>
             ) : (

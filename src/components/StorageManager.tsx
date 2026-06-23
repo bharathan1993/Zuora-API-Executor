@@ -1,6 +1,22 @@
 import { useState } from 'react';
 import type { StorageCategory, StorageSnapshot } from '../hooks/useStorageUsage';
 
+const AUTH_KEY_LABELS: Record<string, string> = {
+  zuora_access_token: 'Billing OAuth Token',
+  zuora_token_expiry: 'Token Expiry',
+  zuora_token_tenant_id: 'Token Tenant ID',
+  zuora_tenants: 'Saved Billing Tenants',
+  zuora_active_tenant_id: 'Active Billing Tenant',
+  zuora_revenue_instances: 'Revenue Instances',
+  zuora_revenue_active_id: 'Active Revenue Instance',
+  zuora_revenue_host: 'Revenue Host (legacy)',
+  zuora_revenue_token: 'Revenue Token (legacy)',
+  zuora_revenue_username: 'Revenue Username (legacy)',
+  zuora_revenue_password: 'Revenue Password (legacy)',
+  zuora_revenue_role: 'Revenue Role (legacy)',
+  zuora_revenue_clientname: 'Revenue Client Name (legacy)',
+};
+
 interface StorageManagerProps {
   usage: StorageSnapshot;
   onClearCategory: (keys: string[]) => void;
@@ -50,6 +66,94 @@ function CategoryRow({
         </button>
       ) : (
         <span className="ml-4 text-xs text-slate-400 dark:text-slate-600 px-3 py-1.5">Empty</span>
+      )}
+    </div>
+  );
+}
+
+function AuthCategoryRow({
+  category,
+  onClear,
+  onClearKey,
+}: {
+  category: StorageCategory;
+  onClear: () => void;
+  onClearKey: (key: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+
+  const handleClear = () => {
+    if (!confirmed) { setConfirmed(true); return; }
+    onClear();
+    setConfirmed(false);
+    setExpanded(false);
+  };
+
+  return (
+    <div className="border-b border-slate-100 dark:border-slate-800 last:border-0">
+      <div className="flex items-center justify-between py-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{category.label}</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {category.keys.length} {category.keys.length === 1 ? 'entry' : 'entries'} · {formatBytes(category.bytes)}
+            </p>
+            {category.keys.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setExpanded(v => !v)}
+                className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 underline transition-colors flex items-center gap-1"
+              >
+                {expanded ? 'Hide' : 'View entries'}
+                <svg className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+        {category.keys.length > 0 ? (
+          <button
+            type="button"
+            onClick={handleClear}
+            className={`ml-4 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors ${
+              confirmed
+                ? 'border-rose-300 dark:border-rose-500/50 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:border-rose-300 dark:hover:border-rose-500/50 hover:text-rose-600 dark:hover:text-rose-400'
+            }`}
+          >
+            {confirmed ? 'Confirm clear' : 'Clear all'}
+          </button>
+        ) : (
+          <span className="ml-4 text-xs text-slate-400 dark:text-slate-600 px-3 py-1.5">Empty</span>
+        )}
+      </div>
+
+      {expanded && category.keys.length > 0 && (
+        <div className="mb-3 rounded-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+          {category.keys.map((key, i) => {
+            const value = localStorage.getItem(key) ?? '';
+            const bytes = (key.length + value.length) * 2;
+            const label = AUTH_KEY_LABELS[key] ?? key;
+            const isLast = i === category.keys.length - 1;
+            return (
+              <div key={key} className={`flex items-center justify-between px-3 py-2 bg-slate-50 dark:bg-slate-950 ${!isLast ? 'border-b border-slate-100 dark:border-slate-800' : ''}`}>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-slate-700 dark:text-slate-300">{label}</p>
+                  <p className="text-[10px] font-mono text-slate-400 dark:text-slate-500 mt-0.5">{key} · {formatBytes(bytes)}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onClearKey(key)}
+                  className="ml-3 shrink-0 text-[10px] font-medium px-2 py-1 rounded border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-rose-300 dark:hover:border-rose-500/50 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+                >
+                  Remove
+                </button>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
@@ -117,13 +221,22 @@ export const StorageManager = ({ usage, onClearCategory, onClearAll }: StorageMa
         </p>
 
         <div>
-          {categories.map((cat) => (
-            <CategoryRow
-              key={cat.label}
-              category={cat}
-              onClear={() => onClearCategory(cat.keys)}
-            />
-          ))}
+          {categories.map((cat) =>
+            cat.label === 'Authentication' ? (
+              <AuthCategoryRow
+                key={cat.label}
+                category={cat}
+                onClear={() => onClearCategory(cat.keys)}
+                onClearKey={(key) => onClearCategory([key])}
+              />
+            ) : (
+              <CategoryRow
+                key={cat.label}
+                category={cat}
+                onClear={() => onClearCategory(cat.keys)}
+              />
+            )
+          )}
         </div>
       </div>
 
@@ -165,7 +278,7 @@ export const StorageManager = ({ usage, onClearCategory, onClearAll }: StorageMa
         <ul className="space-y-2 text-xs text-slate-500 dark:text-slate-400">
           <li><span className="font-medium text-slate-700 dark:text-slate-300">Form states</span> — field values auto-saved per endpoint so you don't lose work when switching APIs.</li>
           <li><span className="font-medium text-slate-700 dark:text-slate-300">Saved requests</span> — requests you explicitly saved with names and folders.</li>
-          <li><span className="font-medium text-slate-700 dark:text-slate-300">Authentication</span> — the current OAuth access token.</li>
+          <li><span className="font-medium text-slate-700 dark:text-slate-300">Authentication</span> — saved Billing tenants, Revenue instances, OAuth tokens, and credentials. Click "View entries" to inspect and remove individual items.</li>
           <li><span className="font-medium text-slate-700 dark:text-slate-300">Settings</span> — selected environment, favourites, and recently-used endpoints.</li>
         </ul>
       </div>

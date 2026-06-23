@@ -9,6 +9,25 @@ export const STORAGE_KEYS = {
   recents: 'zuora_recent_endpoints',
 };
 
+// All keys that belong to the Authentication category
+const AUTH_KEY_PREFIXES = ['zuora_revenue_'];
+const AUTH_KEY_EXACT = new Set([
+  'zuora_access_token',
+  'zuora_token_expiry',
+  'zuora_token_tenant_id',
+  'zuora_tenants',
+  'zuora_active_tenant_id',
+  'zuora_revenue_instances',
+  'zuora_revenue_active_id',
+  // legacy single-instance revenue keys
+  'zuora_revenue_host',
+  'zuora_revenue_token',
+  'zuora_revenue_username',
+  'zuora_revenue_password',
+  'zuora_revenue_role',
+  'zuora_revenue_clientname',
+]);
+
 const ASSUMED_QUOTA_BYTES = 5 * 1024 * 1024; // 5 MB
 
 function byteSize(key: string, value: string) {
@@ -48,13 +67,15 @@ function snapshot(): StorageSnapshot {
     const value = localStorage.getItem(key) ?? '';
     const bytes = byteSize(key, value);
 
+    const isAuthKey = AUTH_KEY_EXACT.has(key) || AUTH_KEY_PREFIXES.some(p => key.startsWith(p));
+
     if (key.startsWith(STORAGE_KEYS.formStatePrefix)) {
       cats.formStates.bytes += bytes;
       cats.formStates.keys.push(key);
     } else if (key === STORAGE_KEYS.savedRequests) {
       cats.savedRequests.bytes += bytes;
       cats.savedRequests.keys.push(key);
-    } else if (key === STORAGE_KEYS.authToken) {
+    } else if (isAuthKey) {
       cats.auth.bytes += bytes;
       cats.auth.keys.push(key);
     } else if (
