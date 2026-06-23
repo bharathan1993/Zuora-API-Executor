@@ -8,9 +8,12 @@ export interface OAuthTokenResponse {
   jti: string;
 }
 
+const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+const DEFAULT_PROXY_URL = isLocalhost ? 'http://localhost:3001/proxy' : '/api/proxy';
+
 export class OAuthService {
   private useProxy = false;
-  private proxyUrl = 'http://localhost:3001/proxy';
+  private proxyUrl = DEFAULT_PROXY_URL;
 
   setUseProxy(use: boolean) {
     this.useProxy = use;

@@ -2,10 +2,13 @@ import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
 import type { ApiEndpoint, ApiRequest, ApiResponse } from '../types/api';
 
+// Use the Vercel serverless proxy in production, local Express proxy in dev
+const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+const DEFAULT_PROXY_URL = isLocalhost ? 'http://localhost:3001/proxy' : '/api/proxy';
+
 export class ApiExecutor {
-  // Toggle this to use local proxy
   private useProxy = false;
-  private proxyUrl = 'http://localhost:3001/proxy';
+  private proxyUrl = DEFAULT_PROXY_URL;
 
   setUseProxy(use: boolean) {
     this.useProxy = use;
