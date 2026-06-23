@@ -19,7 +19,7 @@ const AUTH_KEY_EXACT = new Set([
   'zuora_active_tenant_id',
   'zuora_revenue_instances',
   'zuora_revenue_active_id',
-  'zuora_revenue_use_local_proxy',
+  'zuora_revenue_proxy_url',
   // legacy single-instance revenue keys
   'zuora_revenue_host',
   'zuora_revenue_token',

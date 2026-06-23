@@ -9,10 +9,22 @@ const insecureAgent = new https.Agent({ rejectUnauthorized: false });
 const app = express();
 const PORT = 3001;
 
-// Enable CORS for all origins, and expose Revenue token header to the browser
+// Enable CORS for all origins, expose Revenue token header, and allow Private Network Access
+// (Chrome blocks HTTPS pages from calling localhost unless the server sends this header)
 app.use(cors({
   exposedHeaders: ['revpro-token', 'zuora-request-id'],
 }));
+
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Private-Network', 'true');
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    return res.status(200).end();
+  }
+  next();
+});
 
 // Parse JSON bodies
 app.use(express.json());

@@ -491,9 +491,12 @@ export const OAuthAuthentication = ({
   const [revenueGeneratingId, setRevenueGeneratingId] = useState<string | null>(null);
   const [revenueErrors, setRevenueErrors] = useState<Record<string, string>>({});
   const [revenueShowToken, setRevenueShowToken] = useState(false);
-  const [revenueUseLocalProxy, setRevenueUseLocalProxy] = useState<boolean>(
-    () => localStorage.getItem('zuora_revenue_use_local_proxy') === 'true'
+  const defaultRevenueProxyUrl = window.location.hostname === 'localhost' ? 'http://localhost:3001/proxy' : '/api/proxy';
+  const [revenueProxyUrl, setRevenueProxyUrl] = useState<string>(
+    () => localStorage.getItem('zuora_revenue_proxy_url') || defaultRevenueProxyUrl
   );
+  const [revenueProxyEditing, setRevenueProxyEditing] = useState(false);
+  const [revenueProxyDraft, setRevenueProxyDraft] = useState('');
   const [selectedRevenueId, setSelectedRevenueId] = useState<string>(() => localStorage.getItem(REVENUE_ACTIVE_KEY) ?? '');
 
   const activeRevenueInstance = revenueInstances.find(r => r.id === activeRevenueId) ?? null;
@@ -548,10 +551,7 @@ export const OAuthAuthentication = ({
     setRevenueErrors(prev => ({ ...prev, [instance.id]: '' }));
     try {
       const basicAuth = btoa(`${instance.username}:${instance.password}`);
-      const proxyBase = (window.location.hostname === 'localhost' || revenueUseLocalProxy)
-        ? 'http://localhost:3001/proxy'
-        : '/api/proxy';
-      const resp = await fetch(proxyBase, {
+      const resp = await fetch(revenueProxyUrl, {
         method: 'POST',
         headers: {
           'X-Target-URL': `${instance.host.replace(/\/$/, '')}/api/integration/v1/authenticate`,
@@ -1323,36 +1323,67 @@ export const OAuthAuthentication = ({
                       </div>
                     )}
 
-                    {/* Local proxy toggle — shown when not on localhost */}
-                    {window.location.hostname !== 'localhost' && (
-                      <div className={`rounded-xl border p-3.5 transition-colors ${revenueUseLocalProxy ? 'border-violet-300 dark:border-violet-500/40 bg-violet-50 dark:bg-violet-500/8' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900'}`}>
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1">
-                            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Use local proxy for Revenue</p>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-                              Required for Revenue sandbox hosts on Zuora's internal network (VPN). Run <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded">node proxy-server.js</code> locally.
-                            </p>
-                          </div>
+                    {/* Revenue Proxy URL setting */}
+                    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3.5 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Revenue Proxy URL</p>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                            For Revenue sandbox (VPN-only), point this to your team's internal proxy.
+                          </p>
+                        </div>
+                        {!revenueProxyEditing && (
                           <button
                             type="button"
-                            onClick={() => {
-                              const next = !revenueUseLocalProxy;
-                              setRevenueUseLocalProxy(next);
-                              localStorage.setItem('zuora_revenue_use_local_proxy', String(next));
-                            }}
-                            className={`relative shrink-0 w-9 h-5 rounded-full transition-colors ${revenueUseLocalProxy ? 'bg-violet-500' : 'bg-slate-300 dark:bg-slate-600'}`}
+                            onClick={() => { setRevenueProxyDraft(revenueProxyUrl); setRevenueProxyEditing(true); }}
+                            className="shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
                           >
-                            <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${revenueUseLocalProxy ? 'translate-x-4' : 'translate-x-0'}`} />
+                            Edit
                           </button>
-                        </div>
-                        {revenueUseLocalProxy && (
-                          <p className="mt-2 text-[11px] text-violet-600 dark:text-violet-400 font-medium flex items-center gap-1">
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                            Routing Revenue requests via localhost:3001
-                          </p>
                         )}
                       </div>
-                    )}
+
+                      {revenueProxyEditing ? (
+                        <div className="space-y-2">
+                          <input
+                            type="url"
+                            value={revenueProxyDraft}
+                            onChange={e => setRevenueProxyDraft(e.target.value)}
+                            placeholder="https://your-internal-proxy.zuora.com/proxy"
+                            className="w-full text-xs font-mono bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-400"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const val = revenueProxyDraft.trim() || defaultRevenueProxyUrl;
+                                setRevenueProxyUrl(val);
+                                localStorage.setItem('zuora_revenue_proxy_url', val);
+                                setRevenueProxyEditing(false);
+                              }}
+                              className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-violet-600 text-white hover:bg-violet-500 transition-colors"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setRevenueProxyUrl(defaultRevenueProxyUrl);
+                                localStorage.removeItem('zuora_revenue_proxy_url');
+                                setRevenueProxyEditing(false);
+                              }}
+                              className="px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                            >
+                              Reset to default
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <code className="block text-[11px] font-mono text-violet-700 dark:text-violet-300 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 truncate">
+                          {revenueProxyUrl}
+                        </code>
+                      )}
+                    </div>
 
                     <button
                       type="button"

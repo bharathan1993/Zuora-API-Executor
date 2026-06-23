@@ -51,8 +51,9 @@ export class ApiExecutor {
       const queryString = this.buildQueryString(queryParams);
 
       if (this.useProxy) {
-        const revenueLocalProxy = isRevenue && localStorage.getItem('zuora_revenue_use_local_proxy') === 'true';
-        const activeProxyUrl = revenueLocalProxy ? 'http://localhost:3001/proxy' : this.proxyUrl;
+        const activeProxyUrl = isRevenue
+          ? (localStorage.getItem('zuora_revenue_proxy_url') || this.proxyUrl)
+          : this.proxyUrl;
         finalUrl = activeProxyUrl;
         headers['X-Target-URL'] = `${effectiveBaseUrl}${path}${queryString}`;
       } else {
