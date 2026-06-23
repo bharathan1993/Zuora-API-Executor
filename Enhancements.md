@@ -4,6 +4,25 @@ This file tracks feature enhancements and improvements made to Zuora API Studio 
 
 ---
 
+Enhancement Suggestions : 
+
+Usability
+
+1. Persist form state per endpoint — right now switching endpoints loses your filled-in values. Storing them in localStorage keyed by endpoint ID would make it much faster to switch between related APIs mid-workflow.
+2. Response history panel — the responseHistory array is already tracked in state but never surfaced in the UI. Showing the last N responses with timestamps would let users compare runs.
+3. Pre-flight proxy health check — on app load, ping localhost:3001 and show a clear warning banner if the proxy isn't running, instead of letting requests fail silently.
+Workflow
+4. Request chaining — let users map a field from a previous response (e.g. accountId from Create Account) into a subsequent request's form. This is the #1 pain point with API studios for Zuora's object graph.
+5. Environment-scoped saved requests — right now saved requests don't pin an environment, so loading one in sandbox vs. production is ambiguous.
+
+Developer experience
+6. Inline field descriptions on hover — the description field exists on every FieldDefinition but most fields don't surface it. A tooltip would reduce constant doc lookups.
+7. Bulk header presets — let users save a set of headers (e.g. Zuora-Entity-Ids + Zuora-Org-Ids combo) as a named profile and apply it to any request.
+
+The highest ROI item by far is #4 (request chaining) — Zuora workflows almost always involve multiple sequential API calls, and the lack of value carry-over is what makes users reach for Postman instead. Everything else is polish.
+
+Implemented : 
+
 ## 1. CORS Proxy Always-On
 
 **Date:** June 2026
