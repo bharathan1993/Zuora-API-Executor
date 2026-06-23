@@ -16,33 +16,10 @@ interface OAuthAuthenticationProps {
   onEnvironmentChange: (environmentId: string) => void;
   onTokenGenerated: (token: string) => void;
   useCorsProxy?: boolean;
-  initialProductTab?: 'billing' | 'revenue';
 }
 
 const TENANTS_KEY = 'zuora_tenants';
 const ACTIVE_TENANT_KEY = 'zuora_active_tenant_id';
-
-// ── Revenue instance types + storage ──────────────────────────────────────────
-interface RevenueInstance {
-  id: string;
-  name: string;
-  host: string;
-  username: string;
-  password: string;
-  role: string;
-  clientname: string;
-  token?: string;
-}
-
-const REVENUE_INSTANCES_KEY = 'zuora_revenue_instances';
-const REVENUE_ACTIVE_KEY = 'zuora_revenue_active_id';
-
-function loadRevenueInstances(): RevenueInstance[] {
-  try { return JSON.parse(localStorage.getItem(REVENUE_INSTANCES_KEY) || '[]'); } catch { return []; }
-}
-function saveRevenueInstances(list: RevenueInstance[]) {
-  localStorage.setItem(REVENUE_INSTANCES_KEY, JSON.stringify(list));
-}
 
 function loadTenants(): TenantCredential[] {
   try {
@@ -88,7 +65,6 @@ function TenantForm({
 
   return (
     <div className="space-y-4">
-      {/* Name */}
       <div>
         <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wide">
           Tenant Name <span className="text-rose-500">*</span>
@@ -102,7 +78,6 @@ function TenantForm({
         />
       </div>
 
-      {/* Environment */}
       <div>
         <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wide">
           Environment <span className="text-rose-500">*</span>
@@ -126,7 +101,6 @@ function TenantForm({
         })()}
       </div>
 
-      {/* Client ID + Secret */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wide">
@@ -163,7 +137,6 @@ function TenantForm({
         </div>
       </div>
 
-      {/* Actions */}
       <div className="flex gap-2 pt-1">
         <button
           type="button"
@@ -189,68 +162,6 @@ function TenantForm({
   );
 }
 
-// ── Revenue instance form (add / edit) ─────────────────────────────────────
-function RevenueInstanceForm({
-  initial,
-  onSave,
-  onCancel,
-}: {
-  initial?: Partial<RevenueInstance>;
-  onSave: (r: Omit<RevenueInstance, 'id' | 'token'>) => void;
-  onCancel: () => void;
-}) {
-  const [name, setName] = useState(initial?.name ?? '');
-  const [host, setHost] = useState(initial?.host ?? '');
-  const [username, setUsername] = useState(initial?.username ?? '');
-  const [password, setPassword] = useState(initial?.password ?? '');
-  const [showPw, setShowPw] = useState(false);
-  const [role, setRole] = useState(initial?.role ?? 'API_USER');
-  const [clientname, setClientname] = useState(initial?.clientname ?? 'Default');
-  const valid = name.trim() && host.trim() && username.trim() && password.trim() && role.trim() && clientname.trim();
-  return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-violet-200 dark:border-violet-500/30 p-5 shadow-sm space-y-4">
-      <h4 className="text-sm font-semibold text-slate-800 dark:text-white">{initial?.name ? 'Edit Revenue Instance' : 'Add Revenue Instance'}</h4>
-      <div>
-        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Instance Name <span className="text-rose-500">*</span></label>
-        <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Sandbox" className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors" />
-      </div>
-      <div>
-        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Revenue Host <span className="text-rose-500">*</span></label>
-        <input type="url" value={host} onChange={e => setHost(e.target.value)} placeholder="https://yourHost" className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-400 font-mono focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors" />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Username <span className="text-rose-500">*</span></label>
-          <input type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="API_USER" className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors" />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Password <span className="text-rose-500">*</span></label>
-          <div className="relative">
-            <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="w-full px-3 py-2 pr-9 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors" />
-            <button type="button" onClick={() => setShowPw(p => !p)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><EyeIcon open={showPw} /></button>
-          </div>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Role <span className="text-rose-500">*</span></label>
-          <input type="text" value={role} onChange={e => setRole(e.target.value)} placeholder="API_USER" className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors" />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Client Name <span className="text-rose-500">*</span></label>
-          <input type="text" value={clientname} onChange={e => setClientname(e.target.value)} placeholder="Default" className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors" />
-        </div>
-      </div>
-      <div className="flex gap-2 pt-1">
-        <button type="button" onClick={() => valid && onSave({ name: name.trim(), host: host.trim().replace(/\/$/, ''), username: username.trim(), password, role: role.trim(), clientname: clientname.trim() })} disabled={!valid} className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${valid ? 'bg-violet-600 text-white hover:bg-violet-500 shadow-md shadow-violet-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-200 dark:border-slate-700'}`}>
-          {initial?.name ? 'Save Changes' : 'Add Instance'}
-        </button>
-        <button type="button" onClick={onCancel} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors">Cancel</button>
-      </div>
-    </div>
-  );
-}
-
 // ── Main component ──────────────────────────────────────────────────────────
 export const OAuthAuthentication = ({
   environments,
@@ -258,7 +169,6 @@ export const OAuthAuthentication = ({
   onEnvironmentChange,
   onTokenGenerated,
   useCorsProxy = false,
-  initialProductTab,
 }: OAuthAuthenticationProps) => {
   const [tenants, setTenants] = useState<TenantCredential[]>(() => loadTenants());
   const [activeTenantId, setActiveTenantId] = useState<string>(() => localStorage.getItem(ACTIVE_TENANT_KEY) ?? '');
@@ -282,7 +192,6 @@ export const OAuthAuthentication = ({
   const [showToken, setShowToken] = useState(false);
   const [useManualToken, setUseManualToken] = useState(false);
   const [manualToken, setManualToken] = useState('');
-  // tracks which tenant (id) or 'quick' generated the current active token
   const [tokenTenantId, setTokenTenantId] = useState<string>(() => localStorage.getItem('zuora_token_tenant_id') ?? '');
 
   const activeTenant = tenants.find((t) => t.id === activeTenantId) ?? null;
@@ -294,7 +203,7 @@ export const OAuthAuthentication = ({
     if (savedToken) { setAccessToken(savedToken); onTokenGenerated(savedToken); }
     if (savedExpiry) setExpiryTimestamp(parseInt(savedExpiry, 10));
 
-    // Legacy migration: if old credentials exist and no tenants yet
+    // Legacy migration
     const legacyId = localStorage.getItem('zuora_client_id');
     const legacySec = localStorage.getItem('zuora_client_secret');
     const existing = loadTenants();
@@ -318,7 +227,7 @@ export const OAuthAuthentication = ({
     if (activeTenant) onEnvironmentChange(activeTenant.environmentId);
   }, [activeTenantId]);
 
-  // Init quick-connect env to first environment
+  // Init quick-connect env
   useEffect(() => {
     if (environments.length > 0) setQuickEnvId(environments[0].id);
   }, []);
@@ -447,144 +356,14 @@ export const OAuthAuthentication = ({
   const isTokenExpired = timeLeft === 'Expired';
   const hasToken = !!accessToken && !isTokenExpired;
 
-  // ── Environment label helper ───────────────────────────────────────────────
   const envLabel = (id: string) => environments.find((e) => e.id === id)?.name ?? id;
   const envUrl = (id: string) => environments.find((e) => e.id === id)?.baseUrl ?? '';
-
-  // ── Product tab ───────────────────────────────────────────────────────────
-  const [productTab, setProductTab] = useState<'billing' | 'revenue'>(initialProductTab ?? 'billing');
-
-  useEffect(() => {
-    if (initialProductTab) setProductTab(initialProductTab);
-  }, [initialProductTab]);
-
-  // ── Revenue multi-instance state ──────────────────────────────────────────
-  const [revenueInstances, setRevenueInstances] = useState<RevenueInstance[]>(() => {
-    const list = loadRevenueInstances();
-    // Migrate legacy single-host data
-    if (list.length === 0) {
-      const host = localStorage.getItem('zuora_revenue_host') ?? '';
-      const username = localStorage.getItem('zuora_revenue_username') ?? '';
-      if (host || username) {
-        const migrated: RevenueInstance = {
-          id: crypto.randomUUID(),
-          name: 'My Revenue Instance',
-          host,
-          username,
-          password: localStorage.getItem('zuora_revenue_password') ?? '',
-          role: localStorage.getItem('zuora_revenue_role') ?? 'API_USER',
-          clientname: localStorage.getItem('zuora_revenue_clientname') ?? 'Default',
-          token: localStorage.getItem('zuora_revenue_token') ?? undefined,
-        };
-        saveRevenueInstances([migrated]);
-        return [migrated];
-      }
-    }
-    return list;
-  });
-  const [activeRevenueId, setActiveRevenueId] = useState<string>(() => {
-    const saved = localStorage.getItem(REVENUE_ACTIVE_KEY) ?? '';
-    return saved;
-  });
-  const [showRevenueAddForm, setShowRevenueAddForm] = useState(false);
-  const [editingRevenue, setEditingRevenue] = useState<RevenueInstance | null>(null);
-  const [revenueGeneratingId, setRevenueGeneratingId] = useState<string | null>(null);
-  const [revenueErrors, setRevenueErrors] = useState<Record<string, string>>({});
-  const [revenueShowToken, setRevenueShowToken] = useState(false);
-  const [selectedRevenueId, setSelectedRevenueId] = useState<string>(() => localStorage.getItem(REVENUE_ACTIVE_KEY) ?? '');
-
-  const activeRevenueInstance = revenueInstances.find(r => r.id === activeRevenueId) ?? null;
-  const selectedRevenueInstance = revenueInstances.find(r => r.id === selectedRevenueId) ?? revenueInstances[0] ?? null;
-
-  const activateRevenueInstance = (instance: RevenueInstance) => {
-    setActiveRevenueId(instance.id);
-    localStorage.setItem(REVENUE_ACTIVE_KEY, instance.id);
-    localStorage.setItem('zuora_revenue_host', instance.host);
-    localStorage.setItem('zuora_revenue_token', instance.token ?? '');
-  };
-
-  const handleRevenueAdd = (data: Omit<RevenueInstance, 'id' | 'token'>) => {
-    const newInstance: RevenueInstance = { id: crypto.randomUUID(), ...data };
-    const updated = [...revenueInstances, newInstance];
-    setRevenueInstances(updated);
-    saveRevenueInstances(updated);
-    setShowRevenueAddForm(false);
-    activateRevenueInstance(newInstance);
-  };
-
-  const handleRevenueEdit = (data: Omit<RevenueInstance, 'id' | 'token'>) => {
-    if (!editingRevenue) return;
-    const updated = revenueInstances.map(r => r.id === editingRevenue.id ? { ...r, ...data } : r);
-    setRevenueInstances(updated);
-    saveRevenueInstances(updated);
-    setEditingRevenue(null);
-    if (activeRevenueId === editingRevenue.id) {
-      const found = updated.find(r => r.id === editingRevenue.id)!;
-      localStorage.setItem('zuora_revenue_host', found.host);
-    }
-  };
-
-  const handleRevenueDelete = (id: string) => {
-    const updated = revenueInstances.filter(r => r.id !== id);
-    setRevenueInstances(updated);
-    saveRevenueInstances(updated);
-    if (activeRevenueId === id) {
-      const next = updated[0] ?? null;
-      if (next) activateRevenueInstance(next);
-      else {
-        setActiveRevenueId('');
-        localStorage.removeItem(REVENUE_ACTIVE_KEY);
-        localStorage.removeItem('zuora_revenue_host');
-        localStorage.removeItem('zuora_revenue_token');
-      }
-    }
-  };
-
-  const handleRevenueGetToken = async (instance: RevenueInstance) => {
-    setRevenueGeneratingId(instance.id);
-    setRevenueErrors(prev => ({ ...prev, [instance.id]: '' }));
-    try {
-      const basicAuth = btoa(`${instance.username}:${instance.password}`);
-      const proxyBase = window.location.hostname === 'localhost' ? 'http://localhost:3001/proxy' : '/api/proxy';
-      const resp = await fetch(proxyBase, {
-        method: 'POST',
-        headers: {
-          'X-Target-URL': `${instance.host.replace(/\/$/, '')}/api/integration/v1/authenticate`,
-          'Authorization': `Basic ${basicAuth}`,
-          'role': instance.role,
-          'clientname': instance.clientname,
-        },
-      });
-      const token = resp.headers.get('revpro-token');
-      if (token) {
-        const updated = revenueInstances.map(r => r.id === instance.id ? { ...r, token } : r);
-        setRevenueInstances(updated);
-        saveRevenueInstances(updated);
-        if (activeRevenueId === instance.id) localStorage.setItem('zuora_revenue_token', token);
-      } else {
-        try {
-          const json = await resp.json();
-          if (resp.ok && json?.Message === 'Token Generated') {
-            setRevenueErrors(prev => ({ ...prev, [instance.id]: 'Server returned 200 but token header was not forwarded. Restart the proxy and try again.' }));
-          } else {
-            setRevenueErrors(prev => ({ ...prev, [instance.id]: `Authentication failed (HTTP ${resp.status}): ${json?.Message || 'No token returned.'}` }));
-          }
-        } catch {
-          setRevenueErrors(prev => ({ ...prev, [instance.id]: `Authentication failed (HTTP ${resp.status}).` }));
-        }
-      }
-    } catch (e: any) {
-      setRevenueErrors(prev => ({ ...prev, [instance.id]: e.message || 'Request failed. Ensure the proxy server is running.' }));
-    } finally {
-      setRevenueGeneratingId(null);
-    }
-  };
 
   return (
     <div className="h-full flex flex-col">
 
       {/* ── Page header ── */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2.5">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-zuora-500/15 text-zuora-500 dark:text-zuora-400">
@@ -595,44 +374,16 @@ export const OAuthAuthentication = ({
             Authentication
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Manage credentials for Zuora Billing and Revenue
+            Manage Zuora Billing credentials and OAuth tokens
           </p>
         </div>
-        {productTab === 'billing' && !showAddForm && !editingTenant && (
+        {!showAddForm && !editingTenant && (
           <button type="button" onClick={() => setShowAddForm(true)} className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zuora-600 hover:bg-zuora-500 text-white text-sm font-semibold shadow-md shadow-zuora-500/20 transition-all">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
             Add Tenant
           </button>
         )}
-        {productTab === 'revenue' && !showRevenueAddForm && !editingRevenue && (
-          <button type="button" onClick={() => setShowRevenueAddForm(true)} className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold shadow-md shadow-violet-500/20 transition-all">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-            Add Instance
-          </button>
-        )}
       </div>
-
-      {/* ── Product tab bar ── */}
-      <div className="flex items-center gap-1 mb-5 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 self-start">
-        {([['billing', 'Zuora Billing'], ['revenue', 'Zuora Revenue']] as const).map(([tab, label]) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setProductTab(tab)}
-            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
-              productTab === tab
-                ? tab === 'revenue'
-                  ? 'bg-white dark:bg-slate-700 text-violet-600 dark:text-violet-400 shadow-sm'
-                  : 'bg-white dark:bg-slate-700 text-zuora-600 dark:text-zuora-400 shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {productTab === 'billing' && <>
 
       {/* ── Add / Edit tenant form ── */}
       {(showAddForm || editingTenant) && (
@@ -767,7 +518,7 @@ export const OAuthAuthentication = ({
 
         {/* Right column — token panel */}
         <div className="flex-1 min-w-0 space-y-4">
-          {/* Quick Connect toggle — always visible when not using a saved tenant */}
+          {/* Quick Connect — visible when no saved tenant active */}
           {(!activeTenant || quickMode) && (
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm dark:shadow-xl dark:shadow-black/20 space-y-4">
               <div className="flex items-center justify-between">
@@ -791,7 +542,6 @@ export const OAuthAuthentication = ({
                 )}
               </div>
 
-              {/* Environment */}
               <div>
                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Environment</label>
                 <select
@@ -809,7 +559,6 @@ export const OAuthAuthentication = ({
                 })()}
               </div>
 
-              {/* Client ID + Secret */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Client ID <span className="text-rose-500">*</span></label>
@@ -842,7 +591,6 @@ export const OAuthAuthentication = ({
                 </div>
               </div>
 
-              {/* Generate button */}
               <button
                 type="button"
                 onClick={handleQuickGenerate}
@@ -871,14 +619,10 @@ export const OAuthAuthentication = ({
                 )}
               </button>
 
-              {/* Save shortcut */}
               {quickClientId.trim() && quickClientSecret.trim() && (
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowAddForm(true);
-                    setQuickMode(false);
-                  }}
+                  onClick={() => { setShowAddForm(true); setQuickMode(false); }}
                   className="w-full py-2 rounded-xl text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-zuora-600 dark:hover:text-zuora-300 border border-dashed border-slate-200 dark:border-slate-700 hover:border-zuora-400 dark:hover:border-zuora-500/50 transition-all flex items-center justify-center gap-1.5"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -888,7 +632,6 @@ export const OAuthAuthentication = ({
                 </button>
               )}
 
-              {/* Error */}
               {error && (
                 <div className="flex gap-2.5 p-3 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-xl">
                   <svg className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -898,7 +641,6 @@ export const OAuthAuthentication = ({
                 </div>
               )}
 
-              {/* Token result */}
               {accessToken && (
                 <div className={`rounded-xl border p-4 ${isTokenExpired ? 'bg-rose-50 dark:bg-rose-500/8 border-rose-200 dark:border-rose-500/20' : 'bg-emerald-50 dark:bg-emerald-500/8 border-emerald-200 dark:border-emerald-500/20'}`}>
                   <div className="flex items-center justify-between mb-2">
@@ -934,10 +676,9 @@ export const OAuthAuthentication = ({
             </div>
           )}
 
-          {/* Saved tenant token panel — only when one is active and not in quick mode */}
+          {/* Saved tenant token panel */}
           {activeTenant && !quickMode && (
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm dark:shadow-xl dark:shadow-black/20 space-y-5">
-              {/* Section header */}
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-base font-semibold text-slate-800 dark:text-white flex items-center gap-2">
@@ -958,26 +699,26 @@ export const OAuthAuthentication = ({
                   >
                     Quick connect
                   </button>
-                <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 gap-0.5">
-                  {['Auto', 'Manual'].map((mode) => {
-                    const isManual = mode === 'Manual';
-                    const selected = useManualToken === isManual;
-                    return (
-                      <button
-                        key={mode}
-                        type="button"
-                        onClick={() => setUseManualToken(isManual)}
-                        className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                          selected
-                            ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                        }`}
-                      >
-                        {mode}
-                      </button>
-                    );
-                  })}
-                </div>
+                  <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 gap-0.5">
+                    {['Auto', 'Manual'].map((mode) => {
+                      const isManual = mode === 'Manual';
+                      const selected = useManualToken === isManual;
+                      return (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => setUseManualToken(isManual)}
+                          className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                            selected
+                              ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm'
+                              : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                          }`}
+                        >
+                          {mode}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
@@ -1134,215 +875,6 @@ export const OAuthAuthentication = ({
           )}
         </div>
       </div>
-
-      </> /* end productTab === 'billing' */}
-
-      {/* ── Revenue tab ─────────────────────────────────────────────────────── */}
-      {productTab === 'revenue' && (
-        <div className="flex-1 flex flex-col min-h-0">
-
-          {/* Add / Edit form */}
-          {(showRevenueAddForm || editingRevenue) && (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm mb-5">
-              <h3 className="text-base font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                <svg className="w-4 h-4 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  {editingRevenue ? <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /> : <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />}
-                </svg>
-                {editingRevenue ? `Edit "${editingRevenue.name}"` : 'New Revenue Instance'}
-              </h3>
-              <RevenueInstanceForm
-                initial={editingRevenue ?? undefined}
-                onSave={editingRevenue ? handleRevenueEdit : handleRevenueAdd}
-                onCancel={() => { setShowRevenueAddForm(false); setEditingRevenue(null); }}
-              />
-            </div>
-          )}
-
-          {/* Empty state */}
-          {!showRevenueAddForm && !editingRevenue && revenueInstances.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-violet-100 dark:bg-violet-500/15 flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" /></svg>
-              </div>
-              <p className="text-slate-600 dark:text-slate-400 font-medium">No Revenue instances yet</p>
-              <p className="text-sm text-slate-400 dark:text-slate-500 mt-1 mb-4">Add an instance to store credentials and generate tokens</p>
-              <button type="button" onClick={() => setShowRevenueAddForm(true)} className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold shadow-md shadow-violet-500/20 transition-all">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-                Add Revenue Instance
-              </button>
-            </div>
-          )}
-
-          {/* Two-column layout */}
-          {!showRevenueAddForm && !editingRevenue && revenueInstances.length > 0 && (() => {
-            const tokenOwner = revenueInstances.find(r => !!r.token);
-            const sel = selectedRevenueInstance;
-            const isGenerating = sel ? revenueGeneratingId === sel.id : false;
-            const selError = sel ? revenueErrors[sel.id] : '';
-            const selIsActive = sel ? sel.id === activeRevenueId : false;
-            const selHasToken = !!sel?.token;
-            const selBlockedByOther = !!tokenOwner && sel ? tokenOwner.id !== sel.id : false;
-            return (
-              <div className="flex gap-5 flex-1 min-h-0">
-
-                {/* Left — instance list */}
-                <div className="w-72 shrink-0 flex flex-col gap-2 overflow-y-auto">
-                  <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider shrink-0 px-1">
-                    Saved Instances ({revenueInstances.length})
-                  </p>
-                  {revenueInstances.map(instance => {
-                    const isActive = instance.id === activeRevenueId;
-                    const isSelected = instance.id === (sel?.id);
-                    return (
-                      <div
-                        key={instance.id}
-                        onClick={() => setSelectedRevenueId(instance.id)}
-                        className={`group relative rounded-xl border p-3.5 cursor-pointer transition-all ${
-                          isSelected
-                            ? 'border-violet-400 dark:border-violet-500/60 bg-violet-500/5 dark:bg-violet-500/8 shadow-sm shadow-violet-500/10'
-                            : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700'
-                        }`}
-                      >
-                        <div className="flex items-start gap-2.5">
-                          <div className={`mt-0.5 w-3.5 h-3.5 rounded-full border-2 shrink-0 flex items-center justify-center transition-all ${
-                            isActive ? 'border-violet-500 bg-violet-500' : 'border-slate-300 dark:border-slate-600'
-                          }`}>
-                            {isActive && <span className="w-1 h-1 rounded-full bg-white" />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="text-sm font-semibold text-slate-800 dark:text-white truncate">{instance.name}</span>
-                              {isActive && instance.token && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-semibold shrink-0">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />Active
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-[11px] text-slate-400 dark:text-slate-500 font-mono mt-0.5 truncate">{instance.host.replace('https://', '')}</p>
-                            <div className="flex items-center gap-1.5 mt-1.5">
-                              <code className="text-[10px] font-mono text-slate-500 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">{instance.username}</code>
-                              {instance.token && <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">● Token</span>}
-                            </div>
-                          </div>
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={e => e.stopPropagation()}>
-                            <button type="button" onClick={() => setEditingRevenue(instance)} className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                            </button>
-                            <button type="button" onClick={() => handleRevenueDelete(instance.id)} className="p-1 rounded text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors">
-                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <p className="text-[10px] text-center text-slate-400 dark:text-slate-600 mt-1">Stored locally · never sent to third parties</p>
-                </div>
-
-                {/* Right — token panel */}
-                {sel && (
-                  <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm dark:shadow-xl dark:shadow-black/20 flex flex-col gap-4 overflow-y-auto">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <svg className="w-4 h-4 text-violet-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                          <span className="text-base font-semibold text-slate-800 dark:text-white">Generate Token</span>
-                        </div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                          Using <span className="font-medium text-slate-700 dark:text-slate-300">{sel.name}</span> · <span className="font-mono text-xs text-violet-600 dark:text-violet-400">{sel.host}</span>
-                        </p>
-                      </div>
-                      {!selIsActive && (
-                        <button type="button" onClick={() => activateRevenueInstance(sel)} className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10 border border-violet-200 dark:border-violet-500/30 transition-colors">
-                          Set as Active
-                        </button>
-                      )}
-                      {selIsActive && (
-                        <span className="shrink-0 text-[10px] font-semibold px-2 py-1 rounded-full bg-violet-100 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300 uppercase tracking-wide">Active</span>
-                      )}
-                    </div>
-
-                    {/* Credentials summary */}
-                    <div className="grid grid-cols-2 gap-3">
-                      {[['Username', sel.username], ['Role', sel.role], ['Client Name', sel.clientname], ['Password', '••••••••']].map(([label, val]) => (
-                        <div key={label} className="bg-slate-50 dark:bg-slate-950 rounded-lg px-3 py-2">
-                          <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wide block mb-0.5">{label}</span>
-                          <span className="text-sm font-mono text-slate-700 dark:text-slate-300">{val}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Token status */}
-                    {selHasToken ? (
-                      <div className="rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/8 p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Token Active</span>
-                          </div>
-                          <button onClick={() => setRevenueShowToken(v => !v)} className="text-xs underline text-emerald-600 dark:text-emerald-400 hover:opacity-80">
-                            {revenueShowToken ? 'Hide' : 'Show'}
-                          </button>
-                        </div>
-                        {revenueShowToken && (
-                          <code className="block mb-3 text-[10px] font-mono text-emerald-700 dark:text-emerald-300 bg-white dark:bg-slate-950 border border-emerald-200 dark:border-emerald-500/20 px-3 py-2 rounded-lg break-all leading-relaxed">
-                            {sel.token}
-                          </code>
-                        )}
-                        <p className="text-xs text-emerald-600 dark:text-emerald-500 flex items-center gap-1 mb-3">
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                          Automatically applied to all Revenue API requests
-                        </p>
-                        <button type="button" onClick={() => {
-                          const updated = revenueInstances.map(r => r.id === sel.id ? { ...r, token: undefined } : r);
-                          setRevenueInstances(updated);
-                          saveRevenueInstances(updated);
-                          if (selIsActive) localStorage.removeItem('zuora_revenue_token');
-                          setRevenueShowToken(false);
-                        }} className="w-full py-1.5 rounded-lg text-xs font-semibold border border-rose-300 dark:border-rose-500/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors">
-                          Clear Token
-                        </button>
-                      </div>
-                    ) : selBlockedByOther ? (
-                      <div className="rounded-xl border border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/8 p-4">
-                        <p className="text-sm text-amber-700 dark:text-amber-400">
-                          Clear the active token on <span className="font-semibold">{tokenOwner!.name}</span> before generating a token here.
-                        </p>
-                      </div>
-                    ) : null}
-
-                    {selError && (
-                      <div className="flex gap-2.5 p-3 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-xl">
-                        <svg className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <p className="text-sm text-rose-700 dark:text-rose-300">{selError}</p>
-                      </div>
-                    )}
-
-
-                    <button
-                      type="button"
-                      onClick={() => handleRevenueGetToken(sel)}
-                      disabled={isGenerating || selBlockedByOther}
-                      title={selBlockedByOther ? `Clear the token on "${tokenOwner!.name}" first` : undefined}
-                      className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 mt-auto ${
-                        isGenerating || selBlockedByOther
-                          ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-200 dark:border-slate-700'
-                          : 'bg-violet-600 text-white hover:bg-violet-500 shadow-lg shadow-violet-500/20'
-                      }`}
-                    >
-                      {isGenerating
-                        ? <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Authenticating…</>
-                        : <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>{selHasToken ? 'Refresh Token' : 'Generate Token'}</>
-                      }
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-
-        </div>
-      )}
 
     </div>
   );

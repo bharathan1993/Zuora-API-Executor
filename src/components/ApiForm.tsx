@@ -321,16 +321,7 @@ export const ApiForm = ({
     setPathParams(initPathParams);
     setQueryParams(initQueryParams);
     setExpandedSections(initExpanded);
-    // Pre-populate token header for Revenue endpoints
-    if (endpoint.product === 'revenue' && endpoint.authType === 'revenue-token') {
-      const revenueToken = localStorage.getItem('zuora_revenue_token') ?? '';
-      setCustomHeaders(revenueToken
-        ? [{ id: Math.random().toString(36), key: 'token', value: revenueToken }]
-        : [createHeaderRow()]
-      );
-    } else {
-      setCustomHeaders([createHeaderRow()]);
-    }
+    setCustomHeaders([createHeaderRow()]);
     setCustomBodyFields([]);
     setActiveTab('params');
     setJsonMode(false);
@@ -1047,10 +1038,7 @@ export const ApiForm = ({
 
   const buildFinalUrl = () => {
     const selectedEnv = endpoint.environments?.find(env => env.id === selectedEnvironmentId);
-    const revenueHost = endpoint.product === 'revenue'
-      ? (localStorage.getItem('zuora_revenue_host') || '').replace(/\/$/, '') || endpoint.baseUrl
-      : null;
-    const baseUrl = revenueHost ?? selectedEnv?.baseUrl ?? endpoint.baseUrl;
+    const baseUrl = selectedEnv?.baseUrl ?? endpoint.baseUrl;
     let finalPath = endpoint.path;
     endpoint.pathParams?.forEach((param) => {
       const value = hasValue(pathParams[param.name]) ? encodeURIComponent(String(pathParams[param.name])) : `{${param.name}}`;
@@ -1141,17 +1129,9 @@ export const ApiForm = ({
         <div className="mb-4 grid grid-cols-3 gap-2">
           <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3">
             <div className="text-[10px] uppercase tracking-wider text-slate-500">Auth</div>
-            {(() => {
-              const isRevenue = endpoint.product === 'revenue';
-              const hasToken = isRevenue
-                ? (endpoint.authType === 'revenue-token' ? !!localStorage.getItem('zuora_revenue_token') : true)
-                : !!authToken;
-              return (
-                <div className={`text-sm font-semibold ${hasToken ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                  {hasToken ? 'Token ready' : 'Needs token'}
-                </div>
-              );
-            })()}
+            <div className={`text-sm font-semibold ${authToken ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+              {authToken ? 'Token ready' : 'Needs token'}
+            </div>
           </div>
           <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3">
             <div className="text-[10px] uppercase tracking-wider text-slate-500">Required</div>
@@ -1811,46 +1791,6 @@ export const ApiForm = ({
               </button>
             </div>
 
-            {/* Revenue token — pinned auto-injected row */}
-            {endpoint.product === 'revenue' && endpoint.authType === 'revenue-token' && (() => {
-              const tok = localStorage.getItem('zuora_revenue_token') ?? '';
-              return (
-                <div className={`rounded-xl border p-3 mb-1 ${tok ? 'bg-violet-50 dark:bg-violet-500/8 border-violet-200 dark:border-violet-500/25' : 'bg-amber-50 dark:bg-amber-500/8 border-amber-200 dark:border-amber-500/25'}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${tok ? 'bg-violet-500' : 'bg-amber-500'}`} />
-                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                        Auto-injected: <code className="font-mono">token</code> header
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const fresh = localStorage.getItem('zuora_revenue_token') ?? '';
-                        if (fresh) {
-                          setCustomHeaders(prev => {
-                            const withoutToken = prev.filter(h => h.key.toLowerCase() !== 'token');
-                            return [{ id: Math.random().toString(36), key: 'token', value: fresh }, ...withoutToken];
-                          });
-                        }
-                      }}
-                      className="text-xs text-violet-600 dark:text-violet-400 hover:underline"
-                    >
-                      ↺ Sync to headers
-                    </button>
-                  </div>
-                  {tok ? (
-                    <code className="block text-[11px] font-mono text-violet-700 dark:text-violet-300 bg-white dark:bg-slate-950 border border-violet-200 dark:border-violet-500/20 px-2 py-1.5 rounded-lg break-all leading-relaxed">
-                      {tok.slice(0, 60)}{tok.length > 60 ? '…' : ''}
-                    </code>
-                  ) : (
-                    <p className="text-xs text-amber-700 dark:text-amber-400">
-                      No Revenue token saved. Go to <strong>Authentication → Revenue</strong> to generate one.
-                    </p>
-                  )}
-                </div>
-              );
-            })()}
 
             <div className="space-y-3">
               {customHeaders.map((header, index) => (
