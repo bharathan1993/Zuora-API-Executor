@@ -31,11 +31,9 @@ export class OAuthService {
       };
 
       if (this.useProxy) {
-        // Use local proxy server
-        finalUrl = `${this.proxyUrl}/oauth/token`;
-        headers['X-Target-URL'] = baseUrl;
+        finalUrl = this.proxyUrl;
+        headers['X-Target-URL'] = `${baseUrl}/oauth/token`;
       } else {
-        // Direct request
         finalUrl = `${baseUrl}/oauth/token`;
       }
 

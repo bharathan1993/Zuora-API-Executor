@@ -20,23 +20,14 @@ app.use(express.json());
 // Parse URL-encoded bodies (for OAuth)
 app.use(express.urlencoded({ extended: true }));
 
-// Proxy endpoint
+// Proxy endpoint — X-Target-URL must be the full target URL (including path + query)
 app.use('/proxy', async (req, res) => {
   try {
-    // Extract the target URL from the path
-    const rawPath = req.url || '';
-    const trimmedPath = rawPath.replace(/^\/+/, '');
-    const targetPath = trimmedPath === '' || trimmedPath === '/' ? '' : trimmedPath.replace(/^\/+/, '');
+    const targetUrl = req.headers['x-target-url'];
 
-    // Get the base URL from the X-Target-URL header
-    const baseUrl = req.headers['x-target-url'];
-
-    if (!baseUrl) {
+    if (!targetUrl) {
       return res.status(400).json({ error: 'Missing X-Target-URL header' });
     }
-
-    const normalizedBase = baseUrl.replace(/\/$/, '');
-    const targetUrl = targetPath ? `${normalizedBase}/${targetPath}` : normalizedBase;
 
     console.log(`[Proxy] ${req.method} ${targetUrl}`);
 

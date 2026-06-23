@@ -51,9 +51,8 @@ export class ApiExecutor {
       const queryString = this.buildQueryString(queryParams);
 
       if (this.useProxy) {
-        // Use local proxy server
-        finalUrl = `${this.proxyUrl}${path}${queryString}`;
-        headers['X-Target-URL'] = effectiveBaseUrl;
+        finalUrl = this.proxyUrl;
+        headers['X-Target-URL'] = `${effectiveBaseUrl}${path}${queryString}`;
       } else {
         finalUrl = `${effectiveBaseUrl}${path}${queryString}`;
       }

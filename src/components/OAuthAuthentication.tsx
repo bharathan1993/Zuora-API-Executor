@@ -546,10 +546,10 @@ export const OAuthAuthentication = ({
     try {
       const basicAuth = btoa(`${instance.username}:${instance.password}`);
       const proxyBase = window.location.hostname === 'localhost' ? 'http://localhost:3001/proxy' : '/api/proxy';
-      const resp = await fetch(`${proxyBase}/api/integration/v1/authenticate`, {
+      const resp = await fetch(proxyBase, {
         method: 'POST',
         headers: {
-          'X-Target-URL': instance.host,
+          'X-Target-URL': `${instance.host.replace(/\/$/, '')}/api/integration/v1/authenticate`,
           'Authorization': `Basic ${basicAuth}`,
           'role': instance.role,
           'clientname': instance.clientname,
