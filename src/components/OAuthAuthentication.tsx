@@ -491,6 +491,9 @@ export const OAuthAuthentication = ({
   const [revenueGeneratingId, setRevenueGeneratingId] = useState<string | null>(null);
   const [revenueErrors, setRevenueErrors] = useState<Record<string, string>>({});
   const [revenueShowToken, setRevenueShowToken] = useState(false);
+  const [revenueUseLocalProxy, setRevenueUseLocalProxy] = useState<boolean>(
+    () => localStorage.getItem('zuora_revenue_use_local_proxy') === 'true'
+  );
   const [selectedRevenueId, setSelectedRevenueId] = useState<string>(() => localStorage.getItem(REVENUE_ACTIVE_KEY) ?? '');
 
   const activeRevenueInstance = revenueInstances.find(r => r.id === activeRevenueId) ?? null;
@@ -545,7 +548,9 @@ export const OAuthAuthentication = ({
     setRevenueErrors(prev => ({ ...prev, [instance.id]: '' }));
     try {
       const basicAuth = btoa(`${instance.username}:${instance.password}`);
-      const proxyBase = window.location.hostname === 'localhost' ? 'http://localhost:3001/proxy' : '/api/proxy';
+      const proxyBase = (window.location.hostname === 'localhost' || revenueUseLocalProxy)
+        ? 'http://localhost:3001/proxy'
+        : '/api/proxy';
       const resp = await fetch(proxyBase, {
         method: 'POST',
         headers: {
@@ -1315,6 +1320,37 @@ export const OAuthAuthentication = ({
                       <div className="flex gap-2.5 p-3 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-xl">
                         <svg className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         <p className="text-sm text-rose-700 dark:text-rose-300">{selError}</p>
+                      </div>
+                    )}
+
+                    {/* Local proxy toggle — shown when not on localhost */}
+                    {window.location.hostname !== 'localhost' && (
+                      <div className={`rounded-xl border p-3.5 transition-colors ${revenueUseLocalProxy ? 'border-violet-300 dark:border-violet-500/40 bg-violet-50 dark:bg-violet-500/8' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900'}`}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Use local proxy for Revenue</p>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                              Required for Revenue sandbox hosts on Zuora's internal network (VPN). Run <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded">node proxy-server.js</code> locally.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = !revenueUseLocalProxy;
+                              setRevenueUseLocalProxy(next);
+                              localStorage.setItem('zuora_revenue_use_local_proxy', String(next));
+                            }}
+                            className={`relative shrink-0 w-9 h-5 rounded-full transition-colors ${revenueUseLocalProxy ? 'bg-violet-500' : 'bg-slate-300 dark:bg-slate-600'}`}
+                          >
+                            <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${revenueUseLocalProxy ? 'translate-x-4' : 'translate-x-0'}`} />
+                          </button>
+                        </div>
+                        {revenueUseLocalProxy && (
+                          <p className="mt-2 text-[11px] text-violet-600 dark:text-violet-400 font-medium flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                            Routing Revenue requests via localhost:3001
+                          </p>
+                        )}
                       </div>
                     )}
 
