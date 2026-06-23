@@ -6,13 +6,17 @@ import { OAuthAuthentication } from './components/OAuthAuthentication';
 import { Sidebar } from './components/Sidebar';
 import { JsonPreview } from './components/JsonPreview';
 import { SavedRequests } from './components/SavedRequests';
-import { zuoraEndpoints } from './config/zuoraEndpoints';
+import { StorageManager } from './components/StorageManager';
+import { NameModal } from './components/NameModal';
+import { zuoraEndpoints, revenueEndpoints } from './config/zuoraEndpoints';
 import { zuoraEnvironments } from './config/environments';
 import { apiExecutor } from './services/apiExecutor';
 import { useTheme } from './hooks/useTheme';
-import type { ApiEndpoint, ApiResponse, ApiRequest, SavedFolder, SavedRequest } from './types/api';
+import { useStorageUsage, STORAGE_KEYS } from './hooks/useStorageUsage';
+import type { ApiEndpoint, ApiResponse, ApiRequest, SavedFolder, SavedRequest, ChainedValue } from './types/api';
 
 function App() {
+  const allEndpoints = [...zuoraEndpoints, ...revenueEndpoints];
   const [selectedEndpoint, setSelectedEndpoint] = useState<ApiEndpoint>(zuoraEndpoints[0]);
   const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<string>(
     zuoraEnvironments[0]?.id || ''
@@ -22,9 +26,12 @@ function App() {
   const [response, setResponse] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string>('');
   const [currentRequest, setCurrentRequest] = useState<ApiRequest | null>(null);
-  const [useProxy, setUseProxy] = useState<boolean>(false);
+  const useProxy = true;
   const [currentView, setCurrentView] = useState<string>('auth');
+  const [previousView, setPreviousView] = useState<string>('');
+  const [apiSection, setApiSection] = useState<'billing' | 'revenue'>('billing');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [liveFormData, setLiveFormData] = useState<Record<string, any>>({});
   const [liveHeaders, setLiveHeaders] = useState<Record<string, string> | undefined>();
   const [livePathParams, setLivePathParams] = useState<Record<string, any> | undefined>();
@@ -36,8 +43,12 @@ function App() {
   const [favoriteEndpointIds, setFavoriteEndpointIds] = useState<string[]>([]);
   const [recentEndpointIds, setRecentEndpointIds] = useState<string[]>([]);
   const [isJsonBodyMode, setIsJsonBodyMode] = useState(false);
+  const [chainedValues, setChainedValues] = useState<ChainedValue[]>([]);
+  const [showSaveModal, setShowSaveModal] = useState(false);
   const [showInspectorPanel, setShowInspectorPanel] = useState(true);
   const { theme, toggleTheme } = useTheme();
+  const { usage, refresh: refreshStorage, clearCategory, clearAll: clearAllStorage } = useStorageUsage();
+  const [storageBannerDismissed, setStorageBannerDismissed] = useState(false);
   const formId = 'zuora-api-form';
   const savedRequestsKey = 'zuora_saved_requests';
   const favoritesKey = 'zuora_favorite_endpoints';
@@ -66,6 +77,30 @@ function App() {
 
   const persistSavedRequests = (requests: SavedRequest[], folders: SavedFolder[]) => {
     localStorage.setItem(savedRequestsKey, JSON.stringify({ requests, folders }));
+  };
+
+  const loadFormState = (endpointId: string) => {
+    try {
+      const raw = localStorage.getItem(`${STORAGE_KEYS.formStatePrefix}${endpointId}`);
+      if (!raw) return null;
+      return JSON.parse(raw) as { data?: Record<string, any>; pathParams?: Record<string, any>; queryParams?: Record<string, any>; headers?: Record<string, string> };
+    } catch {
+      return null;
+    }
+  };
+
+  const saveFormState = (endpointId: string) => {
+    if (!endpointId || currentView === 'auth' || currentView === 'storage') return;
+    try {
+      localStorage.setItem(`${STORAGE_KEYS.formStatePrefix}${endpointId}`, JSON.stringify({
+        data: liveFormData,
+        pathParams: livePathParams,
+        queryParams: liveQueryParams,
+        headers: liveHeaders,
+      }));
+    } catch {
+      // QuotaExceededError — fail silently
+    }
   };
 
   const loadStringArray = (key: string) => {
@@ -100,18 +135,55 @@ function App() {
     setRecentEndpointIds(loadStringArray(recentsKey));
   }, []);
 
+  // Auto-save form state for the current endpoint (debounced 800ms)
+  useEffect(() => {
+    if (currentView === 'auth' || currentView === 'storage') return;
+    const timer = setTimeout(() => {
+      saveFormState(selectedEndpoint.id);
+      refreshStorage();
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [liveFormData, livePathParams, liveQueryParams, liveHeaders]);
+
   const handleViewChange = (view: string) => {
+    // Save current endpoint's form state before leaving
+    if (currentView !== 'auth' && currentView !== 'storage') {
+      saveFormState(selectedEndpoint.id);
+    }
+
+    setPreviousView(currentView);
     setCurrentView(view);
-    setIsSidebarOpen(false); // Close sidebar on mobile when navigating
-    if (view !== 'auth') {
-      const endpoint = zuoraEndpoints.find(e => e.id === view);
+    setIsSidebarOpen(false);
+
+    if (view !== 'auth' && view !== 'storage') {
+      const endpoint = allEndpoints.find(e => e.id === view);
       if (endpoint) {
         setSelectedEndpoint(endpoint);
         setResponse(null);
         setError('');
         setCurrentRequest(null);
-        setLiveFormData({}); // Reset live preview
-        setLiveQueryParams(undefined);
+
+        // Restore saved form state for this endpoint
+        const saved = loadFormState(endpoint.id);
+        if (saved && (saved.data || saved.pathParams || saved.queryParams)) {
+          setPrefillRequest({
+            id: typeof crypto?.randomUUID === 'function'
+              ? crypto.randomUUID()
+              : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+            name: '__form_state__',
+            endpointId: endpoint.id,
+            data: saved.data,
+            queryParams: saved.queryParams,
+            customHeaders: saved.headers,
+            pathParams: saved.pathParams,
+            createdAt: Date.now(),
+          });
+        } else {
+          setPrefillRequest(null);
+          setLiveFormData({});
+          setLiveQueryParams(undefined);
+        }
+
         setRecentEndpointIds((prev) => {
           const next = [endpoint.id, ...prev.filter((id) => id !== endpoint.id)].slice(0, 10);
           localStorage.setItem(recentsKey, JSON.stringify(next));
@@ -147,8 +219,14 @@ function App() {
     pathParams?: Record<string, any>,
     queryParams?: Record<string, any>
   ) => {
-    if (!authToken) {
+    const isRevenueEndpoint = endpoint.product === 'revenue';
+    const revenueToken = localStorage.getItem('zuora_revenue_token') || '';
+    if (!isRevenueEndpoint && !authToken) {
       setError('Please generate an OAuth token first');
+      return;
+    }
+    if (isRevenueEndpoint && endpoint.authType === 'revenue-token' && !revenueToken) {
+      setError('Please generate a Revenue token first (Authentication → Revenue tab)');
       return;
     }
 
@@ -186,6 +264,15 @@ function App() {
       const result = await apiExecutor.execute(request);
       setResponse(result);
       setResponseHistory((prev) => [result, ...prev].slice(0, 8));
+
+      // Auto-save Revenue token after successful authentication
+      if (
+        selectedEndpoint.id === 'revenue-create-authentication' &&
+        result.status >= 200 && result.status < 300 &&
+        result.data?.Message && result.data.Message !== 'Token Generated'
+      ) {
+        localStorage.setItem('zuora_revenue_token', result.data.Message);
+      }
     } catch (err: any) {
       setError(err.message || 'An error occurred while executing the request');
     } finally {
@@ -199,8 +286,11 @@ function App() {
 
   const handleSaveRequest = () => {
     if (!selectedEndpoint) return;
-    const name = window.prompt('Save request as:', selectedEndpoint.name);
-    if (!name) return;
+    setShowSaveModal(true);
+  };
+
+  const handleConfirmSaveRequest = (name: string) => {
+    setShowSaveModal(false);
     const request: SavedRequest = {
       id: typeof crypto?.randomUUID === 'function'
         ? crypto.randomUUID()
@@ -384,6 +474,26 @@ function App() {
     setShowInspectorPanel(!isJsonMode);
   };
 
+  const handlePinValue = (key: string, value: string) => {
+    setChainedValues((prev) => {
+      if (prev.some((v) => v.key === key)) return prev;
+      const entry: ChainedValue = {
+        id: typeof crypto?.randomUUID === 'function'
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        key,
+        value,
+        source: selectedEndpoint.name,
+        pinnedAt: Date.now(),
+      };
+      return [entry, ...prev];
+    });
+  };
+
+  const handleUnpinValue = (id: string) => {
+    setChainedValues((prev) => prev.filter((v) => v.id !== id));
+  };
+
   const liveRequest = useMemo<ApiRequest | null>(() => {
     if (currentView === 'auth') return null;
     const selectedEnvironment = zuoraEnvironments.find(
@@ -409,123 +519,241 @@ function App() {
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 transition-colors duration-200 overflow-hidden">
       
-      <Sidebar 
-        currentView={currentView}
-        onSelectView={handleViewChange}
-        endpoints={zuoraEndpoints}
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        favoriteEndpointIds={favoriteEndpointIds}
-        recentEndpointIds={recentEndpointIds}
-        onToggleFavorite={handleToggleFavoriteEndpoint}
-      />
+      {showSaveModal && (
+        <NameModal
+          title="Save request"
+          label="Request name"
+          initialValue={selectedEndpoint.name}
+          confirmLabel="Save"
+          onConfirm={handleConfirmSaveRequest}
+          onCancel={() => setShowSaveModal(false)}
+        />
+      )}
+
+      <div className={`hidden lg:flex flex-col transition-all duration-300 ease-in-out flex-shrink-0 ${isSidebarCollapsed ? 'w-0 overflow-hidden' : 'w-80'}`}>
+        <Sidebar
+          currentView={currentView}
+          onSelectView={handleViewChange}
+          endpoints={allEndpoints}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          favoriteEndpointIds={favoriteEndpointIds}
+          recentEndpointIds={recentEndpointIds}
+          onToggleFavorite={handleToggleFavoriteEndpoint}
+          storagePercentUsed={usage.percentUsed}
+          onSectionChange={setApiSection}
+        />
+      </div>
+
+      {/* Mobile sidebar (overlay) */}
+      <div className="lg:hidden">
+        <Sidebar
+          currentView={currentView}
+          onSelectView={handleViewChange}
+          endpoints={allEndpoints}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          favoriteEndpointIds={favoriteEndpointIds}
+          recentEndpointIds={recentEndpointIds}
+          onToggleFavorite={handleToggleFavoriteEndpoint}
+          storagePercentUsed={usage.percentUsed}
+          onSectionChange={setApiSection}
+        />
+      </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden w-full relative">
+      <div className="flex-1 flex flex-col h-full overflow-hidden w-full relative min-w-0">
         
         {/* Top Header */}
-        <header className="bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-20 backdrop-blur-sm transition-colors duration-200 flex-shrink-0">
-          <div className="px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
-              
+        <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-20 transition-colors duration-200 flex-shrink-0">
+          <div className="px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center gap-3">
+
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mr-2"
+                className="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
               >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
 
-              {/* View Title */}
-              <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 truncate">
-                {currentView === 'auth' ? 'Authentication Configuration' : selectedEndpoint.name}
-              </h2>
+              {/* Desktop Sidebar Toggle */}
+              <button
+                onClick={() => setIsSidebarCollapsed(c => !c)}
+                title={isSidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+                className="hidden lg:flex items-center justify-center p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
+              >
+                {isSidebarCollapsed ? (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7M19 19l-7-7 7-7" />
+                  </svg>
+                )}
+              </button>
 
-              <div className="flex items-center space-x-3">
-                {isJsonBodyMode && currentView !== 'auth' && (
+              {/* Back button — shown when on utility pages with a prior endpoint to return to */}
+              {(currentView === 'auth' || currentView === 'storage') && previousView && previousView !== 'auth' && previousView !== 'storage' && (
+                <button
+                  onClick={() => handleViewChange(previousView)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors shrink-0"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  Back
+                </button>
+              )}
+
+              {/* Method badge + endpoint title */}
+              <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                {currentView !== 'auth' && currentView !== 'storage' && (
+                  <span className={`shrink-0 px-2.5 py-1 rounded-md text-xs font-bold tracking-wide border ${
+                    selectedEndpoint.method === 'POST'   ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20' :
+                    selectedEndpoint.method === 'GET'    ? 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-500/20' :
+                    selectedEndpoint.method === 'PUT'    ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20' :
+                    selectedEndpoint.method === 'DELETE' ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-500/20' :
+                    selectedEndpoint.method === 'PATCH'  ? 'bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-500/20' :
+                    'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600'
+                  }`}>
+                    {selectedEndpoint.method}
+                  </span>
+                )}
+                <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 truncate">
+                  {currentView === 'auth' ? 'Authentication' : currentView === 'storage' ? 'Storage Manager' : selectedEndpoint.name}
+                </h2>
+              </div>
+
+              {/* Right actions */}
+              <div className="flex items-center gap-2 shrink-0">
+                {/* Inspector toggle */}
+                {isJsonBodyMode && currentView !== 'auth' && currentView !== 'storage' && (
                   <button
                     type="button"
-                    onClick={() => setShowInspectorPanel((visible) => !visible)}
-                    className={`hidden sm:inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                    onClick={() => setShowInspectorPanel((v) => !v)}
+                    className={`hidden sm:inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
                       showInspectorPanel
                         ? 'border-zuora-200 bg-zuora-50 text-zuora-700 dark:border-zuora-500/30 dark:bg-zuora-500/10 dark:text-zuora-300'
                         : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
                     }`}
                   >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" />
                     </svg>
-                    {showInspectorPanel ? 'Hide Inspector' : 'Show Inspector'}
+                    {showInspectorPanel ? 'Hide Inspector' : 'Inspector'}
                   </button>
                 )}
+
+                {/* Theme toggle */}
                 <button
                   onClick={toggleTheme}
-                  className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
+                  className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
                   aria-label="Toggle Theme"
                 >
                   {theme === 'dark' ? (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
                   ) : (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                     </svg>
                   )}
                 </button>
+
+                {/* Run Request — only on API endpoints */}
+                {currentView !== 'auth' && currentView !== 'storage' && (
+                  <button
+                    type="submit"
+                    form={formId}
+                    disabled={isLoading}
+                    className={`group relative inline-flex items-center gap-2 px-4 py-1.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900 focus:ring-emerald-500 ${
+                      isLoading
+                        ? 'bg-emerald-400 dark:bg-emerald-600 cursor-not-allowed opacity-80'
+                        : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 shadow-md shadow-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/40 active:scale-[0.97]'
+                    }`}
+                  >
+                    {isLoading ? (
+                      <>
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                        </svg>
+                        <span>Running…</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                        <span>Run</span>
+                        <span className="hidden sm:inline opacity-60 text-xs font-normal">⌘ Enter</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </header>
+
+        {/* Storage warning banner */}
+        {usage.percentUsed >= 80 && !storageBannerDismissed && (
+          <div className={`flex items-center gap-3 px-4 sm:px-6 py-2.5 text-sm font-medium ${
+            usage.percentUsed >= 90
+              ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-b border-rose-200 dark:border-rose-500/20'
+              : 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-b border-amber-200 dark:border-amber-500/20'
+          }`}>
+            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="flex-1">
+              Browser storage is {usage.percentUsed}% full. Clear old data to prevent save failures.
+            </span>
+            <button
+              type="button"
+              onClick={() => handleViewChange('storage')}
+              className="underline underline-offset-2 hover:no-underline transition-all shrink-0"
+            >
+              Manage storage
+            </button>
+            <button
+              type="button"
+              onClick={() => setStorageBannerDismissed(true)}
+              className="ml-1 p-0.5 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors shrink-0"
+              aria-label="Dismiss"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
 
         {/* Scrollable Content */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 scroll-smooth">
           <div className="max-w-[1920px] mx-auto space-y-8 pb-12">
             
             {/* View Content */}
-            {currentView === 'auth' ? (
-              <div className="space-y-8 animate-fadeIn">
-                {/* Proxy Server Toggle */}
-                <div className="bg-white dark:bg-slate-900 border border-zuora-200 dark:border-zuora-500/30 rounded-xl p-4 backdrop-blur-sm relative overflow-hidden group shadow-sm transition-colors duration-200">
-                  <div className="absolute inset-0 bg-gradient-to-r from-zuora-500/5 to-zuora-500/5 opacity-50 dark:opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="flex items-start relative z-10">
-                    <div className="flex-shrink-0 mt-1">
-                      <div className="w-2 h-2 rounded-full bg-zuora-500 animate-pulse"></div>
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-sm font-semibold text-zuora-700 dark:text-zuora-400">
-                            CORS Proxy Server
-                          </h3>
-                          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                            Required to bypass browser restrictions. Run the local proxy server on port 3001.
-                          </p>
-                        </div>
-                        <label className="flex items-center cursor-pointer bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-zuora-400 dark:hover:border-zuora-500/50 transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={useProxy}
-                            onChange={(e) => setUseProxy(e.target.checked)}
-                            className="w-4 h-4 text-zuora-600 bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded focus:ring-zuora-600 focus:ring-offset-white dark:focus:ring-offset-slate-900"
-                          />
-                          <span className="ml-2 text-sm text-slate-700 dark:text-slate-200 font-medium">
-                            Enable Proxy
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
+            {currentView === 'storage' ? (
+              <StorageManager
+                usage={usage}
+                onClearCategory={(keys) => { clearCategory(keys); refreshStorage(); }}
+                onClearAll={() => { clearAllStorage(); refreshStorage(); }}
+              />
+            ) : currentView === 'auth' ? (
+              <div className="animate-fadeIn h-full" style={{ minHeight: 'calc(100vh - 12rem)' }}>
                 <OAuthAuthentication
                   environments={zuoraEnvironments}
                   selectedEnvironmentId={selectedEnvironmentId}
                   onEnvironmentChange={handleEnvironmentChange}
                   onTokenGenerated={handleTokenGenerated}
                   useCorsProxy={useProxy}
+                  initialProductTab={apiSection}
                 />
               </div>
             ) : (
@@ -554,6 +782,7 @@ function App() {
                       prefillHeaders={prefillRequest?.customHeaders}
                       prefillPathParams={prefillRequest?.pathParams}
                       prefillId={prefillRequest?.id}
+                      chainedValues={chainedValues}
                     />
                   </div>
 
@@ -564,18 +793,13 @@ function App() {
                       <JsonPreview data={liveFormData} onSave={handleSaveRequest} onEdit={handlePreviewEdit} />
                     )}
 
-                    <SavedRequests
-                      requests={savedRequests.filter((r) => r.endpointId === selectedEndpoint?.id)}
-                      folders={savedFolders.filter((f) => f.endpointId === selectedEndpoint?.id)}
-                      onUse={handleUseSavedRequest}
-                      onRun={handleRunSavedRequest}
-                      onDelete={handleDeleteSavedRequest}
-                      onRename={handleRenameSavedRequest}
-                      onDuplicate={handleDuplicateSavedRequest}
-                      onCreateFolder={handleCreateFolder}
-                      onRenameFolder={handleRenameFolder}
-                      onDeleteFolder={handleDeleteFolder}
-                      onMoveRequest={handleMoveSavedRequest}
+                    <ResponseViewer
+                      response={response}
+                      error={error}
+                      chainedValues={chainedValues}
+                      onPinValue={handlePinValue}
+                      onUnpinValue={handleUnpinValue}
+                      endpointName={selectedEndpoint.name}
                     />
 
                     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm dark:shadow-xl dark:shadow-black/20 transition-colors duration-200">
@@ -599,7 +823,14 @@ function App() {
                                 }`}>
                                   {item.status} {item.statusText}
                                 </span>
-                                <span className="text-xs text-slate-500">{item.duration}ms</span>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <span className="text-xs text-slate-500">{item.duration}ms</span>
+                                  {item.timestamp && (
+                                    <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">
+                                      {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                               <div className="mt-1 text-xs font-mono text-slate-500 dark:text-slate-400 truncate">
                                 {item.request?.url}
@@ -611,8 +842,22 @@ function App() {
                         <div className="text-sm text-slate-500">Run requests to build a lightweight troubleshooting timeline.</div>
                       )}
                     </div>
-                    
-                    <ResponseViewer response={response} error={error} />
+
+                    <SavedRequests
+                      requests={savedRequests.filter((r) => r.endpointId === selectedEndpoint?.id)}
+                      folders={savedFolders.filter((f) => f.endpointId === selectedEndpoint?.id)}
+                      endpoints={allEndpoints}
+                      onUse={handleUseSavedRequest}
+                      onRun={handleRunSavedRequest}
+                      onDelete={handleDeleteSavedRequest}
+                      onRename={handleRenameSavedRequest}
+                      onDuplicate={handleDuplicateSavedRequest}
+                      onCreateFolder={handleCreateFolder}
+                      onRenameFolder={handleRenameFolder}
+                      onDeleteFolder={handleDeleteFolder}
+                      onMoveRequest={handleMoveSavedRequest}
+                    />
+
                     <CodeGenerator request={liveRequest} />
                   </div>
                   )}

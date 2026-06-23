@@ -4,6 +4,8 @@ import {
   getEndpointsByCategory,
   getAvailableCategories,
   getGeneralPurposeOperationGroups,
+  REVENUE_CATEGORIES,
+  getRevenueCategoryEndpoints,
 } from '../config/zuoraEndpoints';
 
 interface SidebarProps {
@@ -15,6 +17,8 @@ interface SidebarProps {
   favoriteEndpointIds?: string[];
   recentEndpointIds?: string[];
   onToggleFavorite?: (endpointId: string) => void;
+  storagePercentUsed?: number;
+  onSectionChange?: (section: 'billing' | 'revenue') => void;
 }
 
 export const Sidebar = ({
@@ -26,13 +30,18 @@ export const Sidebar = ({
   favoriteEndpointIds = [],
   recentEndpointIds = [],
   onToggleFavorite,
+  storagePercentUsed = 0,
+  onSectionChange,
 }: SidebarProps) => {
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
     accounts: true,
     'general-purpose-operations': true,
     'general-purpose-operations:actions': true,
   });
+  const [recentExpanded, setRecentExpanded] = useState(true);
+  const [quickAccessExpanded, setQuickAccessExpanded] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [apiSection, setApiSection] = useState<'billing' | 'revenue'>('billing');
 
   const categories = getAvailableCategories();
 
@@ -117,14 +126,14 @@ export const Sidebar = ({
         onSelectView(endpoint.id);
         onClose();
       }}
-      className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium transition-all duration-200 group ${
+      className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium text-left transition-all duration-200 group ${
         currentView === endpoint.id
           ? 'bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white'
           : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900/50 hover:text-slate-900 dark:hover:text-slate-200'
       }`}
     >
-      <span className="truncate mr-2">{endpoint.name}</span>
-      <span className="flex items-center gap-1.5">
+      <span className="flex-1 min-w-0 truncate mr-2">{endpoint.name}</span>
+      <span className="flex items-center gap-1.5 shrink-0">
         {onToggleFavorite && (
           <span
             role="button"
@@ -218,7 +227,7 @@ export const Sidebar = ({
       <aside
         className={`fixed lg:static inset-y-0 left-0 z-30 w-80 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        } flex flex-col h-full shadow-2xl lg:shadow-none`}
+        } flex flex-col h-full shadow-2xl lg:shadow-none flex-shrink-0`}
       >
         {/* Logo Area */}
         <div className="p-6 border-b border-slate-100 dark:border-slate-900 flex items-center gap-3">
@@ -238,7 +247,7 @@ export const Sidebar = ({
         </div>
 
         {/* Search */}
-        <div className="p-4 border-b border-slate-100 dark:border-slate-900">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-900 space-y-3">
           <div className="relative">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -250,6 +259,32 @@ export const Sidebar = ({
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600"
             />
+          </div>
+
+          {/* Billing / Revenue toggle */}
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-1 gap-1">
+            <button
+              type="button"
+              onClick={() => { setApiSection('billing'); onSectionChange?.('billing'); }}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                apiSection === 'billing'
+                  ? 'bg-white dark:bg-slate-700 text-zuora-700 dark:text-zuora-300 shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+            >
+              Zuora Billing
+            </button>
+            <button
+              type="button"
+              onClick={() => { setApiSection('revenue'); onSectionChange?.('revenue'); }}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                apiSection === 'revenue'
+                  ? 'bg-white dark:bg-slate-700 text-violet-700 dark:text-violet-300 shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+            >
+              Revenue
+            </button>
           </div>
         </div>
 
@@ -277,15 +312,51 @@ export const Sidebar = ({
                   Authentication
                 </button>
               </li>
+              <li>
+                <button
+                  onClick={() => onSelectView('storage')}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
+                    currentView === 'storage'
+                      ? 'bg-zuora-50 dark:bg-zuora-500/10 text-zuora-700 dark:text-zuora-300 shadow-sm border border-zuora-100 dark:border-zuora-500/20'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <svg className={`w-5 h-5 transition-colors ${currentView === 'storage' ? 'text-zuora-600 dark:text-zuora-400' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                  </svg>
+                  <span className="flex-1 text-left">Storage</span>
+                  {storagePercentUsed >= 80 && (
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                      storagePercentUsed >= 90 ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                    }`}>
+                      {storagePercentUsed}%
+                    </span>
+                  )}
+                </button>
+              </li>
             </ul>
           </div>
 
           {(favoriteEndpointIds.length > 0 || recentEndpointIds.length > 0) && (
             <div>
-              <h3 className="px-4 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
-                TAM Shortcuts
-              </h3>
-              <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => setQuickAccessExpanded((v) => !v)}
+                className="w-full flex items-center justify-between px-4 mb-2 group"
+              >
+                <h3 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
+                  Quick Access
+                </h3>
+                <svg
+                  className={`w-3 h-3 text-slate-400 transition-transform ${quickAccessExpanded ? 'rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {quickAccessExpanded && <div className="space-y-3">
                 {favoriteEndpointIds.length > 0 && (
                   <div>
                     <div className="px-4 mb-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400">Favorites</div>
@@ -302,24 +373,42 @@ export const Sidebar = ({
                 )}
                 {recentEndpointIds.length > 0 && (
                   <div>
-                    <div className="px-4 mb-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">Recently used</div>
-                    <ul className="space-y-0.5">
-                      {recentEndpointIds
-                        .map((id) => endpoints.find((endpoint) => endpoint.id === id))
-                        .filter((endpoint): endpoint is ApiEndpoint => Boolean(endpoint))
-                        .slice(0, 6)
-                        .map((endpoint) => (
-                          <li key={`recent-${endpoint.id}`}>{renderEndpointButton(endpoint)}</li>
-                        ))}
-                    </ul>
+                    <button
+                      type="button"
+                      onClick={() => setRecentExpanded((v) => !v)}
+                      className="w-full flex items-center justify-between px-4 mb-1 group"
+                    >
+                      <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
+                        Recently used
+                      </span>
+                      <svg
+                        className={`w-3 h-3 text-slate-400 transition-transform ${recentExpanded ? 'rotate-180' : ''}`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {recentExpanded && (
+                      <ul className="space-y-0.5">
+                        {recentEndpointIds
+                          .map((id) => endpoints.find((endpoint) => endpoint.id === id))
+                          .filter((endpoint): endpoint is ApiEndpoint => Boolean(endpoint))
+                          .slice(0, 6)
+                          .map((endpoint) => (
+                            <li key={`recent-${endpoint.id}`}>{renderEndpointButton(endpoint)}</li>
+                          ))}
+                      </ul>
+                    )}
                   </div>
                 )}
-              </div>
+              </div>}
             </div>
           )}
 
           {/* Section: API Categories */}
-          <div>
+          {apiSection === 'billing' && <div>
             <h3 className="px-4 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
               API Categories
             </h3>
@@ -369,25 +458,110 @@ export const Sidebar = ({
                 );
               })}
             </div>
-          </div>
+          </div>}
+
+          {/* Section: Revenue APIs */}
+          {apiSection === 'revenue' && <div>
+            <div className="px-4 mb-2 flex items-center gap-2">
+              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
+              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Revenue</span>
+              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
+            </div>
+            <div className="space-y-1">
+              {REVENUE_CATEGORIES.map((cat) => {
+                const catEndpoints = getRevenueCategoryEndpoints(cat.id);
+                const filteredRevenue = getFilteredEndpoints(catEndpoints);
+                const isExpanded = expandedCategories[cat.id];
+                if (filteredRevenue.length === 0 && searchQuery) return null;
+                return (
+                  <div key={cat.id}>
+                    <button
+                      onClick={() => toggleCategory(cat.id)}
+                      className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium text-left text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors group"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1 text-left">
+                        <svg className="w-5 h-5 shrink-0 text-violet-400 group-hover:text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        <span className="text-left leading-snug">{cat.label}</span>
+                        <span className="shrink-0 text-xs text-slate-400 dark:text-slate-600">{filteredRevenue.length}</span>
+                      </div>
+                      <svg
+                        className={`w-4 h-4 text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {isExpanded && (
+                      <ul className="mt-1 ml-4 space-y-0.5 border-l-2 border-violet-100 dark:border-violet-900/40 pl-2">
+                        {filteredRevenue.map((endpoint) => (
+                          <li key={endpoint.id}>{renderEndpointButton(endpoint)}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>}
 
         </nav>
 
-        {/* User/Footer Area */}
-        <div className="p-4 border-t border-slate-100 dark:border-slate-900 bg-slate-50/50 dark:bg-slate-900/50">
-          <div className="flex items-center gap-3 px-2">
-            <div className="w-8 h-8 rounded-full bg-zuora-100 dark:bg-zuora-900/50 flex items-center justify-center text-zuora-600 dark:text-zuora-400 font-bold text-xs border border-zuora-200 dark:border-zuora-500/30">
-              Dev
+        {/* Footer */}
+        <div className="p-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
+
+          {/* Storage usage card */}
+          <button
+            type="button"
+            onClick={() => onSelectView('storage')}
+            className="w-full group text-left rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-3 py-2.5 transition-colors"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                </svg>
+                <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 group-hover:text-slate-800 dark:group-hover:text-white transition-colors">
+                  Browser Storage
+                </span>
+              </div>
+              <span className={`text-xs font-bold px-1.5 py-0.5 rounded-md ${
+                storagePercentUsed >= 90 ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400' :
+                storagePercentUsed >= 70 ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400' :
+                'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+              }`}>
+                {storagePercentUsed}%
+              </span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
-                Local Developer
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-500 truncate">
-                Ready to hack
-              </p>
+            <div className="w-full h-2 bg-slate-200 dark:bg-slate-600 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  storagePercentUsed >= 90 ? 'bg-rose-500' :
+                  storagePercentUsed >= 70 ? 'bg-amber-500' :
+                  'bg-gradient-to-r from-emerald-400 to-teal-500'
+                }`}
+                style={{ width: `${Math.max(storagePercentUsed, storagePercentUsed > 0 ? 3 : 0)}%` }}
+              />
             </div>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 group-hover:text-slate-500 dark:group-hover:text-slate-400 transition-colors">
+              Click to manage storage
+            </p>
+          </button>
+
+          {/* Spec version card */}
+          <div className="flex items-center justify-between rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-2.5">
+            <div className="flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">API Spec</span>
+            </div>
+            <span className="text-[11px] font-mono font-bold text-zuora-600 dark:text-zuora-400 bg-zuora-50 dark:bg-zuora-500/10 border border-zuora-200 dark:border-zuora-500/30 px-2 py-0.5 rounded-md">
+              v2026-05-01
+            </span>
           </div>
+
         </div>
       </aside>
     </>

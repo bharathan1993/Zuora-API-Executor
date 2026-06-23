@@ -8,6 +8,7 @@
 import type { ApiEndpoint, FieldDefinition } from '../types/api';
 import { postAccountEndpoint } from './accountsEndpoint';
 import { zuoraEnvironments } from './environments';
+export { revenueEndpoints, REVENUE_CATEGORIES, getRevenueCategoryEndpoints } from './revenueEndpoints';
 
 // Import all auto-generated endpoints
 export { zuoraEndpoints as generatedEndpoints } from './generated/index';

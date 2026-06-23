@@ -1,12 +1,18 @@
 import express from 'express';
 import cors from 'cors';
 import fetch from 'node-fetch';
+import https from 'https';
+
+// Agent that skips TLS verification for internal/sandbox Revenue hosts
+const insecureAgent = new https.Agent({ rejectUnauthorized: false });
 
 const app = express();
 const PORT = 3001;
 
-// Enable CORS for all origins
-app.use(cors());
+// Enable CORS for all origins, and expose Revenue token header to the browser
+app.use(cors({
+  exposedHeaders: ['revpro-token', 'zuora-request-id'],
+}));
 
 // Parse JSON bodies
 app.use(express.json());
@@ -47,33 +53,27 @@ app.use('/proxy', async (req, res) => {
     const fetchOptions = {
       method: req.method,
       headers: headers,
+      // Skip TLS verification for internal Revenue sandbox hosts
+      agent: targetUrl.startsWith('https:') ? insecureAgent : undefined,
     };
 
-    // Add body for POST, PUT, PATCH requests
+    // Add body for POST, PUT, PATCH requests (only if there is actual content)
     if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
-      // Check if content-type is form-urlencoded
+      const hasBody = req.body && Object.keys(req.body).length > 0;
       if (req.headers['content-type']?.includes('application/x-www-form-urlencoded')) {
-        // Convert JSON body to URL-encoded string
         const params = new URLSearchParams(req.body);
         fetchOptions.body = params.toString();
-      } else {
-        // Send as JSON
+      } else if (hasBody) {
         fetchOptions.body = JSON.stringify(req.body);
       }
+      // If no body, don't set fetchOptions.body — avoid sending stray "{}"
     }
 
     // Make the request
     const response = await fetch(targetUrl, fetchOptions);
 
-    // Get response body
-    const contentType = response.headers.get('content-type');
-    let responseData;
-
-    if (contentType && contentType.includes('application/json')) {
-      responseData = await response.json();
-    } else {
-      responseData = await response.text();
-    }
+    // Get response body as buffer to preserve binary data (PDFs, ZIPs, etc.)
+    const responseBuffer = await response.buffer();
 
     // Forward response headers
     response.headers.forEach((value, key) => {
@@ -83,8 +83,8 @@ app.use('/proxy', async (req, res) => {
       }
     });
 
-    // Send response
-    res.status(response.status).send(responseData);
+    // Send response preserving exact bytes
+    res.status(response.status).send(responseBuffer);
 
     console.log(`[Proxy] Response: ${response.status} ${response.statusText}`);
   } catch (error) {

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import type { FieldDefinition } from '../types/api';
+import { useState } from 'react';
+import type { ChainedValue, FieldDefinition } from '../types/api';
 import { FormField } from './FormField';
 
 interface FieldSectionProps {
@@ -13,6 +13,7 @@ interface FieldSectionProps {
   isAdvanced?: boolean;
   isExpanded?: boolean;
   onToggle?: () => void;
+  chainedValues?: ChainedValue[];
 }
 
 export const FieldSection = ({
@@ -26,6 +27,7 @@ export const FieldSection = ({
   isAdvanced = false,
   isExpanded: controlledIsExpanded,
   onToggle,
+  chainedValues = [],
 }: FieldSectionProps) => {
   const [localIsExpanded, setLocalIsExpanded] = useState(defaultExpanded);
 
@@ -85,6 +87,7 @@ export const FieldSection = ({
               onTouched={onFieldTouched}
               error={fieldErrors[field.name]}
               className={field.type === 'object' || field.type === 'array' || field.type === 'textarea' ? 'col-span-1 md:col-span-2' : ''}
+              chainedValues={chainedValues}
             />
           ))}
         </div>

@@ -1,5 +1,5 @@
-import { useState, type ChangeEvent } from 'react';
-import type { FieldDefinition } from '../types/api';
+import { useState, useRef, useEffect, type ChangeEvent } from 'react';
+import type { ChainedValue, FieldDefinition } from '../types/api';
 
 interface FormFieldProps {
   field: FieldDefinition;
@@ -9,13 +9,28 @@ interface FormFieldProps {
   path?: string;
   className?: string;
   error?: string;
+  chainedValues?: ChainedValue[];
 }
 
-export const FormField = ({ field, value, onChange, onTouched, path = '', className = '', error }: FormFieldProps) => {
+export const FormField = ({ field, value, onChange, onTouched, path = '', className = '', error, chainedValues = [] }: FormFieldProps) => {
 
   const [isExpanded, setIsExpanded] = useState(field.required || false);
-
   const [showHelp, setShowHelp] = useState(false);
+  const [showChainPicker, setShowChainPicker] = useState(false);
+  const chainPickerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showChainPicker) return;
+    const handler = (e: MouseEvent) => {
+      if (chainPickerRef.current && !chainPickerRef.current.contains(e.target as Node)) {
+        setShowChainPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showChainPicker]);
+
+  const isScalarField = field.type !== 'object' && field.type !== 'array' && field.type !== 'boolean';
 
   const fieldPath = path ? `${path}.${field.name}` : field.name;
 
@@ -108,6 +123,46 @@ export const FormField = ({ field, value, onChange, onTouched, path = '', classN
             >
               {showHelp ? 'Hide help' : 'Help'}
             </button>
+          )}
+          {isScalarField && chainedValues.length > 0 && (
+            <div className="relative" ref={chainPickerRef}>
+              <button
+                type="button"
+                onClick={() => setShowChainPicker((open) => !open)}
+                title="Inject a pinned response value"
+                className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                Use chained value
+              </button>
+              {showChainPicker && (
+                <div className="absolute left-0 top-full mt-1 z-50 w-72 rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-white dark:bg-slate-900 shadow-lg overflow-hidden">
+                  <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Pinned values
+                  </div>
+                  <div className="max-h-48 overflow-y-auto">
+                    {chainedValues.map((cv) => (
+                      <button
+                        key={cv.id}
+                        type="button"
+                        onClick={() => {
+                          onChange(cv.value);
+                          onTouched?.(fieldPath);
+                          setShowChainPicker(false);
+                        }}
+                        className="w-full text-left px-3 py-2 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors border-b border-slate-50 dark:border-slate-800/50 last:border-0"
+                      >
+                        <div className="font-mono text-xs text-emerald-700 dark:text-emerald-300 truncate">{cv.key}</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{cv.value.length > 50 ? `${cv.value.slice(0, 50)}…` : cv.value}</div>
+                        <div className="text-[10px] text-slate-400 dark:text-slate-600 mt-0.5">from {cv.source}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

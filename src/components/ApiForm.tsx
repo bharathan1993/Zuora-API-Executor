@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import type { ApiEndpoint, FieldDefinition } from '../types/api';
+import type { ApiEndpoint, ChainedValue, FieldDefinition } from '../types/api';
 import { FormField } from './FormField';
 import { FieldSection } from './FieldSection';
 import { EnvironmentSelector } from './EnvironmentSelector';
@@ -24,6 +24,7 @@ interface ApiFormProps {
   prefillHeaders?: Record<string, string>;
   prefillPathParams?: Record<string, any>;
   prefillId?: string;
+  chainedValues?: ChainedValue[];
 }
 
 type HeaderRow = {
@@ -231,13 +232,15 @@ export const ApiForm = ({
   prefillQueryParams,
   prefillHeaders,
   prefillPathParams,
-  prefillId
+  prefillId,
+  chainedValues = []
 }: ApiFormProps) => {
   const [activeTab, setActiveTab] = useState<'params' | 'body' | 'headers'>('params');
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [pathParams, setPathParams] = useState<Record<string, any>>({});
   const [queryParams, setQueryParams] = useState<Record<string, any>>({});
   const [customHeaders, setCustomHeaders] = useState<HeaderRow[]>([createHeaderRow()]);
+  const [customBodyFields, setCustomBodyFields] = useState<Array<{ id: string; name: string; value: string }>>([]);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [jsonMode, setJsonMode] = useState(false);
   const [jsonText, setJsonText] = useState('');
@@ -318,7 +321,17 @@ export const ApiForm = ({
     setPathParams(initPathParams);
     setQueryParams(initQueryParams);
     setExpandedSections(initExpanded);
-    setCustomHeaders([createHeaderRow()]);
+    // Pre-populate token header for Revenue endpoints
+    if (endpoint.product === 'revenue' && endpoint.authType === 'revenue-token') {
+      const revenueToken = localStorage.getItem('zuora_revenue_token') ?? '';
+      setCustomHeaders(revenueToken
+        ? [{ id: Math.random().toString(36), key: 'token', value: revenueToken }]
+        : [createHeaderRow()]
+      );
+    } else {
+      setCustomHeaders([createHeaderRow()]);
+    }
+    setCustomBodyFields([]);
     setActiveTab('params');
     setJsonMode(false);
     setJsonText('');
@@ -437,6 +450,11 @@ export const ApiForm = ({
     if (endpoint.id === 'post-account' && result.autoPay === undefined) {
       result.autoPay = false;
     }
+    // Merge manually added custom fields
+    customBodyFields.forEach(({ name, value }) => {
+      const trimmedName = name.trim();
+      if (trimmedName) result[trimmedName] = value;
+    });
     return result;
   };
 
@@ -451,7 +469,7 @@ export const ApiForm = ({
     }));
   };
 
-  const previewData = useMemo(() => buildRequestBody(), [formData, endpoint]);
+  const previewData = useMemo(() => buildRequestBody(), [formData, endpoint, customBodyFields]);
 
   // Notify parent of filtered form data changes
   useEffect(() => {
@@ -640,18 +658,130 @@ export const ApiForm = ({
     return { ...required, ...optional };
   };
 
+  const getSmartSampleValue = (field: FieldDefinition): any => {
+    if (field.sampleValue !== undefined) return field.sampleValue;
+    if (field.defaultValue !== undefined) return field.defaultValue;
+    if (field.enum?.length) return field.enum[0];
+    const n = field.name.toLowerCase();
+    const today = new Date().toISOString().split('T')[0];
+    if (field.type === 'date') return today;
+    if (field.type === 'email') return 'contact@example.com';
+    if (field.type === 'boolean') {
+      if (n.includes('autorenew')) return true;
+      return false;
+    }
+    if (field.type === 'number') {
+      if (n.includes('billcycleday') || n.includes('cycleday')) return 1;
+      if (n.includes('quantity') || n.includes('qty')) return 1;
+      if (n.includes('price') || n.includes('amount') || n.includes('rate')) return 100;
+      if (n.includes('term') && !n.includes('date')) return 12;
+      if (n.includes('trial')) return 30;
+      return 1;
+    }
+    if (field.type === 'string') {
+      if (n.includes('currency')) return 'USD';
+      if (n.includes('email')) return 'contact@example.com';
+      if (n === 'firstname' || n.includes('firstname')) return 'John';
+      if (n === 'lastname' || n.includes('lastname')) return 'Doe';
+      if (n.includes('phone') || n.includes('fax')) return '+1-555-0100';
+      if (n.includes('country')) return 'US';
+      if (n.includes('state') || n.includes('province')) return 'CA';
+      if (n.includes('city')) return 'San Francisco';
+      if (n.includes('postalcode') || n.includes('zipcode') || n.includes('zip')) return '94107';
+      if (n.includes('address') || n.includes('street')) return '123 Main St';
+      if (n === 'name' || n.endsWith('name')) return 'Acme Corporation';
+      if (n.includes('description') || n.includes('notes')) return 'Sample description';
+      if (n.includes('date')) return today;
+      if (n.includes('status')) return 'Active';
+      if (n.includes('termtype')) return 'TERMED';
+      if (n.includes('paymentterm')) return 'Due Upon Receipt';
+      if (n.includes('key') && n.includes('account')) return 'A-00000001';
+      if (n.includes('key') && n.includes('subscription')) return 'S-00000001';
+      if (n.includes('key') && n.includes('product')) return 'P-00000001';
+      return field.placeholder || '';
+    }
+    if (field.type === 'array') {
+      if (field.itemFields?.length) {
+        const item: Record<string, any> = {};
+        field.itemFields.filter(f => f.required).forEach(f => { item[f.name] = getSmartSampleValue(f); });
+        return [item];
+      }
+      return field.itemEnum?.length ? [field.itemEnum[0]] : [];
+    }
+    if (field.type === 'object') {
+      if (field.fields?.length) {
+        const obj: Record<string, any> = {};
+        field.fields.filter(f => f.required).forEach(f => { obj[f.name] = getSmartSampleValue(f); });
+        return obj;
+      }
+      return {};
+    }
+    return null;
+  };
+
   const generateMinimumPayload = (fields: FieldDefinition[]): Record<string, any> => {
     const result: Record<string, any> = {};
     fields.forEach(field => {
       if (field.required) {
-        result[field.name] = getFieldPlaceholder(field);
+        result[field.name] = getSmartSampleValue(field);
       }
     });
     return result;
   };
 
+  const CURATED_PAYLOADS: Record<string, Record<string, any>> = {
+    'post-order': {
+      orderDate: new Date().toISOString().split('T')[0],
+      existingAccountNumber: 'A-00000001',
+      subscriptions: [
+        {
+          orderActions: [
+            {
+              type: 'CreateSubscription',
+              triggerDates: [
+                { name: 'ContractEffective', triggerDate: new Date().toISOString().split('T')[0] },
+                { name: 'ServiceActivation', triggerDate: new Date().toISOString().split('T')[0] },
+                { name: 'CustomerAcceptance', triggerDate: new Date().toISOString().split('T')[0] },
+              ],
+              createSubscription: {
+                terms: {
+                  autoRenew: true,
+                  initialTerm: { termType: 'TERMED', period: 12, periodType: 'Month', startDate: new Date().toISOString().split('T')[0] },
+                  renewalSetting: 'RENEW_WITH_SPECIFIC_TERM',
+                  renewalTerms: [{ period: 12, periodType: 'Month' }],
+                },
+                subscribeToRatePlans: [
+                  {
+                    productRatePlanId: '2c92c0f9620c0d330162176a8af62c0d',
+                    chargeOverrides: [
+                      {
+                        productRatePlanChargeId: '2c92c0f9620c0d330162176a8b162c0e',
+                        pricing: { recurringPerUnit: { listPrice: 49.99 } },
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+      processingOptions: {
+        runBilling: true,
+        collectPayment: false,
+      },
+    },
+  };
+
   const loadMinimumPayload = () => {
     if (!endpoint.bodyFields?.length) return;
+    if (CURATED_PAYLOADS[endpoint.id]) {
+      const payload = CURATED_PAYLOADS[endpoint.id];
+      setFormData(payload);
+      touchedFieldsRef.current = new Set();
+      markTouchedFromObject(payload);
+      return;
+    }
     const minimumPayload = generateMinimumPayload(endpoint.bodyFields);
     setFormData(minimumPayload);
     touchedFieldsRef.current = new Set();
@@ -725,54 +855,113 @@ export const ApiForm = ({
     return () => window.removeEventListener('keydown', handleShortcut);
   }, [formId]);
 
+  const generateFallbackDescription = () => {
+    // Curated descriptions for endpoints whose spec description is only a Note/feature-gate
+    const curated: Record<string, string> = {
+      'Create an order': 'Creates a new subscription order to process account and subscription changes.',
+      'Create an order asynchronously': 'Initiates order creation as a background job and returns a job ID to poll for results.',
+      'Preview an order': 'Generates a preview of an order to review charges and impacts before finalizing.',
+      'Preview an order asynchronously': 'Initiates an asynchronous order preview and returns a job ID to poll for results.',
+      'List orders': 'Retrieves a paginated list of orders in the tenant.',
+      'Retrieve an order': 'Fetches full details of a specific order by order number.',
+      'Update an order': 'Modifies the custom fields or description of an existing order.',
+      'Delete an order': 'Removes a specified order from the system.',
+      'Activate an order': 'Changes the status of a draft order to active, allowing it to be processed.',
+      'Cancel an order': 'Cancels an active order, preventing further processing.',
+      'Create a credit memo': 'Generates a credit memo to adjust a customer account balance.',
+      'Create a credit memo from an invoice': 'Generates a credit memo based on a specified invoice.',
+      'Create a credit memo from a charge': 'Generates a credit memo for a specific product rate plan charge.',
+      'Retrieve a credit memo': 'Fetches the details of a specific credit memo by ID.',
+      'Update a credit memo': 'Modifies the details of a draft credit memo.',
+      'Delete a credit memo': 'Removes a draft credit memo from the system.',
+      'List credit memos': 'Retrieves a paginated list of credit memos in the tenant.',
+      'Apply a credit memo': 'Applies a posted credit memo to one or more invoices or debit memos.',
+      'Unapply a credit memo': 'Removes the application of a credit memo from invoices or debit memos.',
+      'Cancel a credit memo': 'Cancels a credit memo that is currently in draft status.',
+      'Post a credit memo': 'Posts a draft credit memo, making it active and ready to apply.',
+      'Reverse a credit memo': 'Reverses a posted credit memo by creating an offsetting debit memo.',
+      'Email a credit memo': 'Sends a credit memo to the customer email address on record.',
+      'Get a PDF file of a credit memo': 'Retrieves the PDF representation of a credit memo.',
+      'Create a debit memo': 'Generates a debit memo to charge an amount to a customer account.',
+      'Create a debit memo from an invoice': 'Generates a debit memo based on a specified invoice.',
+      'Create a debit memo from a charge': 'Generates a debit memo for a specific product rate plan charge.',
+      'Retrieve a debit memo': 'Fetches the details of a specific debit memo by ID.',
+      'Update a debit memo': 'Modifies the details of a draft debit memo.',
+      'Delete a debit memo': 'Removes a draft debit memo from the system.',
+      'List debit memos': 'Retrieves a paginated list of debit memos in the tenant.',
+      'Apply a debit memo': 'Applies a posted payment to a specified debit memo.',
+      'Cancel a debit memo': 'Cancels a debit memo that is currently in draft status.',
+      'Post a debit memo': 'Posts a draft debit memo, making it active.',
+      'Email a debit memo': 'Sends a debit memo to the customer email address on record.',
+      'Get a PDF file of a debit memo': 'Retrieves the PDF representation of a debit memo.',
+      'Create a payment': 'Creates a new electronic or external payment against a customer account.',
+      'Apply a payment': 'Applies a payment to one or more invoices or debit memos.',
+      'Unapply a payment': 'Removes the application of a payment from invoices or debit memos.',
+      'Transfer a payment': 'Transfers a payment from one invoice to another invoice.',
+      'Cancel a payment': 'Cancels a payment that is currently in draft status.',
+      'Refund a payment': 'Processes a refund for a specified payment back to the customer.',
+      'Create a refund': 'Creates a standalone refund not tied to a specific payment.',
+      'List invoice items of a credit memo': 'Lists all line items of a specified credit memo.',
+      'List items of a debit memo': 'Lists all line items of a specified debit memo.',
+    };
+
+    if (curated[endpoint.name]) return curated[endpoint.name];
+
+    // Derive from endpoint name — already human-readable ("Create an order" → "Creates an order in Zuora.")
+    const verbMap: Record<string, string> = {
+      'Create': 'Creates', 'List': 'Lists', 'Retrieve': 'Retrieves', 'Get': 'Gets',
+      'Update': 'Updates', 'Delete': 'Deletes', 'Cancel': 'Cancels', 'Post': 'Posts',
+      'Apply': 'Applies', 'Unapply': 'Removes the application of', 'Reverse': 'Reverses',
+      'Transfer': 'Transfers', 'Refund': 'Processes a refund for', 'Preview': 'Generates a preview of',
+      'Activate': 'Activates', 'Generate': 'Generates', 'Email': 'Emails',
+      'Upload': 'Uploads', 'Download': 'Downloads', 'Run': 'Runs', 'Execute': 'Executes',
+    };
+    const words = endpoint.name.split(' ');
+    const verb = verbMap[words[0]] || (words[0] + 's');
+    const rest = words.slice(1).join(' ');
+    if (rest) return `${verb} ${rest} in Zuora.`;
+
+    // Last resort: path-based
+    const pathParts = endpoint.path.split('/').filter(Boolean);
+    const resource = pathParts[pathParts.length - 1]?.replace(/[{}]/g, '').replace(/-/g, ' ');
+    const actionMap: Record<string, string> = { GET: 'Retrieves', POST: 'Creates', PUT: 'Updates', DELETE: 'Deletes', PATCH: 'Partially updates' };
+    return `${actionMap[endpoint.method] || 'Manages'} ${resource || 'resource'} in Zuora.`;
+  };
+
   const formatDescription = (desc: string) => {
     if (!desc) return generateFallbackDescription();
 
-    // Remove long "Note:" blocks and URLs often found in Zuora docs
+    // Strip **Note:** / **Note**: and **Important:** / **Important**: blocks (both colon positions)
     let cleaned = desc
-      .split('**Note**:')[0]
-      .split('**Important**:')[0]
+      .replace(/\*\*Note:\*\*\s*/gi, '')
+      .replace(/\*\*Note\*\*:\s*/gi, '')
+      .replace(/\*\*Important:\*\*\s*/gi, '')
+      .replace(/\*\*Important\*\*:\s*/gi, '')
       .split('For more information')[0]
       .split('See [')[0]
       .split('https://')[0]
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove markdown links
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // strip markdown links (even with empty URL)
+      .replace(/\*\*([^*]+)\*\*/g, '$1')        // strip bold markers
       .trim();
 
-    // If description is too short or starts with unhelpful text, generate fallback
-    if (cleaned.length < 10 || cleaned.startsWith('This operation') || cleaned.startsWith('Use this')) {
+    // If only a feature-gate sentence remains, use fallback
+    const lower = cleaned.toLowerCase();
+    if (
+      cleaned.length < 10 ||
+      lower.startsWith('this operation is only available') ||
+      lower.startsWith('this feature') ||
+      lower.startsWith('only available') ||
+      lower.startsWith('use this') ||
+      lower.startsWith('this rest api')
+    ) {
       return generateFallbackDescription();
     }
 
-    // Take only the first 1-2 sentences (up to 200 chars)
+    // Take first 1-2 sentences, capped at 200 chars
     const sentences = cleaned.split(/[.!?]+\s/);
     const firstSentences = sentences.slice(0, 2).join('. ');
-
-    // If still too long, truncate at 200 characters
-    if (firstSentences.length > 200) {
-      return firstSentences.substring(0, 200).trim() + '...';
-    }
-
+    if (firstSentences.length > 200) return firstSentences.substring(0, 200).trim() + '...';
     return firstSentences + (firstSentences.endsWith('.') ? '' : '.');
-  };
-
-  const generateFallbackDescription = () => {
-    const method = endpoint.method;
-    const pathParts = endpoint.path.split('/').filter(Boolean);
-    const resource = pathParts[pathParts.length - 1]?.replace(/[{}]/g, '').replace(/-/g, ' ');
-
-    // Generate description based on method and resource
-    const actionMap: Record<string, string> = {
-      GET: 'Retrieves',
-      POST: 'Creates',
-      PUT: 'Updates',
-      DELETE: 'Deletes',
-      PATCH: 'Partially updates',
-    };
-
-    const action = actionMap[method] || 'Manages';
-    const resourceName = resource || 'resource';
-
-    return `${action} ${resourceName} information in Zuora.`;
   };
 
   const hasValue = (value: any) => {
@@ -858,7 +1047,10 @@ export const ApiForm = ({
 
   const buildFinalUrl = () => {
     const selectedEnv = endpoint.environments?.find(env => env.id === selectedEnvironmentId);
-    const baseUrl = selectedEnv?.baseUrl || endpoint.baseUrl;
+    const revenueHost = endpoint.product === 'revenue'
+      ? (localStorage.getItem('zuora_revenue_host') || '').replace(/\/$/, '') || endpoint.baseUrl
+      : null;
+    const baseUrl = revenueHost ?? selectedEnv?.baseUrl ?? endpoint.baseUrl;
     let finalPath = endpoint.path;
     endpoint.pathParams?.forEach((param) => {
       const value = hasValue(pathParams[param.name]) ? encodeURIComponent(String(pathParams[param.name])) : `{${param.name}}`;
@@ -937,34 +1129,6 @@ export const ApiForm = ({
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm dark:shadow-xl dark:shadow-black/20 transition-colors duration-200">
-      {/* Sticky Header - positioned directly in the card so its sticky viewport spans the card's entire height */}
-      <div className="sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm z-10 -mx-6 px-6 py-4 border-b border-slate-200 dark:border-slate-800 rounded-t-xl transition-colors duration-200 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between -mt-6 mb-6">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${endpoint.method === 'POST' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20' :
-                endpoint.method === 'GET' ? 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-500/20' :
-                  endpoint.method === 'PUT' ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20' :
-                    endpoint.method === 'DELETE' ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-500/20' :
-                      'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600'
-              }`}>
-              {endpoint.method}
-            </span>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">{endpoint.name}</h2>
-          </div>
-        </div>
-        {showSubmit && (
-          <button
-            type="submit"
-            form={formId}
-            disabled={isLoading}
-            className={`bg-gradient-to-r from-zuora-600 to-zuora-600 text-white py-2.5 px-5 rounded-lg font-bold shadow-lg shadow-zuora-500/25 hover:shadow-zuora-500/40 hover:from-zuora-500 hover:to-zuora-500 focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900 transition-all transform active:scale-[0.99] ${isLoading ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
-          >
-            {isLoading ? 'Running...' : 'Run Request'}
-            {!isLoading && <span className="ml-2 text-xs font-medium opacity-80">⌘ Enter</span>}
-          </button>
-        )}
-      </div>
 
       <div className="mb-6">
         <div className="mb-4">
@@ -974,16 +1138,20 @@ export const ApiForm = ({
           </code>
         </div>
 
-        <div className="mb-4 grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="mb-4 grid grid-cols-3 gap-2">
           <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3">
             <div className="text-[10px] uppercase tracking-wider text-slate-500">Auth</div>
-            <div className={`text-sm font-semibold ${authToken ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-              {authToken ? 'Token ready' : 'Needs token'}
-            </div>
-          </div>
-          <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3">
-            <div className="text-[10px] uppercase tracking-wider text-slate-500">Proxy</div>
-            <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">{useProxy ? 'Enabled' : 'Direct'}</div>
+            {(() => {
+              const isRevenue = endpoint.product === 'revenue';
+              const hasToken = isRevenue
+                ? (endpoint.authType === 'revenue-token' ? !!localStorage.getItem('zuora_revenue_token') : true)
+                : !!authToken;
+              return (
+                <div className={`text-sm font-semibold ${hasToken ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                  {hasToken ? 'Token ready' : 'Needs token'}
+                </div>
+              );
+            })()}
           </div>
           <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3">
             <div className="text-[10px] uppercase tracking-wider text-slate-500">Required</div>
@@ -1125,6 +1293,7 @@ export const ApiForm = ({
                       value={pathParams[param.name]}
                       onChange={(value) => handlePathParamChange(param.name, value)}
                       error={validationErrors[`path:${param.name}`]}
+                      chainedValues={chainedValues}
                     />
                   ))}
                 </div>
@@ -1148,6 +1317,7 @@ export const ApiForm = ({
                       onChange={(value) => handleQueryParamChange(param.name, value)}
                       error={validationErrors[`query:${param.name}`]}
                       className={param.type === 'array' || param.type === 'textarea' ? 'col-span-1 md:col-span-2' : ''}
+                      chainedValues={chainedValues}
                     />
                   ))}
                 </div>
@@ -1163,17 +1333,24 @@ export const ApiForm = ({
           {endpoint.bodyFields && endpoint.bodyFields.length > 0 ? (
             jsonMode ? (
               /* ── JSON editor mode ── */
-              <div className="relative flex min-h-[28rem] rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-slate-950 shadow-inner xl:min-h-[36rem]">
-                {/* JSON editor */}
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <div className="flex items-center justify-between gap-3 border-b border-slate-800 bg-slate-900/80 px-4 py-3 backdrop-blur-sm">
-                    <div className="min-w-0">
-                      <p className="text-xs font-medium text-slate-300">Request JSON</p>
-                      <p className="text-[11px] text-slate-500 truncate">
-                        Edits sync to preview and UI fields automatically
-                      </p>
+              <div className="flex h-[640px] rounded-xl border border-slate-700/60 overflow-hidden bg-[#0d1117] shadow-2xl shadow-black/40">
+
+                {/* ── Left: JSON editor pane ── */}
+                <div className="flex flex-col flex-1 min-w-0">
+
+                  {/* Editor toolbar */}
+                  <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-[#161b22] border-b border-slate-700/60 shrink-0">
+                    {/* Left: file tab */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5 bg-[#0d1117] border border-slate-700/60 rounded-md px-3 py-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400/80 shrink-0" />
+                        <span className="text-xs font-mono font-medium text-slate-300">request.json</span>
+                      </div>
+                      <span className="text-[11px] text-slate-600 hidden sm:block">auto-syncs with form fields</span>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+
+                    {/* Right: action buttons */}
+                    <div className="flex items-center gap-1.5 shrink-0">
                       {endpoint.exampleRequest && (
                         <button
                           type="button"
@@ -1182,8 +1359,9 @@ export const ApiForm = ({
                             setJsonText(text);
                             applyJsonToForm(JSON.stringify(endpoint.exampleRequest));
                           }}
-                          className="rounded-md border border-slate-700 bg-slate-800/80 px-2.5 py-1 text-[11px] font-medium text-zuora-300 hover:border-zuora-500/40 hover:bg-zuora-500/10 transition-colors"
+                          className="flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800/60 px-2.5 py-1 text-[11px] font-medium text-zuora-300 hover:border-zuora-500/50 hover:bg-zuora-500/10 hover:text-zuora-200 transition-all"
                         >
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                           Example
                         </button>
                       )}
@@ -1196,8 +1374,9 @@ export const ApiForm = ({
                             setJsonText(text);
                             applyJsonToForm(text);
                           }}
-                          className="rounded-md border border-slate-700 bg-slate-800/80 px-2.5 py-1 text-[11px] font-medium text-emerald-300 hover:border-emerald-500/40 hover:bg-emerald-500/10 transition-colors"
+                          className="flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800/60 px-2.5 py-1 text-[11px] font-medium text-emerald-300 hover:border-emerald-500/50 hover:bg-emerald-500/10 transition-all"
                         >
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                           Minimum
                         </button>
                       )}
@@ -1209,163 +1388,207 @@ export const ApiForm = ({
                           setJsonText(text);
                           applyJsonToForm(JSON.stringify(template));
                         }}
-                        className="rounded-md border border-slate-700 bg-slate-800/80 px-2.5 py-1 text-[11px] font-medium text-slate-300 hover:border-slate-600 hover:bg-slate-800 transition-colors"
+                        className="flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800/60 px-2.5 py-1 text-[11px] font-medium text-slate-400 hover:border-slate-600 hover:bg-slate-700/60 hover:text-slate-200 transition-all"
                       >
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                         Reset
                       </button>
+                      <div className="w-px h-4 bg-slate-700 mx-0.5" />
                       <button
                         type="button"
                         onClick={() => setFieldRefOpen((open) => !open)}
-                        className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-all ${fieldRefOpen
-                            ? 'border-zuora-500/40 bg-zuora-500/15 text-zuora-200 shadow-sm shadow-zuora-500/20'
-                            : 'border-slate-700 bg-slate-800/80 text-slate-300 hover:border-slate-600'
-                          }`}
+                        className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-all ${
+                          fieldRefOpen
+                            ? 'border-zuora-500/50 bg-zuora-500/15 text-zuora-200'
+                            : 'border-slate-700 bg-slate-800/60 text-slate-400 hover:border-slate-600 hover:text-slate-200'
+                        }`}
                         aria-expanded={fieldRefOpen}
                       >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h10M4 18h6" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
                         Fields
+                        {!fieldRefOpen && (
+                          <span className="ml-0.5 rounded-full bg-slate-700 px-1.5 py-0.5 text-[10px] font-bold text-slate-300">
+                            {fieldReferenceEntries.length}
+                          </span>
+                        )}
                       </button>
                     </div>
                   </div>
 
-                  <div className="flex flex-1 flex-col p-4">
+                  {/* Editor area with gutter */}
+                  <div className="flex flex-1 min-h-0 overflow-hidden">
+                    {/* Line number gutter */}
+                    <div className="select-none w-12 shrink-0 bg-[#0d1117] border-r border-slate-800/60 overflow-hidden pt-4 pr-2 text-right">
+                      {jsonText.split('\n').map((_, i) => (
+                        <div key={i} className="text-[11px] leading-[1.625rem] text-slate-700 font-mono">{i + 1}</div>
+                      ))}
+                    </div>
+                    {/* Textarea */}
                     <textarea
                       ref={jsonTextareaRef}
                       value={jsonText}
                       onChange={(e) => handleJsonChange(e.target.value)}
                       spellCheck={false}
-                      className={`min-h-[20rem] flex-1 w-full resize-none rounded-lg bg-transparent font-mono text-sm leading-relaxed text-emerald-400 focus:outline-none ${jsonError ? 'ring-1 ring-rose-500/50' : ''
-                        }`}
+                      className={`flex-1 w-full resize-none bg-transparent font-mono text-sm leading-[1.625rem] text-emerald-400 focus:outline-none p-4 overflow-auto ${
+                        jsonError ? 'caret-rose-400' : 'caret-emerald-400'
+                      }`}
                     />
+                  </div>
+
+                  {/* Status bar */}
+                  <div className={`flex items-center gap-2 px-4 py-2 border-t text-[11px] font-mono shrink-0 ${
+                    jsonError
+                      ? 'border-rose-500/30 bg-rose-500/5'
+                      : 'border-slate-800 bg-[#161b22]'
+                  }`}>
                     {jsonError ? (
-                      <p className="mt-3 text-xs text-rose-400 flex items-center gap-1.5">
-                        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                        </svg>
-                        {jsonError}
-                      </p>
+                      <>
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+                        <span className="text-rose-400 truncate">{jsonError}</span>
+                      </>
                     ) : jsonText.trim() ? (
-                      <p className="mt-3 text-xs text-emerald-500/90 flex items-center gap-1.5">
-                        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Valid JSON
-                      </p>
-                    ) : null}
+                      <>
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                        <span className="text-emerald-500/80">Valid JSON</span>
+                        <span className="ml-auto text-slate-600">{jsonText.split('\n').length} lines</span>
+                      </>
+                    ) : (
+                      <span className="text-slate-600">Empty — paste JSON or use a template above</span>
+                    )}
                   </div>
                 </div>
 
-                {/* Slide-out field reference sidebar */}
+                {/* ── Right: Field reference sidebar ── */}
                 <aside
-                  className={`relative flex shrink-0 flex-col border-l border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-[-12px_0_32px_-12px_rgba(0,0,0,0.35)] transition-[width,opacity,transform] duration-300 ease-out ${fieldRefOpen
-                      ? 'w-80 translate-x-0 opacity-100'
-                      : 'w-0 translate-x-4 opacity-0 pointer-events-none'
-                    }`}
+                  className={`shrink-0 flex flex-col border-l border-slate-700/60 bg-[#161b22] transition-[width,opacity] duration-300 ease-out overflow-hidden ${
+                    fieldRefOpen ? 'w-72 opacity-100' : 'w-0 opacity-0 pointer-events-none'
+                  }`}
                   aria-hidden={!fieldRefOpen}
                 >
-                  <div className="flex h-full w-80 flex-col">
-                    <div className="border-b border-slate-200 dark:border-slate-800 px-4 py-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-zuora-500/10 text-zuora-600 dark:text-zuora-300">
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                              </svg>
-                            </span>
-                            <div>
-                              <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Field Reference</h3>
-                              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                                {fieldReferenceEntries.length} fields · click to insert into JSON
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setFieldRefOpen(false)}
-                          className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
-                          aria-label="Close field reference"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  {/* Sidebar header — sticky, never scrolls */}
+                  <div className="shrink-0 px-3 pt-3 pb-2 border-b border-slate-700/60">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-zuora-500/15 text-zuora-400">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                           </svg>
-                        </button>
-                      </div>
-                      <div className="relative mt-3">
-                        <svg className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                        <input
-                          type="search"
-                          value={fieldRefSearch}
-                          onChange={(event) => setFieldRefSearch(event.target.value)}
-                          placeholder="Search fields..."
-                          className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 py-2 pl-9 pr-3 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-zuora-500/40"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto">
-                      {filteredFieldReferenceEntries.length === 0 ? (
-                        <div className="px-4 py-8 text-center text-xs text-slate-500 dark:text-slate-400">
-                          No fields match your search.
+                        </span>
+                        <div>
+                          <p className="text-xs font-semibold text-slate-200">Field Reference</p>
+                          <p className="text-[10px] text-slate-500">{filteredFieldReferenceEntries.length} of {fieldReferenceEntries.length} fields</p>
                         </div>
-                      ) : (
-                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                          {filteredFieldReferenceEntries.map((field) => (
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFieldRefOpen(false)}
+                        className="p-1 rounded-md text-slate-500 hover:text-slate-300 hover:bg-slate-700/60 transition-colors"
+                        aria-label="Close field reference"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    {/* Search */}
+                    <div className="relative">
+                      <svg className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      <input
+                        type="search"
+                        value={fieldRefSearch}
+                        onChange={(event) => setFieldRefSearch(event.target.value)}
+                        placeholder="Search fields…"
+                        className="w-full rounded-lg border border-slate-700 bg-slate-800/60 py-1.5 pl-8 pr-3 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-zuora-500/60 focus:ring-1 focus:ring-zuora-500/30 transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Scrollable field list — only this scrolls */}
+                  <div className="flex-1 overflow-y-auto">
+                    {filteredFieldReferenceEntries.length === 0 ? (
+                      <div className="px-4 py-10 text-center">
+                        <svg className="w-8 h-8 text-slate-700 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <p className="text-xs text-slate-600">No fields match</p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-slate-800/60">
+                        {filteredFieldReferenceEntries.map((field) => {
+                          const typeColors: Record<string, string> = {
+                            string: 'text-sky-400 bg-sky-400/10 border-sky-400/20',
+                            number: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+                            boolean: 'text-purple-400 bg-purple-400/10 border-purple-400/20',
+                            object: 'text-teal-400 bg-teal-400/10 border-teal-400/20',
+                            array: 'text-orange-400 bg-orange-400/10 border-orange-400/20',
+                            email: 'text-pink-400 bg-pink-400/10 border-pink-400/20',
+                            date: 'text-cyan-400 bg-cyan-400/10 border-cyan-400/20',
+                          };
+                          const typeClass = typeColors[field.type] ?? 'text-slate-400 bg-slate-400/10 border-slate-400/20';
+                          const isInserted = insertedFieldPath === field.path;
+                          return (
                             <button
                               key={field.path}
                               type="button"
-                              title="Click to insert this field into the JSON payload"
+                              title="Click to insert into JSON"
                               onClick={() => insertFieldIntoJson(field)}
-                              className="group w-full px-4 py-3 text-left transition-colors hover:bg-zuora-50/70 dark:hover:bg-zuora-500/5"
+                              className={`group w-full px-3 py-2.5 text-left transition-all ${
+                                isInserted
+                                  ? 'bg-emerald-500/10'
+                                  : 'hover:bg-zuora-500/8'
+                              }`}
                             >
-                              <div className="flex items-start justify-between gap-2">
-                                <code className="break-all font-mono text-xs text-zuora-700 dark:text-zuora-300 group-hover:text-zuora-800 dark:group-hover:text-zuora-200">
-                                  {insertedFieldPath === field.path ? (
-                                    <span className="text-emerald-600 dark:text-emerald-400">✓ inserted</span>
-                                  ) : (
-                                    field.path
-                                  )}
+                              <div className="flex items-center justify-between gap-1.5 mb-1">
+                                <code className={`font-mono text-[11px] font-medium break-all leading-tight ${
+                                  isInserted ? 'text-emerald-400' : 'text-zuora-300 group-hover:text-zuora-200'
+                                }`}>
+                                  {isInserted ? '✓ inserted' : field.path}
                                 </code>
                                 <div className="flex shrink-0 items-center gap-1">
-                                  <span className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                                  <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${typeClass}`}>
                                     {field.type}
                                   </span>
                                   {field.required && (
-                                    <span className="rounded border border-rose-200 bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-600 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-400">
+                                    <span className="rounded border border-rose-500/30 bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-rose-400">
                                       req
                                     </span>
                                   )}
                                 </div>
                               </div>
                               {field.description && (
-                                <p className="mt-1.5 line-clamp-2 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                                <p className="line-clamp-2 text-[11px] leading-relaxed text-slate-500 group-hover:text-slate-400 transition-colors">
                                   {field.description.split('**Note**')[0].split('.')[0].trim()}
                                 </p>
                               )}
                             </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Sidebar footer hint */}
+                  <div className="shrink-0 px-3 py-2 border-t border-slate-700/60 bg-[#0d1117]">
+                    <p className="text-[10px] text-slate-600 text-center">Click any field to insert it into JSON</p>
                   </div>
                 </aside>
 
+                {/* Collapsed fields tab */}
                 {!fieldRefOpen && (
                   <button
                     type="button"
                     onClick={() => setFieldRefOpen(true)}
-                    className="absolute right-0 top-1/2 z-10 flex -translate-y-1/2 items-center gap-1 rounded-l-lg border border-r-0 border-slate-700 bg-slate-900/95 px-2 py-3 text-[11px] font-medium text-slate-300 shadow-lg backdrop-blur-sm transition-all hover:border-zuora-500/40 hover:bg-slate-900 hover:text-zuora-200"
+                    className="shrink-0 flex flex-col items-center justify-center gap-1.5 w-8 border-l border-slate-700/60 bg-[#161b22] text-slate-500 hover:text-zuora-300 hover:bg-zuora-500/5 transition-all"
                     aria-label="Open field reference"
                   >
-                    <svg className="w-3.5 h-3.5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
-                    <span className="[writing-mode:vertical-rl] rotate-180 tracking-wide">Fields</span>
+                    <span className="[writing-mode:vertical-rl] rotate-180 text-[10px] font-medium tracking-widest uppercase">Fields</span>
                   </button>
                 )}
               </div>
@@ -1473,6 +1696,7 @@ export const ApiForm = ({
                         onTouched={markTouched}
                         error={validationErrors[`body:${field.name}`]}
                         className={field.type === 'object' || field.type === 'array' || field.type === 'textarea' ? 'col-span-1 md:col-span-2' : ''}
+                        chainedValues={chainedValues}
                       />
                     ))}
                   </div>
@@ -1494,6 +1718,7 @@ export const ApiForm = ({
                     isAdvanced={sectionName === 'Additional Fields'}
                     isExpanded={expandedSections[sectionName]}
                     onToggle={() => toggleSection(sectionName)}
+                    chainedValues={chainedValues}
                   />
                 ))}
               </div>
@@ -1501,6 +1726,73 @@ export const ApiForm = ({
           ) : (
             <div className="text-center py-8 text-slate-500 dark:text-slate-400 text-sm">
               No body parameters required for this request.
+            </div>
+          )}
+
+          {/* Custom Fields Section — always visible in body tab */}
+          {activeTab === 'body' && !jsonMode && (
+            <div className="mt-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-950/40 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Custom Fields</span>
+                  <span className="ml-2 text-[10px] text-slate-400 dark:text-slate-500">Tenant-specific fields (e.g. <span className="font-mono">MyField__c</span>)</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCustomBodyFields(prev => [...prev, { id: crypto.randomUUID(), name: '', value: '' }])}
+                  className="flex items-center gap-1 text-xs font-medium text-zuora-600 dark:text-zuora-400 hover:text-zuora-700 dark:hover:text-zuora-300 transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add custom field
+                </button>
+              </div>
+
+              {customBodyFields.length === 0 ? (
+                <p className="text-xs text-slate-400 dark:text-slate-600 italic">
+                  No custom fields added. Click "Add custom field" to include tenant-specific fields in the request.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {customBodyFields.map((cf, index) => (
+                    <div key={cf.id} className="flex gap-2 items-center">
+                      <input
+                        type="text"
+                        value={cf.name}
+                        onChange={e => {
+                          const next = [...customBodyFields];
+                          next[index] = { ...next[index], name: e.target.value };
+                          setCustomBodyFields(next);
+                        }}
+                        placeholder="FieldName__c"
+                        className="w-2/5 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent transition-colors"
+                      />
+                      <input
+                        type="text"
+                        value={cf.value}
+                        onChange={e => {
+                          const next = [...customBodyFields];
+                          next[index] = { ...next[index], value: e.target.value };
+                          setCustomBodyFields(next);
+                        }}
+                        placeholder="Value"
+                        className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent transition-colors"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setCustomBodyFields(prev => prev.filter(f => f.id !== cf.id))}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors shrink-0"
+                        title="Remove field"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1518,6 +1810,47 @@ export const ApiForm = ({
                 + Add Header
               </button>
             </div>
+
+            {/* Revenue token — pinned auto-injected row */}
+            {endpoint.product === 'revenue' && endpoint.authType === 'revenue-token' && (() => {
+              const tok = localStorage.getItem('zuora_revenue_token') ?? '';
+              return (
+                <div className={`rounded-xl border p-3 mb-1 ${tok ? 'bg-violet-50 dark:bg-violet-500/8 border-violet-200 dark:border-violet-500/25' : 'bg-amber-50 dark:bg-amber-500/8 border-amber-200 dark:border-amber-500/25'}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${tok ? 'bg-violet-500' : 'bg-amber-500'}`} />
+                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        Auto-injected: <code className="font-mono">token</code> header
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const fresh = localStorage.getItem('zuora_revenue_token') ?? '';
+                        if (fresh) {
+                          setCustomHeaders(prev => {
+                            const withoutToken = prev.filter(h => h.key.toLowerCase() !== 'token');
+                            return [{ id: Math.random().toString(36), key: 'token', value: fresh }, ...withoutToken];
+                          });
+                        }
+                      }}
+                      className="text-xs text-violet-600 dark:text-violet-400 hover:underline"
+                    >
+                      ↺ Sync to headers
+                    </button>
+                  </div>
+                  {tok ? (
+                    <code className="block text-[11px] font-mono text-violet-700 dark:text-violet-300 bg-white dark:bg-slate-950 border border-violet-200 dark:border-violet-500/20 px-2 py-1.5 rounded-lg break-all leading-relaxed">
+                      {tok.slice(0, 60)}{tok.length > 60 ? '…' : ''}
+                    </code>
+                  ) : (
+                    <p className="text-xs text-amber-700 dark:text-amber-400">
+                      No Revenue token saved. Go to <strong>Authentication → Revenue</strong> to generate one.
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
 
             <div className="space-y-3">
               {customHeaders.map((header, index) => (

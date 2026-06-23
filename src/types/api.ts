@@ -1,5 +1,13 @@
 export type FieldType = 'string' | 'number' | 'boolean' | 'date' | 'email' | 'array' | 'object' | 'textarea';
 
+export interface ChainedValue {
+  id: string;
+  key: string;     // JSON path, e.g. "accountId" or "subscription.id"
+  value: string;
+  source: string;  // e.g. "Create Account"
+  pinnedAt: number;
+}
+
 export interface FieldDefinition {
   name: string;
   label: string;
@@ -37,7 +45,8 @@ export interface ApiEndpoint {
   baseUrl: string; // Default base URL
   environments?: Environment[]; // Available environments
   requiresAuth: boolean;
-  authType?: 'bearer' | 'basic' | 'apiKey';
+  authType?: 'bearer' | 'basic' | 'apiKey' | 'revenue-token';
+  product?: 'revenue';
   headers?: Record<string, string>;
   queryParams?: FieldDefinition[];
   pathParams?: FieldDefinition[];
@@ -52,6 +61,9 @@ export interface ApiResponse {
   data: any;
   headers: Record<string, string>;
   duration: number;
+  timestamp?: number;
+  blobUrl?: string;
+  filename?: string;
   request?: {
     url: string;
     method: string;
