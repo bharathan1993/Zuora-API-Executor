@@ -7,14 +7,6 @@ const AUTH_KEY_LABELS: Record<string, string> = {
   zuora_token_tenant_id: 'Token Tenant ID',
   zuora_tenants: 'Saved Billing Tenants',
   zuora_active_tenant_id: 'Active Billing Tenant',
-  zuora_revenue_instances: 'Revenue Instances',
-  zuora_revenue_active_id: 'Active Revenue Instance',
-  zuora_revenue_host: 'Revenue Host (legacy)',
-  zuora_revenue_token: 'Revenue Token (legacy)',
-  zuora_revenue_username: 'Revenue Username (legacy)',
-  zuora_revenue_password: 'Revenue Password (legacy)',
-  zuora_revenue_role: 'Revenue Role (legacy)',
-  zuora_revenue_clientname: 'Revenue Client Name (legacy)',
 };
 
 interface StorageManagerProps {
@@ -278,7 +270,7 @@ export const StorageManager = ({ usage, onClearCategory, onClearAll }: StorageMa
         <ul className="space-y-2 text-xs text-slate-500 dark:text-slate-400">
           <li><span className="font-medium text-slate-700 dark:text-slate-300">Form states</span> — field values auto-saved per endpoint so you don't lose work when switching APIs.</li>
           <li><span className="font-medium text-slate-700 dark:text-slate-300">Saved requests</span> — requests you explicitly saved with names and folders.</li>
-          <li><span className="font-medium text-slate-700 dark:text-slate-300">Authentication</span> — saved Billing tenants, Revenue instances, OAuth tokens, and credentials. Click "View entries" to inspect and remove individual items.</li>
+          <li><span className="font-medium text-slate-700 dark:text-slate-300">Authentication</span> — saved Billing tenants, OAuth tokens, and credentials. Click "View entries" to inspect and remove individual items.</li>
           <li><span className="font-medium text-slate-700 dark:text-slate-300">Settings</span> — selected environment, favourites, and recently-used endpoints.</li>
         </ul>
       </div>
