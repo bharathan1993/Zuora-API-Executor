@@ -8,7 +8,7 @@ import { JsonPreview } from './components/JsonPreview';
 import { SavedRequests } from './components/SavedRequests';
 import { StorageManager } from './components/StorageManager';
 import { NameModal } from './components/NameModal';
-import { zuoraEndpoints, revenueEndpoints } from './config/zuoraEndpoints';
+import { zuoraEndpoints } from './config/zuoraEndpoints';
 import { zuoraEnvironments } from './config/environments';
 import { apiExecutor } from './services/apiExecutor';
 import { useTheme } from './hooks/useTheme';
@@ -16,7 +16,6 @@ import { useStorageUsage, STORAGE_KEYS } from './hooks/useStorageUsage';
 import type { ApiEndpoint, ApiResponse, ApiRequest, SavedFolder, SavedRequest, ChainedValue } from './types/api';
 
 function App() {
-  const allEndpoints = [...zuoraEndpoints, ...revenueEndpoints];
   const [selectedEndpoint, setSelectedEndpoint] = useState<ApiEndpoint>(zuoraEndpoints[0]);
   const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<string>(
     zuoraEnvironments[0]?.id || ''
@@ -29,7 +28,6 @@ function App() {
   const useProxy = true;
   const [currentView, setCurrentView] = useState<string>('auth');
   const [previousView, setPreviousView] = useState<string>('');
-  const [apiSection, setApiSection] = useState<'billing' | 'revenue'>('billing');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [liveFormData, setLiveFormData] = useState<Record<string, any>>({});
@@ -156,7 +154,7 @@ function App() {
     setIsSidebarOpen(false);
 
     if (view !== 'auth' && view !== 'storage') {
-      const endpoint = allEndpoints.find(e => e.id === view);
+      const endpoint = zuoraEndpoints.find(e => e.id === view);
       if (endpoint) {
         setSelectedEndpoint(endpoint);
         setResponse(null);
@@ -219,14 +217,8 @@ function App() {
     pathParams?: Record<string, any>,
     queryParams?: Record<string, any>
   ) => {
-    const isRevenueEndpoint = endpoint.product === 'revenue';
-    const revenueToken = localStorage.getItem('zuora_revenue_token') || '';
-    if (!isRevenueEndpoint && !authToken) {
+    if (!authToken) {
       setError('Please generate an OAuth token first');
-      return;
-    }
-    if (isRevenueEndpoint && endpoint.authType === 'revenue-token' && !revenueToken) {
-      setError('Please generate a Revenue token first (Authentication → Revenue tab)');
       return;
     }
 
@@ -265,14 +257,6 @@ function App() {
       setResponse(result);
       setResponseHistory((prev) => [result, ...prev].slice(0, 8));
 
-      // Auto-save Revenue token after successful authentication
-      if (
-        selectedEndpoint.id === 'revenue-create-authentication' &&
-        result.status >= 200 && result.status < 300 &&
-        result.data?.Message && result.data.Message !== 'Token Generated'
-      ) {
-        localStorage.setItem('zuora_revenue_token', result.data.Message);
-      }
     } catch (err: any) {
       setError(err.message || 'An error occurred while executing the request');
     } finally {
@@ -534,14 +518,14 @@ function App() {
         <Sidebar
           currentView={currentView}
           onSelectView={handleViewChange}
-          endpoints={allEndpoints}
+          endpoints={zuoraEndpoints}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           favoriteEndpointIds={favoriteEndpointIds}
           recentEndpointIds={recentEndpointIds}
           onToggleFavorite={handleToggleFavoriteEndpoint}
           storagePercentUsed={usage.percentUsed}
-          onSectionChange={setApiSection}
+
         />
       </div>
 
@@ -550,14 +534,14 @@ function App() {
         <Sidebar
           currentView={currentView}
           onSelectView={handleViewChange}
-          endpoints={allEndpoints}
+          endpoints={zuoraEndpoints}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           favoriteEndpointIds={favoriteEndpointIds}
           recentEndpointIds={recentEndpointIds}
           onToggleFavorite={handleToggleFavoriteEndpoint}
           storagePercentUsed={usage.percentUsed}
-          onSectionChange={setApiSection}
+
         />
       </div>
 
@@ -753,7 +737,6 @@ function App() {
                   onEnvironmentChange={handleEnvironmentChange}
                   onTokenGenerated={handleTokenGenerated}
                   useCorsProxy={useProxy}
-                  initialProductTab={apiSection}
                 />
               </div>
             ) : (
@@ -846,7 +829,7 @@ function App() {
                     <SavedRequests
                       requests={savedRequests.filter((r) => r.endpointId === selectedEndpoint?.id)}
                       folders={savedFolders.filter((f) => f.endpointId === selectedEndpoint?.id)}
-                      endpoints={allEndpoints}
+                      endpoints={zuoraEndpoints}
                       onUse={handleUseSavedRequest}
                       onRun={handleRunSavedRequest}
                       onDelete={handleDeleteSavedRequest}
