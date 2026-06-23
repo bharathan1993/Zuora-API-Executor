@@ -50,7 +50,8 @@ export class ApiExecutor {
 
       const queryString = this.buildQueryString(queryParams);
 
-      if (this.useProxy) {
+      const revenueDirectMode = isRevenue && localStorage.getItem('zuora_revenue_direct_mode') === 'true';
+      if (this.useProxy && !revenueDirectMode) {
         const activeProxyUrl = isRevenue
           ? (localStorage.getItem('zuora_revenue_proxy_url') || this.proxyUrl)
           : this.proxyUrl;
