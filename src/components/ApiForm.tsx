@@ -3,6 +3,8 @@ import type { ApiEndpoint, ChainedValue, FieldDefinition } from '../types/api';
 import { FormField } from './FormField';
 import { FieldSection } from './FieldSection';
 import { EnvironmentSelector } from './EnvironmentSelector';
+import { useCustomFields } from '../hooks/useCustomFields';
+import { detectObjectType } from '../config/customFieldsConfig';
 
 interface ApiFormProps {
   endpoint: ApiEndpoint;
@@ -25,6 +27,7 @@ interface ApiFormProps {
   prefillPathParams?: Record<string, any>;
   prefillId?: string;
   chainedValues?: ChainedValue[];
+  activeTenantId?: string;
 }
 
 type HeaderRow = {
@@ -233,7 +236,8 @@ export const ApiForm = ({
   prefillHeaders,
   prefillPathParams,
   prefillId,
-  chainedValues = []
+  chainedValues = [],
+  activeTenantId = ''
 }: ApiFormProps) => {
   const [activeTab, setActiveTab] = useState<'params' | 'body' | 'headers'>('params');
   const [formData, setFormData] = useState<Record<string, any>>({});
@@ -242,6 +246,12 @@ export const ApiForm = ({
   const [customHeaders, setCustomHeaders] = useState<HeaderRow[]>([createHeaderRow()]);
   const [customBodyFields, setCustomBodyFields] = useState<Array<{ id: string; name: string; value: string }>>([]);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const { getFieldsForObject } = useCustomFields(activeTenantId);
+  const detectedObjectType = useMemo(() => detectObjectType(endpoint), [endpoint.id]);
+  const savedCustomFields = useMemo(
+    () => detectedObjectType ? getFieldsForObject(detectedObjectType) : [],
+    [detectedObjectType, getFieldsForObject]
+  );
   const [jsonMode, setJsonMode] = useState(false);
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState('');
@@ -1714,8 +1724,15 @@ export const ApiForm = ({
             <div className="mt-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-950/40 p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Custom Fields</span>
-                  <span className="ml-2 text-[10px] text-slate-400 dark:text-slate-500">Tenant-specific fields (e.g. <span className="font-mono">MyField__c</span>)</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Custom Fields</span>
+                    {detectedObjectType && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-zuora-500/10 text-zuora-600 dark:text-zuora-400">
+                        {detectedObjectType}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500">Tenant-specific fields (e.g. <span className="font-mono">MyField__c</span>)</span>
                 </div>
                 <button
                   type="button"
@@ -1737,17 +1754,34 @@ export const ApiForm = ({
                 <div className="space-y-2">
                   {customBodyFields.map((cf, index) => (
                     <div key={cf.id} className="flex gap-2 items-center">
-                      <input
-                        type="text"
-                        value={cf.name}
-                        onChange={e => {
-                          const next = [...customBodyFields];
-                          next[index] = { ...next[index], name: e.target.value };
-                          setCustomBodyFields(next);
-                        }}
-                        placeholder="FieldName__c"
-                        className="w-2/5 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent transition-colors"
-                      />
+                      {savedCustomFields.length > 0 ? (
+                        <select
+                          value={cf.name}
+                          onChange={e => {
+                            const next = [...customBodyFields];
+                            next[index] = { ...next[index], name: e.target.value };
+                            setCustomBodyFields(next);
+                          }}
+                          className="w-2/5 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm font-mono text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent transition-colors"
+                        >
+                          <option value="">Select field…</option>
+                          {savedCustomFields.map(f => (
+                            <option key={f.id} value={f.name}>{f.label ? `${f.label} (${f.name})` : f.name}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          value={cf.name}
+                          onChange={e => {
+                            const next = [...customBodyFields];
+                            next[index] = { ...next[index], name: e.target.value };
+                            setCustomBodyFields(next);
+                          }}
+                          placeholder="FieldName__c"
+                          className="w-2/5 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-zuora-500 focus:border-transparent transition-colors"
+                        />
+                      )}
                       <input
                         type="text"
                         value={cf.value}

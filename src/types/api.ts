@@ -100,3 +100,22 @@ export interface SavedFolder {
   endpointId: string;
   createdAt: number;
 }
+
+// ── Custom Fields ─────────────────────────────────────────────────────────────
+
+export const CUSTOM_FIELD_OBJECT_TYPES = [
+  'Account', 'Subscription', 'Order', 'Invoice', 'Payment',
+  'CreditMemo', 'DebitMemo', 'Contact', 'Product', 'RatePlan', 'RatePlanCharge',
+] as const;
+
+export type CustomFieldObjectType = typeof CUSTOM_FIELD_OBJECT_TYPES[number];
+
+export interface CustomFieldDefinition {
+  id: string;
+  name: string;        // API name, e.g. "PONumber__c"
+  label: string;       // Display label, e.g. "PO Number"
+  type: 'string' | 'number' | 'boolean' | 'date';
+  defaultValue?: string;
+}
+
+export type TenantCustomFields = Partial<Record<CustomFieldObjectType, CustomFieldDefinition[]>>;

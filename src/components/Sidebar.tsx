@@ -284,6 +284,21 @@ export const Sidebar = ({
               </li>
               <li>
                 <button
+                  onClick={() => onSelectView('custom-fields')}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
+                    currentView === 'custom-fields'
+                      ? 'bg-zuora-50 dark:bg-zuora-500/10 text-zuora-700 dark:text-zuora-300 shadow-sm border border-zuora-100 dark:border-zuora-500/20'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <svg className={`w-5 h-5 transition-colors ${currentView === 'custom-fields' ? 'text-zuora-600 dark:text-zuora-400' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  </svg>
+                  <span className="flex-1 text-left">Custom Fields</span>
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => onSelectView('storage')}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
                     currentView === 'storage'
