@@ -270,6 +270,10 @@ export const OAuthAuthentication = ({
     saveTenants(next);
     onTenantsChange?.(next);
     setShowAddForm(false);
+    // Clear any Quick Connect token in state — new tenant has no token yet
+    setAccessToken('');
+    setExpiryTimestamp(null);
+    setTimeLeft('');
   };
 
   const handleEditTenant = (data: Omit<TenantCredential, 'id'>) => {
