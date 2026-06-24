@@ -2,12 +2,18 @@ import { useState } from 'react';
 import type { StorageCategory, StorageSnapshot } from '../hooks/useStorageUsage';
 
 const AUTH_KEY_LABELS: Record<string, string> = {
-  zuora_access_token: 'Billing OAuth Token',
+  zuora_access_token: 'Active OAuth Token',
   zuora_token_expiry: 'Token Expiry',
   zuora_token_tenant_id: 'Token Tenant ID',
   zuora_tenants: 'Saved Billing Tenants',
   zuora_active_tenant_id: 'Active Billing Tenant',
 };
+
+function getAuthKeyLabel(key: string): string {
+  if (AUTH_KEY_LABELS[key]) return AUTH_KEY_LABELS[key];
+  if (key.startsWith('zuora_token_')) return `Token — Tenant ${key.replace('zuora_token_', '').slice(0, 8)}…`;
+  return key;
+}
 
 interface StorageManagerProps {
   usage: StorageSnapshot;
@@ -127,7 +133,7 @@ function AuthCategoryRow({
           {category.keys.map((key, i) => {
             const value = localStorage.getItem(key) ?? '';
             const bytes = (key.length + value.length) * 2;
-            const label = AUTH_KEY_LABELS[key] ?? key;
+            const label = getAuthKeyLabel(key);
             const isLast = i === category.keys.length - 1;
             return (
               <div key={key} className={`flex items-center justify-between px-3 py-2 bg-slate-50 dark:bg-slate-950 ${!isLast ? 'border-b border-slate-100 dark:border-slate-800' : ''}`}>

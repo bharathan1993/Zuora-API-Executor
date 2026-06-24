@@ -15,7 +15,18 @@ interface OAuthAuthenticationProps {
   selectedEnvironmentId: string;
   onEnvironmentChange: (environmentId: string) => void;
   onTokenGenerated: (token: string) => void;
+  onTenantSelect?: (tenantId: string) => void;
   useCorsProxy?: boolean;
+}
+
+type TokenStatus = 'active' | 'expired' | 'none';
+
+function getTenantTokenStatus(tenantId: string): TokenStatus {
+  const token = localStorage.getItem(`zuora_token_${tenantId}`);
+  if (!token) return 'none';
+  const expiry = localStorage.getItem(`zuora_token_expiry_${tenantId}`);
+  if (!expiry) return 'active';
+  return Date.now() < parseInt(expiry, 10) ? 'active' : 'expired';
 }
 
 const TENANTS_KEY = 'zuora_tenants';
@@ -168,8 +179,10 @@ export const OAuthAuthentication = ({
   selectedEnvironmentId,
   onEnvironmentChange,
   onTokenGenerated,
+  onTenantSelect,
   useCorsProxy = false,
 }: OAuthAuthenticationProps) => {
+  const [statusTick, setStatusTick] = useState(0);
   const [tenants, setTenants] = useState<TenantCredential[]>(() => loadTenants());
   const [activeTenantId, setActiveTenantId] = useState<string>(() => localStorage.getItem(ACTIVE_TENANT_KEY) ?? '');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -192,7 +205,6 @@ export const OAuthAuthentication = ({
   const [showToken, setShowToken] = useState(false);
   const [useManualToken, setUseManualToken] = useState(false);
   const [manualToken, setManualToken] = useState('');
-  const [tokenTenantId, setTokenTenantId] = useState<string>(() => localStorage.getItem('zuora_token_tenant_id') ?? '');
 
   const activeTenant = tenants.find((t) => t.id === activeTenantId) ?? null;
 
@@ -280,6 +292,7 @@ export const OAuthAuthentication = ({
     setActiveTenantId(t.id);
     localStorage.setItem(ACTIVE_TENANT_KEY, t.id);
     onEnvironmentChange(t.environmentId);
+    onTenantSelect?.(t.id);
     setQuickMode(false);
     setError('');
   };
@@ -299,8 +312,9 @@ export const OAuthAuthentication = ({
       setExpiryTimestamp(expiry);
       localStorage.setItem('zuora_access_token', resp.access_token);
       localStorage.setItem('zuora_token_expiry', expiry.toString());
-      localStorage.setItem('zuora_token_tenant_id', activeTenant.id);
-      setTokenTenantId(activeTenant.id);
+      localStorage.setItem(`zuora_token_${activeTenant.id}`, resp.access_token);
+      localStorage.setItem(`zuora_token_expiry_${activeTenant.id}`, expiry.toString());
+      setStatusTick(v => v + 1);
       onTokenGenerated(resp.access_token);
     } catch (err: any) {
       setError(err.message || 'Failed to generate OAuth token');
@@ -324,8 +338,6 @@ export const OAuthAuthentication = ({
       setExpiryTimestamp(expiry);
       localStorage.setItem('zuora_access_token', resp.access_token);
       localStorage.setItem('zuora_token_expiry', expiry.toString());
-      localStorage.setItem('zuora_token_tenant_id', 'quick');
-      setTokenTenantId('quick');
       onTokenGenerated(resp.access_token);
       onEnvironmentChange(quickEnvId);
     } catch (err: any) {
@@ -338,10 +350,13 @@ export const OAuthAuthentication = ({
 
   const handleClearToken = () => {
     setAccessToken(''); setExpiryTimestamp(null); setTimeLeft(''); setManualToken('');
-    setTokenTenantId('');
     localStorage.removeItem('zuora_access_token');
     localStorage.removeItem('zuora_token_expiry');
-    localStorage.removeItem('zuora_token_tenant_id');
+    if (activeTenant) {
+      localStorage.removeItem(`zuora_token_${activeTenant.id}`);
+      localStorage.removeItem(`zuora_token_expiry_${activeTenant.id}`);
+    }
+    setStatusTick(v => v + 1);
     onTokenGenerated('');
   };
 
@@ -435,6 +450,9 @@ export const OAuthAuthentication = ({
           ) : (
             tenants.map((t) => {
               const isActive = t.id === activeTenantId;
+              const tokenStatus: TokenStatus = getTenantTokenStatus(t.id);
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              void statusTick; // consumed so badges re-render after token ops
               return (
                 <div
                   key={t.id}
@@ -454,15 +472,22 @@ export const OAuthAuthentication = ({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-semibold text-slate-800 dark:text-white">{t.name}</span>
-                        {isActive && hasToken && (
+                        {tokenStatus === 'active' && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-semibold">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            Active
+                            Token Active
                           </span>
                         )}
-                        {isActive && isTokenExpired && (
+                        {tokenStatus === 'expired' && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-500 dark:text-rose-400 text-[10px] font-semibold">
-                            Token Expired
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                            Expired
+                          </span>
+                        )}
+                        {tokenStatus === 'none' && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-[10px] font-semibold">
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+                            Inactive
                           </span>
                         )}
                       </div>
@@ -741,23 +766,12 @@ export const OAuthAuthentication = ({
                       </code>
                     </div>
                   </div>
-                  {(() => {
-                    const blockedByOther = !!accessToken && !isTokenExpired && tokenTenantId !== activeTenant.id && tokenTenantId !== '';
-                    const blockingTenant = blockedByOther ? tenants.find(t => t.id === tokenTenantId) : null;
-                    return blockedByOther ? (
-                      <div className="rounded-xl border border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/8 p-3">
-                        <p className="text-sm text-amber-700 dark:text-amber-400">
-                          Clear the active token{blockingTenant ? <> on <span className="font-semibold">{blockingTenant.name}</span></> : ''} before generating a new one here.
-                        </p>
-                      </div>
-                    ) : null;
-                  })()}
                   <button
                     type="button"
                     onClick={handleGenerateToken}
-                    disabled={isGenerating || (!!accessToken && !isTokenExpired && tokenTenantId !== activeTenant.id && tokenTenantId !== '')}
+                    disabled={isGenerating}
                     className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
-                      isGenerating || (!!accessToken && !isTokenExpired && tokenTenantId !== activeTenant.id && tokenTenantId !== '')
+                      isGenerating
                         ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-200 dark:border-slate-700'
                         : 'bg-zuora-600 text-white hover:bg-zuora-500 shadow-lg shadow-zuora-500/20'
                     }`}

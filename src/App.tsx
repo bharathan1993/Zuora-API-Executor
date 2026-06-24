@@ -21,6 +21,11 @@ function App() {
     zuoraEnvironments[0]?.id || ''
   );
   const [authToken, setAuthToken] = useState<string>('');
+  const [activeTenantId, setActiveTenantId] = useState<string>(() => localStorage.getItem('zuora_active_tenant_id') ?? '');
+  const [tenants, setTenants] = useState<Array<{ id: string; name: string; environmentId: string }>>(() => {
+    try { return JSON.parse(localStorage.getItem('zuora_tenants') || '[]'); } catch { return []; }
+  });
+  const [showTenantDropdown, setShowTenantDropdown] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string>('');
@@ -48,13 +53,14 @@ function App() {
   const { usage, refresh: refreshStorage, clearCategory, clearAll: clearAllStorage } = useStorageUsage();
   const [storageBannerDismissed, setStorageBannerDismissed] = useState(false);
   const formId = 'zuora-api-form';
-  const savedRequestsKey = 'zuora_saved_requests';
+  const savedRequestsKey = activeTenantId ? `zuora_saved_requests_${activeTenantId}` : 'zuora_saved_requests';
+  const formStatePrefix = activeTenantId ? `${STORAGE_KEYS.formStatePrefix}${activeTenantId}_` : STORAGE_KEYS.formStatePrefix;
   const favoritesKey = 'zuora_favorite_endpoints';
   const recentsKey = 'zuora_recent_endpoints';
 
-  const loadSavedRequests = () => {
+  const loadSavedRequestsForKey = (key: string) => {
     try {
-      const raw = localStorage.getItem(savedRequestsKey);
+      const raw = localStorage.getItem(key);
       if (!raw) return { requests: [], folders: [] as SavedFolder[] };
       const parsed = JSON.parse(raw) as { requests?: SavedRequest[]; folders?: SavedFolder[] } | SavedRequest[];
       const defaultEndpointId = zuoraEndpoints[0]?.id ?? 'post-account';
@@ -79,7 +85,7 @@ function App() {
 
   const loadFormState = (endpointId: string) => {
     try {
-      const raw = localStorage.getItem(`${STORAGE_KEYS.formStatePrefix}${endpointId}`);
+      const raw = localStorage.getItem(`${formStatePrefix}${endpointId}`);
       if (!raw) return null;
       return JSON.parse(raw) as { data?: Record<string, any>; pathParams?: Record<string, any>; queryParams?: Record<string, any>; headers?: Record<string, string> };
     } catch {
@@ -90,7 +96,7 @@ function App() {
   const saveFormState = (endpointId: string) => {
     if (!endpointId || currentView === 'auth' || currentView === 'storage') return;
     try {
-      localStorage.setItem(`${STORAGE_KEYS.formStatePrefix}${endpointId}`, JSON.stringify({
+      localStorage.setItem(`${formStatePrefix}${endpointId}`, JSON.stringify({
         data: liveFormData,
         pathParams: livePathParams,
         queryParams: liveQueryParams,
@@ -111,22 +117,21 @@ function App() {
   };
 
   useEffect(() => {
-    // Load auth token and environment from localStorage
-    const savedToken = localStorage.getItem('zuora_access_token');
+    const tenantId = localStorage.getItem('zuora_active_tenant_id') ?? '';
+    // Load token: prefer per-tenant token, fall back to global
+    const tenantToken = tenantId ? localStorage.getItem(`zuora_token_${tenantId}`) : null;
+    const savedToken = tenantToken ?? localStorage.getItem('zuora_access_token');
     const savedEnvironment = localStorage.getItem('zuora_environment');
 
-    if (savedToken) {
-      setAuthToken(savedToken);
-    }
+    if (savedToken) setAuthToken(savedToken);
 
     if (savedEnvironment) {
       const envExists = zuoraEnvironments.find(env => env.id === savedEnvironment);
-      if (envExists) {
-        setSelectedEnvironmentId(savedEnvironment);
-      }
+      if (envExists) setSelectedEnvironmentId(savedEnvironment);
     }
 
-    const loaded = loadSavedRequests();
+    const key = tenantId ? `zuora_saved_requests_${tenantId}` : 'zuora_saved_requests';
+    const loaded = loadSavedRequestsForKey(key);
     setSavedRequests(loaded.requests);
     setSavedFolders(loaded.folders);
     setFavoriteEndpointIds(loadStringArray(favoritesKey));
@@ -147,6 +152,19 @@ function App() {
     // Save current endpoint's form state before leaving
     if (currentView !== 'auth' && currentView !== 'storage') {
       saveFormState(selectedEndpoint.id);
+    }
+
+    // When leaving auth page, refresh tenants list in case user added/edited
+    if (currentView === 'auth' && view !== 'auth') {
+      try {
+        const freshTenants = JSON.parse(localStorage.getItem('zuora_tenants') || '[]');
+        setTenants(freshTenants);
+        const newActiveId = localStorage.getItem('zuora_active_tenant_id') ?? '';
+        if (newActiveId !== activeTenantId) {
+          handleTenantSwitch(newActiveId);
+          return;
+        }
+      } catch { /* ignore */ }
     }
 
     setPreviousView(currentView);
@@ -201,8 +219,42 @@ function App() {
     });
   };
 
+  const handleTenantSwitch = (tenantId: string) => {
+    setShowTenantDropdown(false);
+    if (tenantId === activeTenantId) return;
+
+    // Save current form state before switching
+    if (currentView !== 'auth' && currentView !== 'storage') {
+      saveFormState(selectedEndpoint.id);
+    }
+
+    setActiveTenantId(tenantId);
+    localStorage.setItem('zuora_active_tenant_id', tenantId);
+
+    // Load this tenant's token
+    const tenantToken = tenantId ? (localStorage.getItem(`zuora_token_${tenantId}`) ?? '') : '';
+    setAuthToken(tenantToken);
+
+    // Load this tenant's saved requests immediately (can't wait for state update)
+    const key = tenantId ? `zuora_saved_requests_${tenantId}` : 'zuora_saved_requests';
+    const loaded = loadSavedRequestsForKey(key);
+    setSavedRequests(loaded.requests);
+    setSavedFolders(loaded.folders);
+
+    // Clear form (start fresh per tenant)
+    setPrefillRequest(null);
+    setLiveFormData({});
+    setLiveQueryParams(undefined);
+    setResponse(null);
+    setError('');
+  };
+
   const handleTokenGenerated = (token: string) => {
     setAuthToken(token);
+    // Also save per-tenant so switching back restores it
+    if (activeTenantId && token) {
+      localStorage.setItem(`zuora_token_${activeTenantId}`, token);
+    }
   };
 
   const handleEnvironmentChange = (environmentId: string) => {
@@ -614,6 +666,98 @@ function App() {
 
               {/* Right actions */}
               <div className="flex items-center gap-2 shrink-0">
+
+                {/* Tenant switcher */}
+                {tenants.length > 0 && (
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowTenantDropdown(v => !v)}
+                      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-sm font-semibold transition-all min-w-[180px] max-w-[240px] ${
+                        showTenantDropdown
+                          ? 'border-zuora-400 dark:border-zuora-500/70 bg-zuora-50 dark:bg-zuora-500/10 text-zuora-700 dark:text-zuora-300 shadow-sm'
+                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-zuora-400 dark:hover:border-zuora-500/60 hover:bg-zuora-50 dark:hover:bg-zuora-500/8 hover:text-zuora-700 dark:hover:text-zuora-300'
+                      }`}
+                    >
+                      <svg className="w-4 h-4 shrink-0 text-zuora-500 dark:text-zuora-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                      <span className="flex-1 truncate text-left">
+                        {tenants.find(t => t.id === activeTenantId)?.name ?? 'Select tenant'}
+                      </span>
+                      <svg className={`w-4 h-4 shrink-0 transition-transform ${showTenantDropdown ? 'rotate-180' : ''} text-slate-400`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {showTenantDropdown && (
+                      <>
+                        {/* Backdrop */}
+                        <div className="fixed inset-0 z-30" onClick={() => setShowTenantDropdown(false)} />
+                        <div className="absolute right-0 top-full mt-2 z-40 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl dark:shadow-black/50 overflow-hidden">
+                          <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                            <svg className="w-4 h-4 text-zuora-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Switch Tenant</p>
+                          </div>
+                          <div className="py-1.5 max-h-72 overflow-y-auto">
+                            {tenants.map(t => {
+                              const isActive = t.id === activeTenantId;
+                              const token = localStorage.getItem(`zuora_token_${t.id}`);
+                              const expiry = localStorage.getItem(`zuora_token_expiry_${t.id}`);
+                              const tokenStatus = !token ? 'none' : (!expiry || Date.now() < parseInt(expiry, 10)) ? 'active' : 'expired';
+                              return (
+                              <button
+                                key={t.id}
+                                type="button"
+                                onClick={() => handleTenantSwitch(t.id)}
+                                className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
+                                  isActive
+                                    ? 'bg-zuora-50 dark:bg-zuora-500/10'
+                                    : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                                }`}
+                              >
+                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold ${
+                                  isActive ? 'bg-zuora-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                                }`}>
+                                  {t.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className={`text-sm font-semibold truncate ${isActive ? 'text-zuora-700 dark:text-zuora-300' : 'text-slate-800 dark:text-slate-200'}`}>{t.name}</p>
+                                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 flex items-center gap-1">
+                                    {tokenStatus === 'active' && <><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /> Token active</>}
+                                    {tokenStatus === 'expired' && <><span className="w-1.5 h-1.5 rounded-full bg-rose-400 inline-block" /> Token expired</>}
+                                    {tokenStatus === 'none' && <><span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 inline-block" /> No token</>}
+                                  </p>
+                                </div>
+                                {isActive && (
+                                  <svg className="w-4 h-4 text-zuora-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                )}
+                              </button>
+                              );
+                            })}
+                          </div>
+                          <div className="border-t border-slate-100 dark:border-slate-800 p-2">
+                            <button
+                              type="button"
+                              onClick={() => { setShowTenantDropdown(false); handleViewChange('auth'); }}
+                              className="w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-zuora-600 dark:hover:text-zuora-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                              </svg>
+                              Manage tenants
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
                 {/* Inspector toggle */}
                 {isJsonBodyMode && currentView !== 'auth' && currentView !== 'storage' && (
                   <button
@@ -736,6 +880,7 @@ function App() {
                   selectedEnvironmentId={selectedEnvironmentId}
                   onEnvironmentChange={handleEnvironmentChange}
                   onTokenGenerated={handleTokenGenerated}
+                  onTenantSelect={handleTenantSwitch}
                   useCorsProxy={useProxy}
                 />
               </div>
