@@ -8,9 +8,6 @@ interface Props {
   tenantName: string;
 }
 
-const FIELD_TYPES = ['string', 'number', 'boolean', 'date'] as const;
-type FieldType = typeof FIELD_TYPES[number];
-
 function FieldForm({
   initial,
   onSave,
@@ -21,68 +18,31 @@ function FieldForm({
   onCancel: () => void;
 }) {
   const [name, setName] = useState(initial?.name ?? '');
-  const [label, setLabel] = useState(initial?.label ?? '');
-  const [type, setType] = useState<FieldType>((initial?.type as FieldType) ?? 'string');
-  const [defaultValue, setDefaultValue] = useState(initial?.defaultValue ?? '');
 
   const nameValid = /^[A-Za-z][A-Za-z0-9_]*__c$/.test(name.trim());
   const valid = nameValid;
 
   return (
     <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-4 space-y-3 mt-3">
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">
-            API Name <span className="text-rose-500">*</span>
-          </label>
-          <input
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="e.g. PONumber__c"
-            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-zuora-500 font-mono"
-          />
-          {name && !nameValid && (
-            <p className="text-[11px] text-rose-500 mt-1">Must end in __c, e.g. MyField__c</p>
-          )}
-        </div>
-        <div>
-          <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">
-            Display Label
-          </label>
-          <input
-            value={label}
-            onChange={e => setLabel(e.target.value)}
-            placeholder="e.g. PO Number"
-            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-zuora-500"
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Type</label>
-          <select
-            value={type}
-            onChange={e => setType(e.target.value as FieldType)}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-zuora-500"
-          >
-            {FIELD_TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Default Value</label>
-          <input
-            value={defaultValue}
-            onChange={e => setDefaultValue(e.target.value)}
-            placeholder="Optional"
-            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-zuora-500"
-          />
-        </div>
+      <div>
+        <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">
+          API Name <span className="text-rose-500">*</span>
+        </label>
+        <input
+          value={name}
+          onChange={e => setName(e.target.value)}
+          placeholder="e.g. PONumber__c"
+          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-zuora-500 font-mono"
+        />
+        {name && !nameValid && (
+          <p className="text-[11px] text-rose-500 mt-1">Must end in __c, e.g. MyField__c</p>
+        )}
       </div>
       <div className="flex items-center gap-2 pt-1">
         <button
           type="button"
           disabled={!valid}
-          onClick={() => onSave({ name: name.trim(), label: label.trim(), type, defaultValue: defaultValue.trim() || undefined })}
+          onClick={() => onSave({ name: name.trim(), label: '', type: 'string' })}
           className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors ${valid ? 'bg-zuora-600 text-white hover:bg-zuora-500' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'}`}
         >
           Save field
