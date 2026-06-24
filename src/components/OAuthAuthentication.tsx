@@ -210,14 +210,28 @@ export const OAuthAuthentication = ({
 
   const activeTenant = tenants.find((t) => t.id === activeTenantId) ?? null;
 
-  // Load saved token
+  // Sync token panel whenever the active tenant changes (covers page load + tenant switch + clear)
   useEffect(() => {
-    const savedToken = localStorage.getItem('zuora_access_token');
-    const savedExpiry = localStorage.getItem('zuora_token_expiry');
-    if (savedToken) { setAccessToken(savedToken); onTokenGenerated(savedToken); }
-    if (savedExpiry) setExpiryTimestamp(parseInt(savedExpiry, 10));
+    if (activeTenantId) {
+      const token = localStorage.getItem(`zuora_token_${activeTenantId}`) ?? '';
+      const expiry = localStorage.getItem(`zuora_token_expiry_${activeTenantId}`);
+      setAccessToken(token);
+      setExpiryTimestamp(expiry ? parseInt(expiry, 10) : null);
+      setTimeLeft('');
+      onTokenGenerated(token);
+    } else {
+      // No saved tenant — load Quick Connect token if any
+      const savedToken = localStorage.getItem('zuora_access_token') ?? '';
+      const savedExpiry = localStorage.getItem('zuora_token_expiry');
+      setAccessToken(savedToken);
+      setExpiryTimestamp(savedExpiry ? parseInt(savedExpiry, 10) : null);
+      setTimeLeft('');
+      if (savedToken) onTokenGenerated(savedToken);
+    }
+  }, [activeTenantId]);
 
-    // Legacy migration
+  // One-time legacy migration
+  useEffect(() => {
     const legacyId = localStorage.getItem('zuora_client_id');
     const legacySec = localStorage.getItem('zuora_client_secret');
     const existing = loadTenants();
@@ -298,7 +312,7 @@ export const OAuthAuthentication = ({
   };
 
   const handleSelectTenant = (t: TenantCredential) => {
-    setActiveTenantId(t.id);
+    setActiveTenantId(t.id); // triggers useEffect that syncs token panel
     localStorage.setItem(ACTIVE_TENANT_KEY, t.id);
     onEnvironmentChange(t.environmentId);
     onTenantSelect?.(t.id);
@@ -757,7 +771,7 @@ export const OAuthAuthentication = ({
               </div>
 
               {/* Auto generate */}
-              {!useManualToken && (!accessToken || isTokenExpired) && (
+              {!useManualToken && (
                 <div className="space-y-3">
                   <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 p-3 space-y-2">
                     <div className="flex items-center justify-between text-sm">
@@ -770,7 +784,7 @@ export const OAuthAuthentication = ({
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-slate-400 dark:text-slate-500 font-medium">Token URL</span>
-                      <code className="font-mono text-xs text-zuora-600 dark:text-zuora-300 truncate max-w-[280px]">
+                      <code className="font-mono text-xs text-zuora-600 dark:text-zuora-300 break-all">
                         {envUrl(activeTenant.environmentId)}/oauth/token
                       </code>
                     </div>
@@ -778,9 +792,9 @@ export const OAuthAuthentication = ({
                   <button
                     type="button"
                     onClick={handleGenerateToken}
-                    disabled={isGenerating}
+                    disabled={isGenerating || (!!accessToken && !isTokenExpired)}
                     className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
-                      isGenerating
+                      isGenerating || (!!accessToken && !isTokenExpired)
                         ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-200 dark:border-slate-700'
                         : 'bg-zuora-600 text-white hover:bg-zuora-500 shadow-lg shadow-zuora-500/20'
                     }`}
