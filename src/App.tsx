@@ -881,6 +881,7 @@ function App() {
                   onEnvironmentChange={handleEnvironmentChange}
                   onTokenGenerated={handleTokenGenerated}
                   onTenantSelect={handleTenantSwitch}
+                  onTenantsChange={setTenants}
                   useCorsProxy={useProxy}
                 />
               </div>

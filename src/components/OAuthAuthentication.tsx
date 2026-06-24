@@ -16,6 +16,7 @@ interface OAuthAuthenticationProps {
   onEnvironmentChange: (environmentId: string) => void;
   onTokenGenerated: (token: string) => void;
   onTenantSelect?: (tenantId: string) => void;
+  onTenantsChange?: (tenants: Array<{ id: string; name: string; environmentId: string }>) => void;
   useCorsProxy?: boolean;
 }
 
@@ -180,6 +181,7 @@ export const OAuthAuthentication = ({
   onEnvironmentChange,
   onTokenGenerated,
   onTenantSelect,
+  onTenantsChange,
   useCorsProxy = false,
 }: OAuthAuthenticationProps) => {
   const [statusTick, setStatusTick] = useState(0);
@@ -266,6 +268,7 @@ export const OAuthAuthentication = ({
     const next = [...tenants, t];
     setTenants(next);
     saveTenants(next);
+    onTenantsChange?.(next);
     setShowAddForm(false);
   };
 
@@ -274,6 +277,7 @@ export const OAuthAuthentication = ({
     const next = tenants.map((t) => t.id === editingTenant.id ? { ...t, ...data } : t);
     setTenants(next);
     saveTenants(next);
+    onTenantsChange?.(next);
     setEditingTenant(null);
   };
 
@@ -281,6 +285,7 @@ export const OAuthAuthentication = ({
     const next = tenants.filter((t) => t.id !== id);
     setTenants(next);
     saveTenants(next);
+    onTenantsChange?.(next);
     if (activeTenantId === id) {
       setActiveTenantId('');
       localStorage.removeItem(ACTIVE_TENANT_KEY);
