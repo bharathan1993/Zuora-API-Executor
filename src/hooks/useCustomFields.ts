@@ -24,11 +24,6 @@ export function useCustomFields(tenantId: string) {
     setFields(load(id));
   }, []);
 
-  const persist = useCallback((next: TenantCustomFields) => {
-    setFields(next);
-    save(tenantId, next);
-  }, [tenantId]);
-
   const addField = useCallback((objectType: CustomFieldObjectType, field: Omit<CustomFieldDefinition, 'id'>) => {
     setFields(prev => {
       const existing = prev[objectType] ?? [];
