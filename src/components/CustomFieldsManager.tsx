@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CUSTOM_FIELD_OBJECT_TYPES } from '../types/api';
-import type { CustomFieldDefinition, CustomFieldObjectType, TenantCustomFields } from '../types/api';
+import type { CustomFieldDefinition, CustomFieldObjectType } from '../types/api';
 import { useCustomFields } from '../hooks/useCustomFields';
 
 interface Props {
@@ -114,7 +114,6 @@ function ObjectSection({
 
   return (
     <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-900">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-slate-800 dark:text-white">{objectType}</span>
@@ -136,7 +135,6 @@ function ObjectSection({
         </button>
       </div>
 
-      {/* Fields table */}
       {fieldDefs.length > 0 && (
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
           {fieldDefs.map(f => (
@@ -160,7 +158,7 @@ function ObjectSection({
                         {f.type}
                       </span>
                     </div>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5">{f.label}</p>
+                    {f.label && <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5">{f.label}</p>}
                     {f.defaultValue && (
                       <p className="text-[11px] text-slate-400 mt-0.5">Default: {f.defaultValue}</p>
                     )}
@@ -181,9 +179,7 @@ function ObjectSection({
                         <button type="button" onClick={() => { onDelete(f.id); setDeleteConfirm(null); }} className="text-[11px] font-semibold text-rose-600 px-2 py-1 rounded-lg bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors">
                           Confirm
                         </button>
-                        <button type="button" onClick={() => setDeleteConfirm(null)} className="text-[11px] text-slate-400 px-1">
-                          ✕
-                        </button>
+                        <button type="button" onClick={() => setDeleteConfirm(null)} className="text-[11px] text-slate-400 px-1">✕</button>
                       </>
                     ) : (
                       <button
@@ -205,14 +201,12 @@ function ObjectSection({
         </div>
       )}
 
-      {/* Empty state */}
       {fieldDefs.length === 0 && !showAdd && (
         <div className="px-4 py-5 bg-white dark:bg-slate-900 text-center">
           <p className="text-sm text-slate-400 dark:text-slate-600">No custom fields yet</p>
         </div>
       )}
 
-      {/* Add form */}
       {showAdd && (
         <div className="px-4 pb-4 bg-white dark:bg-slate-900">
           <FieldForm
@@ -232,13 +226,13 @@ export function CustomFieldsManager({ tenantId, tenantName }: Props) {
   const totalFields = Object.values(fields).reduce((sum, arr) => sum + (arr?.length ?? 0), 0);
 
   const filtered = search.trim()
-    ? (CUSTOM_FIELD_OBJECT_TYPES.filter(ot => {
+    ? CUSTOM_FIELD_OBJECT_TYPES.filter(ot => {
         const defs = fields[ot] ?? [];
         return defs.some(f =>
           f.name.toLowerCase().includes(search.toLowerCase()) ||
           f.label.toLowerCase().includes(search.toLowerCase())
         );
-      }))
+      })
     : CUSTOM_FIELD_OBJECT_TYPES;
 
   if (!tenantId) {
@@ -257,7 +251,6 @@ export function CustomFieldsManager({ tenantId, tenantName }: Props) {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header */}
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2.5">
@@ -275,7 +268,6 @@ export function CustomFieldsManager({ tenantId, tenantName }: Props) {
         </div>
       </div>
 
-      {/* Search */}
       {totalFields > 3 && (
         <div className="relative">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -290,17 +282,15 @@ export function CustomFieldsManager({ tenantId, tenantName }: Props) {
         </div>
       )}
 
-      {/* Info banner */}
       <div className="flex gap-3 p-4 bg-blue-50 dark:bg-blue-500/8 border border-blue-200 dark:border-blue-500/20 rounded-xl">
         <svg className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <p className="text-sm text-blue-700 dark:text-blue-300">
-          Custom field API names must end in <code className="font-mono bg-blue-100 dark:bg-blue-500/20 px-1 rounded">__c</code> (e.g. <code className="font-mono bg-blue-100 dark:bg-blue-500/20 px-1 rounded">PONumber__c</code>). When you execute an API, these fields are added to the request body for the matching object type.
+          Custom field API names must end in <code className="font-mono bg-blue-100 dark:bg-blue-500/20 px-1 rounded">__c</code> (e.g. <code className="font-mono bg-blue-100 dark:bg-blue-500/20 px-1 rounded">PONumber__c</code>). When you execute an API, these fields appear in the dropdown for the matching object type.
         </p>
       </div>
 
-      {/* Object sections */}
       <div className="space-y-3">
         {filtered.map(objectType => (
           <ObjectSection

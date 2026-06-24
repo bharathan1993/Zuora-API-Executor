@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { CustomFieldDefinition, CustomFieldObjectType, TenantCustomFields } from '../types/api';
 
 const storageKey = (tenantId: string) => `zuora_custom_fields_${tenantId}`;
@@ -15,34 +15,44 @@ function save(tenantId: string, fields: TenantCustomFields) {
 export function useCustomFields(tenantId: string) {
   const [fields, setFields] = useState<TenantCustomFields>(() => load(tenantId));
 
-  // Reload when tenant changes
+  // Reload whenever tenantId changes
+  useEffect(() => {
+    setFields(load(tenantId));
+  }, [tenantId]);
+
   const reload = useCallback((id: string) => {
     setFields(load(id));
   }, []);
 
-  const persist = useCallback((next: TenantCustomFields) => {
-    setFields(next);
-    save(tenantId, next);
+  const addField = useCallback((objectType: CustomFieldObjectType, field: Omit<CustomFieldDefinition, 'id'>) => {
+    setFields(prev => {
+      const existing = prev[objectType] ?? [];
+      const next = { ...prev, [objectType]: [...existing, { ...field, id: crypto.randomUUID() }] };
+      save(tenantId, next);
+      return next;
+    });
   }, [tenantId]);
 
-  const addField = useCallback((objectType: CustomFieldObjectType, field: Omit<CustomFieldDefinition, 'id'>) => {
-    const existing = fields[objectType] ?? [];
-    persist({ ...fields, [objectType]: [...existing, { ...field, id: crypto.randomUUID() }] });
-  }, [fields, persist]);
-
   const editField = useCallback((objectType: CustomFieldObjectType, id: string, updates: Omit<CustomFieldDefinition, 'id'>) => {
-    const existing = fields[objectType] ?? [];
-    persist({ ...fields, [objectType]: existing.map(f => f.id === id ? { ...f, ...updates } : f) });
-  }, [fields, persist]);
+    setFields(prev => {
+      const existing = prev[objectType] ?? [];
+      const next = { ...prev, [objectType]: existing.map(f => f.id === id ? { ...f, ...updates } : f) };
+      save(tenantId, next);
+      return next;
+    });
+  }, [tenantId]);
 
   const deleteField = useCallback((objectType: CustomFieldObjectType, id: string) => {
-    const existing = fields[objectType] ?? [];
-    const next = existing.filter(f => f.id !== id);
-    const updated = { ...fields };
-    if (next.length === 0) delete updated[objectType];
-    else updated[objectType] = next;
-    persist(updated);
-  }, [fields, persist]);
+    setFields(prev => {
+      const existing = prev[objectType] ?? [];
+      const filtered = existing.filter(f => f.id !== id);
+      const next = { ...prev };
+      if (filtered.length === 0) delete next[objectType];
+      else next[objectType] = filtered;
+      save(tenantId, next);
+      return next;
+    });
+  }, [tenantId]);
 
   const getFieldsForObject = useCallback((objectType: CustomFieldObjectType): CustomFieldDefinition[] => {
     return fields[objectType] ?? [];
