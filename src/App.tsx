@@ -7,6 +7,7 @@ import { Sidebar } from './components/Sidebar';
 import { JsonPreview } from './components/JsonPreview';
 import { SavedRequests } from './components/SavedRequests';
 import { StorageManager } from './components/StorageManager';
+import { CustomFieldsManager } from './components/CustomFieldsManager';
 import { NameModal } from './components/NameModal';
 import { zuoraEndpoints } from './config/zuoraEndpoints';
 import { zuoraEnvironments } from './config/environments';
@@ -94,7 +95,7 @@ function App() {
   };
 
   const saveFormState = (endpointId: string) => {
-    if (!endpointId || currentView === 'auth' || currentView === 'storage') return;
+    if (!endpointId || currentView === 'auth' || currentView === 'storage' || currentView === 'custom-fields') return;
     try {
       localStorage.setItem(`${formStatePrefix}${endpointId}`, JSON.stringify({
         data: liveFormData,
@@ -140,7 +141,7 @@ function App() {
 
   // Auto-save form state for the current endpoint (debounced 800ms)
   useEffect(() => {
-    if (currentView === 'auth' || currentView === 'storage') return;
+    if (currentView === 'auth' || currentView === 'storage' || currentView === 'custom-fields') return;
     const timer = setTimeout(() => {
       saveFormState(selectedEndpoint.id);
       refreshStorage();
@@ -150,7 +151,7 @@ function App() {
 
   const handleViewChange = (view: string) => {
     // Save current endpoint's form state before leaving
-    if (currentView !== 'auth' && currentView !== 'storage') {
+    if (currentView !== 'auth' && currentView !== 'storage' && currentView !== 'custom-fields') {
       saveFormState(selectedEndpoint.id);
     }
 
@@ -171,7 +172,7 @@ function App() {
     setCurrentView(view);
     setIsSidebarOpen(false);
 
-    if (view !== 'auth' && view !== 'storage') {
+    if (view !== 'auth' && view !== 'storage' && view !== 'custom-fields') {
       const endpoint = zuoraEndpoints.find(e => e.id === view);
       if (endpoint) {
         setSelectedEndpoint(endpoint);
@@ -224,7 +225,7 @@ function App() {
     if (tenantId === activeTenantId) return;
 
     // Save current form state before switching
-    if (currentView !== 'auth' && currentView !== 'storage') {
+    if (currentView !== 'auth' && currentView !== 'storage' && currentView !== 'custom-fields') {
       saveFormState(selectedEndpoint.id);
     }
 
@@ -633,7 +634,7 @@ function App() {
               </button>
 
               {/* Back button — shown when on utility pages with a prior endpoint to return to */}
-              {(currentView === 'auth' || currentView === 'storage') && previousView && previousView !== 'auth' && previousView !== 'storage' && (
+              {(currentView === 'auth' || currentView === 'storage' || currentView === 'custom-fields') && previousView && previousView !== 'auth' && previousView !== 'storage' && previousView !== 'custom-fields' && (
                 <button
                   onClick={() => handleViewChange(previousView)}
                   className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors shrink-0"
@@ -647,7 +648,7 @@ function App() {
 
               {/* Method badge + endpoint title */}
               <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                {currentView !== 'auth' && currentView !== 'storage' && (
+                {currentView !== 'auth' && currentView !== 'storage' && currentView !== 'custom-fields' && (
                   <span className={`shrink-0 px-2.5 py-1 rounded-md text-xs font-bold tracking-wide border ${
                     selectedEndpoint.method === 'POST'   ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20' :
                     selectedEndpoint.method === 'GET'    ? 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-500/20' :
@@ -660,7 +661,7 @@ function App() {
                   </span>
                 )}
                 <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 truncate">
-                  {currentView === 'auth' ? 'Authentication' : currentView === 'storage' ? 'Storage Manager' : selectedEndpoint.name}
+                  {currentView === 'auth' ? 'Authentication' : currentView === 'storage' ? 'Storage Manager' : currentView === 'custom-fields' ? 'Custom Fields' : selectedEndpoint.name}
                 </h2>
               </div>
 
@@ -759,7 +760,7 @@ function App() {
                 )}
 
                 {/* Inspector toggle */}
-                {isJsonBodyMode && currentView !== 'auth' && currentView !== 'storage' && (
+                {isJsonBodyMode && currentView !== 'auth' && currentView !== 'storage' && currentView !== 'custom-fields' && (
                   <button
                     type="button"
                     onClick={() => setShowInspectorPanel((v) => !v)}
@@ -794,7 +795,7 @@ function App() {
                 </button>
 
                 {/* Run Request — only on API endpoints */}
-                {currentView !== 'auth' && currentView !== 'storage' && (
+                {currentView !== 'auth' && currentView !== 'storage' && currentView !== 'custom-fields' && (
                   <button
                     type="submit"
                     form={formId}
@@ -867,7 +868,12 @@ function App() {
           <div className="max-w-[1920px] mx-auto space-y-8 pb-12">
             
             {/* View Content */}
-            {currentView === 'storage' ? (
+            {currentView === 'custom-fields' ? (
+              <CustomFieldsManager
+                tenantId={activeTenantId}
+                tenantName={tenants.find(t => t.id === activeTenantId)?.name ?? activeTenantId}
+              />
+            ) : currentView === 'storage' ? (
               <StorageManager
                 usage={usage}
                 onClearCategory={(keys) => { clearCategory(keys); refreshStorage(); }}
@@ -906,6 +912,7 @@ function App() {
                       onPathParamsChange={setLivePathParams}
                       onQueryParamsChange={setLiveQueryParams}
                       onJsonModeChange={handleJsonModeChange}
+                      activeTenantId={activeTenantId}
                       prefillData={prefillRequest?.data}
                       prefillQueryParams={prefillRequest?.queryParams}
                       prefillHeaders={prefillRequest?.customHeaders}
