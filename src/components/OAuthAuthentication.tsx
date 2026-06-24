@@ -757,7 +757,7 @@ export const OAuthAuthentication = ({
               </div>
 
               {/* Auto generate */}
-              {!useManualToken && (
+              {!useManualToken && (!accessToken || isTokenExpired) && (
                 <div className="space-y-3">
                   <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 p-3 space-y-2">
                     <div className="flex items-center justify-between text-sm">
@@ -809,7 +809,7 @@ export const OAuthAuthentication = ({
               )}
 
               {/* Manual token */}
-              {useManualToken && (
+              {useManualToken && (!accessToken || isTokenExpired) && (
                 <div className="space-y-3">
                   <textarea
                     value={manualToken}
